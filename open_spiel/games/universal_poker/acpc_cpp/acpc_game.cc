@@ -280,14 +280,26 @@ void ACPCState::SetHoleAndBoardCards(uint8_t holeCards[10][3],
                                      uint8_t boardCards[7],
                                      uint8_t nbHoleCards[10],
                                      uint8_t nbBoardCards) {
+
+  SPIEL_CHECK_EQ(nbBoardCards, game_->GetNbBoardCardsRequired(GetRound()));
+  
   for (int p = 0; p < game_->GetNbPlayers(); ++p) {
     SPIEL_CHECK_EQ(nbHoleCards[p], game_->GetNbHoleCardsRequired());
     for (int c = 0; c < nbHoleCards[p]; ++c) {
+      uint8_t placeHolderCard = acpcState_.holeCards[p][c];
       acpcState_.holeCards[p][c] = holeCards[p][c];
+      for (int d = nbBoardCards; d < MAX_BOARD_CARDS; ++d)
+      {
+          printf("x (%d/%d)\n", d, MAX_BOARD_CARDS);
+          if (acpcState_.boardCards[d] == holeCards[p][c])
+          {
+              acpcState_.boardCards[d] = placeHolderCard;
+              break;
+          }
+      }
     }
   }
 
-  SPIEL_CHECK_EQ(nbBoardCards, game_->GetNbBoardCardsRequired(GetRound()));
   for (int c = 0; c < nbBoardCards; ++c) {
     acpcState_.boardCards[c] = boardCards[c];
   }

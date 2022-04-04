@@ -65,6 +65,10 @@ def main(_):
   # Print the initial state
   print(str(state))
 
+  # This is a minor test, do I get unimplemented exception?
+  partialState = [1, 2, 3]
+  state.set_partial_game_state(partialState)
+
   while not state.is_terminal():
     # The state can be three different types: chance node,
     # simultaneous node, or decision node

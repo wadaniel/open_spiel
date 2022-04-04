@@ -77,7 +77,8 @@ def main(_):
   # Print the initial state
   print("INITIAL STATE")
   print(str(state))
-
+  
+ 
   while not state.is_terminal():
     # The state can be three different types: chance node,
     # simultaneous node, or decision node
@@ -107,6 +108,13 @@ def main(_):
     print("")
     print("NEXT STATE:")
     print(str(state))
+
+
+  # This is a minor test
+  print("\n\nRESETTING HOLE CARDS BEFORE RETURNS CALCULATED\n\n")
+  partialState = [[0, 4], [50, 51]]
+  state.set_partial_game_state(partialState)
+  print(str(state))
 
   # Game is now done. Print utilities for each player
   returns = state.returns()

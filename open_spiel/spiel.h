@@ -568,6 +568,12 @@ class State {
     child->ApplyAction(action);
     return child;
   }
+  
+  // SetPartialGameState modifies the state of the game. Eg for poker it sets 
+  // the hole and public cards of the players.
+  virtual void SetPartialGameState(std::vector<std::vector<uint8_t>> state) {
+    SpielFatalError("SetPartialGameState unimplemented!");
+  }
 
   // Undoes the last action, which must be supplied. This is a fast method to
   // undo an action. It is only necessary for algorithms that need a fast undo
@@ -933,7 +939,7 @@ class Game : public std::enable_shared_from_this<Game> {
   virtual void SetRNGState(const std::string& rng_state) const {
     SpielFatalError("SetRNGState unimplemented.");
   }
-
+  
   // Returns an Observer, used to obtain observations of the game state.
   // The observations are created according to requested observation type.
   // Games can include additional observation fields when requested by

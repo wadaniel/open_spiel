@@ -304,6 +304,7 @@ PYBIND11_MODULE(pyspiel, m) {
            (std::vector<float>(State::*)() const) & State::ObservationTensor)
       .def("clone", &State::Clone)
       .def("child", &State::Child)
+      .def("set_partial_game_state", &State::SetPartialGameState)
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)
       .def("apply_actions_with_legality_checks",

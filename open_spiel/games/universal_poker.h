@@ -76,6 +76,9 @@ class UniversalPokerState : public State {
   std::string ToString() const override;
   std::vector<double> Returns() const override;
   std::string InformationStateString(Player player) const override;
+  void SetPartialGameState(std::vector<std::vector<uint8_t>> state) override;
+
+
   std::string ObservationString(Player player) const override;
   void InformationStateTensor(Player player,
                               absl::Span<float> values) const override;

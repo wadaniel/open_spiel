@@ -494,6 +494,61 @@ std::string UniversalPokerState::InformationStateString(Player player) const {
       HoleCards(player).ToString(), BoardCards().ToString(), sequences);
 }
 
+void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> state) {
+
+    // verify number of hands
+    if (state.size() !=  acpc_game_->GetNbPlayers())
+    {
+      SpielFatalError(absl::StrCat("Not enough hands provided, expected ",acpc_game_->GetNbPlayers()));
+    }
+
+    auto boardCardSet = this->BoardCards();
+
+    uint8_t holeCards[10][3];
+    uint8_t boardCards[7];
+    uint8_t nbHoleCards[10];
+    uint8_t nbBoardCards = boardCardSet.NumCards();
+
+    uint8_t playerId = 0;
+    for (auto& hand : state)
+    {
+    
+      // verify number cards per hand
+      if (hand.size() != 2)
+        SpielFatalError(absl::StrCat("Each hand must hold 2 cards, hand is of size", hand.size()));
+      nbHoleCards[playerId] = 2;
+
+      uint8_t cardId = 0;
+      for (uint8_t card : hand)
+      {
+        // check if card is already on board
+        if (boardCardSet.ContainsCards(card))
+            SpielFatalError(absl::StrCat("Cannot set hole hard that is already a board card ", card));
+
+        // assign card to player
+        holeCards[playerId][cardId] = card;
+        cardId++;
+      }
+      playerId++;
+
+    }
+ 
+    // check if we set same cards
+    for(size_t p0 = 0; p0 < state.size(); ++p0)
+      for(size_t p1 = p0; p1 < state.size(); ++p1)
+        for(size_t c = 0; c < 2; ++c)
+          for(size_t d = c+1; d < 2; ++d)
+            if (state[p0][c] == state[p0][d])
+              SpielFatalError(absl::StrCat("Cannot assign same cards to players ", state[p0][c]));
+
+    // get existing board cards
+    auto boardCardArray = boardCardSet.ToCardArray();
+    
+    // assign board cards to board
+    std::memcpy(boardCards, &boardCardArray[0], nbBoardCards*sizeof(uint8_t));
+    acpc_state_.SetHoleAndBoardCards(holeCards, boardCards, nbHoleCards, nbBoardCards);
+}
+
 std::string UniversalPokerState::ObservationString(Player player) const {
   SPIEL_CHECK_GE(player, 0);
   SPIEL_CHECK_LT(player, acpc_game_->GetNbPlayers());

@@ -517,6 +517,9 @@ void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> 
       if (hand.size() != 2)
         SpielFatalError(absl::StrCat("Each hand must hold 2 cards, hand is of size", hand.size()));
       nbHoleCards[playerId] = 2;
+      
+      if (hand[0] == hand[1])
+        SpielFatalError("Cannot assign twice the same card to a player");
 
       uint8_t cardId = 0;
       for (uint8_t card : hand)
@@ -525,8 +528,15 @@ void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> 
         if (boardCardSet.ContainsCards(card))
             SpielFatalError(absl::StrCat("Cannot set hole hard that is already a board card ", card));
 
+        // put players card back into the deck
+        deck_.AddCard(holeCards[playerId][cardId]);
+        
         // assign card to player
         holeCards[playerId][cardId] = card;
+        
+        // remove that card from deck
+        deck_.RemoveCard(card);
+
         cardId++;
       }
       playerId++;
@@ -535,10 +545,10 @@ void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> 
  
     // check if we set same cards
     for(size_t p0 = 0; p0 < state.size(); ++p0)
-      for(size_t p1 = p0; p1 < state.size(); ++p1)
+      for(size_t p1 = p0+1; p1 < state.size(); ++p1)
         for(size_t c = 0; c < 2; ++c)
-          for(size_t d = c+1; d < 2; ++d)
-            if (state[p0][c] == state[p0][d])
+          for(size_t d = c; d < 2; ++d)
+            if (state[p0][c] == state[p1][d])
               SpielFatalError(absl::StrCat("Cannot assign same cards to players ", state[p0][c]));
 
     // get existing board cards

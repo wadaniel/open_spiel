@@ -115,6 +115,7 @@ def main(_):
   partialState = [[0, 4], [50, 51]]
   state.set_partial_game_state(partialState)
   print(str(state))
+  print(str(state.hole_cards(0)))
 
   # Game is now done. Print utilities for each player
   returns = state.returns()

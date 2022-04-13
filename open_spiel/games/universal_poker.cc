@@ -509,9 +509,12 @@ void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> 
     uint8_t nbHoleCards[10];
     uint8_t nbBoardCards = boardCardSet.NumCards();
 
+
     uint8_t playerId = 0;
     for (auto& hand : state)
     {
+  
+      auto previousHoleCards = HoleCards(playerId).ToCardArray();
     
       // verify number cards per hand
       if (hand.size() != 2)
@@ -529,19 +532,20 @@ void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> 
             SpielFatalError(absl::StrCat("Cannot set hole hard that is already a board card ", card));
 
         // put players card back into the deck
-        deck_.AddCard(holeCards[playerId][cardId]);
+        deck_.AddCard(previousHoleCards[cardId]);
         
         // assign card to player
         holeCards[playerId][cardId] = card;
         
-        // remove that card from deck
-        deck_.RemoveCard(card);
-
         cardId++;
       }
       playerId++;
-
     }
+
+    // remove all newly assigned cards from deck
+    for(auto& hand : state)
+        for(uint8_t card : hand)
+            deck_.RemoveCard(card);
  
     // check if we set same cards
     for(size_t p0 = 0; p0 < state.size(); ++p0)

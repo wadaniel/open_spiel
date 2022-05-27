@@ -8,11 +8,12 @@ make
 ```
 
 set the paths to open_spiel dirs in bash_profile as in doc:
+```
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/projects/open_spiel/build
 
 export PYTHONPATH=$PYTHONPATH:~/projects/open_spiel/
 export PYTHONPATH=$PYTHONPATH:~/projects/open_spiel/build/python
-
+```
 
 # OpenSpiel: A Framework for Reinforcement Learning in Games
 

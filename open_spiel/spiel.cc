@@ -226,7 +226,7 @@ std::shared_ptr<const Game> LoadGame(GameParameters params) {
   auto it = params.find("name");
   if (it == params.end()) {
     SpielFatalError(absl::StrCat("No 'name' parameter in params: ",
-                                 GameParametersToString(params)));
+                                 "TODO (fix)" /*GameParametersToString(params)*/));
   }
   std::string name = it->second.string_value();
   params.erase(it);
@@ -648,7 +648,7 @@ std::string Game::Serialize() const {
 std::string Game::ToString() const {
   GameParameters params = game_parameters_;
   params["name"] = GameParameter(game_type_.short_name);
-  return GameParametersToString(params);
+  return "TODO (fix)" /*GameParametersToString(params)*/;
 }
 
 std::string GameTypeToString(const GameType& game_type) {

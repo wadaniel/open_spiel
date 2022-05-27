@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
   std::cerr << "Loading game..\n" << std::endl;
   std::shared_ptr<const open_spiel::Game> game = open_spiel::LoadGame(argv[1]);
 
+
   if (!game) {
     std::cerr << "problem with loading game, exiting..." << std::endl;
     return -1;

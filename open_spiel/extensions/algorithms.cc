@@ -107,7 +107,7 @@ float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spie
     const int chipsToCallFrac = std::min(callSize / 50, 9);
     const int betSizeFrac = std::min(maxBet / 50, 9);
     
-    const int arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise);
+    const int arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise); //TODO(DW): check if handID needs to be set
  
 
     // Container for action probabilities calculation

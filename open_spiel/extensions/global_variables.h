@@ -3,6 +3,11 @@
 
 #include "utils.h"
 
+#define FAKEDICT
+
+#define TOTALSTACK 500
+#define BBSIZE 20
+
 #define NUM_BUCKETS 500
 #define NUM_RTS_BUCKETS 1326
 

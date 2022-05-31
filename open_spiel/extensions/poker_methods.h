@@ -1,10 +1,6 @@
 #ifndef _POKER_METHODS_H_
 #define _POKER_METHODS_H_
 
-#define FAKEDICT
-#define TOTALSTACK 500
-#define BBSIZE 20
-
 #include <algorithm>
 #include <stdlib.h> // rand
 #include "open_spiel/extensions/utils.h"
@@ -12,20 +8,21 @@
 int getCardCode(char number, char suit)
 {
     const int num = (int)number - 48;
+    
     int suitCode = -1;
-    if (suit == 'c')
+    if (suit == 'c') // clubs
     {
         suitCode = 0;
     }
-    else if(suit == 'd')
+    else if(suit == 'd') // diamond
     {
         suitCode = 1;
     }
-    else if (suit == 'h')
+    else if (suit == 'h') // heart
     {
         suitCode = 2;
     }
-    else
+    else // spades
     {
         suitCode = 3;
     }
@@ -37,7 +34,7 @@ inline void getBets(std::string info, std::vector<int>& bets)
 
     //bets = np.fromiter((gv.stack - int(x) for x in information_state_split[3].split(": ")[1].split(" ")), dtype=np.int)
     auto tmp = split(info, ": ");
-    auto betStrings = split(tmp[1]," ");
+    const auto betStrings = split(tmp[1]," ");
     for (size_t idx = 0; idx < bets.size(); ++idx)
     {
       bets[idx] = TOTALSTACK - std::stoi(betStrings[idx]);
@@ -51,7 +48,7 @@ void calculateProbabilities(const std::vector<float>& regret, const std::vector<
     for(size_t i = 0; i < legalActions.size(); ++i)
     {
         const int action = legalActions[i];
-        float floored = regret[action] > 0.f ? regret[action] : 0.;   
+        const float floored = regret[action] > 0.f ? regret[action] : 0.;   
         flooredRegret[i] = floored;
         sumValue += floored;
     }
@@ -80,7 +77,7 @@ template <class T>
 inline T randomChoice(std::vector<T> options, std::vector<float> weights)
 {
     T choice;
-    float unif = std::rand()/RAND_MAX;
+    const float unif = std::rand()/RAND_MAX;
     float sumWeight = 0.f;
     for(size_t i = 0; i < weights.size(); ++i)
     {
@@ -93,29 +90,27 @@ inline T randomChoice(std::vector<T> options, std::vector<float> weights)
     return choice;
 }
 
-int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise)
+int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, int handId=-1)
 {
-    // TODO
-    
-    /*
-    if(handID > -1):
-        cards_cluster = handID # lossless abstraction during the RTS
-        values = np.asarray([cards_cluster,betting_stage,active_players_code,chips_to_call,pot_percentage,current_player,legalActionsCode,reraise])
-        arrayIndex = 9*(values*max_values_prod_rts[:-1]).sum()
-    else:
-        values = np.asarray([cards_cluster,betting_stage,active_players_code,chips_to_call,pot_percentage,current_player,legalActionsCode,reraise])
-        arrayIndex = 9*(values*max_values_prod[:-1]).sum()
-    */
+    int cumSumProd = 0.;
+    if (handId > -1)
+    {
+      const std::vector<int> values = {handId, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise};
+      for(size_t idx = 0; idx < values.size(); ++idx)
+        cumSumProd += values[idx]*maxValuesProdRTS[idx];
 
-
-    return 0;
+    }
+    else
+    {
+      const std::vector<float> values = {bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise};
+      for(size_t idx = 0; idx < values.size(); ++idx)
+        cumSumProd += values[idx]*maxValuesProd[idx];
+    }
+    return 9*cumSumProd;
 }
 
 inline int getCardBucket(const std::vector<int>& privateCards, const std::vector<int> publicCards, size_t bettingStage)
 {
-
-    // TODO
-
     std::vector<int> lookUpCards;
     if (bettingStage == 0)
     {
@@ -202,7 +197,9 @@ inline int getCardBucket(const std::vector<int>& privateCards, const std::vector
 #ifdef FAKEDICT
     const int bucket = std::rand()%150;
 #else
-    // TODO
+    // TODO (DW)
+    
+    assert(false);
     // bucket = gv.card_info_lut[betting_stage_str][lookupCards]
     // if(betting_stage_str != "pre_flop"):
     //   bucket = bucket[0]
@@ -225,13 +222,11 @@ inline std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int
     int minBet = 0;
     if(legalActions[0] == 0)
     {
-        //pre_actions = actions[:2]
         minBet = legalActions[2];
         numPreActions = 2;
     }
     else
     {
-        //pre_actions = actions[:1]
         minBet = legalActions[1];
         numPreActions = 1;
     }
@@ -288,13 +283,11 @@ inline std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int ma
     int minBet = 0;
     if(legalActions[0] == 0)
     {
-        //pre_actions = actions[:2]
         minBet = legalActions[2];
         numPreActions = 2;
     }
     else
     {
-        //pre_actions = actions[:1]
         minBet = legalActions[1];
         numPreActions = 1;
     }
@@ -340,13 +333,11 @@ inline std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, i
     int minBet = 0;
     if(legalActions[0] == 0)
     {
-        //pre_actions = actions[:2]
         minBet = legalActions[2];
         numPreActions = 2;
     }
     else
     {
-        //pre_actions = actions[:1]
         minBet = legalActions[1];
         numPreActions = 1;
     }
@@ -366,12 +357,12 @@ inline std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, i
 
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
-    for (size_t i = 0; i < totalActions-1; ++i)
+    for (size_t idx = 0; idx < totalActions-1; ++idx)
     {
-        if (i < numPreActions)
-            actions[i] = legalActions[i];
+        if (idx < numPreActions)
+            actions[idx] = legalActions[idx];
         else
-            actions[i] = minAction + i - numPreActions; // actions between range maxAction and minAction, including maxAction
+            actions[idx] = minAction + idx - numPreActions; // actions between range maxAction and minAction, including maxAction
     }
     actions[totalActions] = 8; // always allow all-in
     return actions;

@@ -8,12 +8,12 @@ int test_sum(int a, int b) { return a + b; }
 
 int test_cfr(int idx, float val, float* sharedStrategy) 
 {
-        if ( idx > 0)
-        {
-            sharedStrategy[idx-1] = val;
-            return test_cfr(idx-1, val, sharedStrategy);
-        }
-        return val;
+        
+        if ( idx < 0 ) return val;
+        sharedStrategy[idx] = val;
+        idx -= rand()%10;
+
+        return test_cfr(idx, val, sharedStrategy);
 }
 
 

@@ -312,12 +312,12 @@ PYBIND11_MODULE(pyspiel, m) {
                 size_t N = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                 //std::vector<float> stratVec(stratPtr, stratPtr+N);
-                return test_cfr(idx, val, stratPtr); } )
+                return test_cfr(idx, val, stratPtr); }, py::call_guard<py::gil_scoped_release>() )
       .def("cfr", [](int updatePlayerIdx, bool useRealTimeSearch, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy)
               { py::buffer_info stratBuf = sharedStrategy.request();
                 size_t N = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
-                return cfr(updatePlayerIdx, useRealTimeSearch, state->Clone(), stratPtr); })
+                return cfr(updatePlayerIdx, useRealTimeSearch, state->Clone(), stratPtr); }, py::call_guard<py::gil_scoped_release>())
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)
       .def("apply_actions_with_legality_checks",

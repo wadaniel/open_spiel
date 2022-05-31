@@ -6,6 +6,7 @@
 #define NUM_BUCKETS 500
 #define NUM_RTS_BUCKETS 1326
 
+// 14 legal actions
 const std::vector<std::vector<int>> allLegalActions = { {0, 1},
                                                   {0, 1, 8},
                                                   {0, 1, 4, 8},
@@ -21,6 +22,7 @@ const std::vector<std::vector<int>> allLegalActions = { {0, 1},
                                                   {0, 1, 2, 3, 4, 5, 6, 7, 8},
                                                   {1, 3, 4, 5, 6, 7, 8} };
 
+// 5 legal actions
 const std::vector<std::vector<int>> allLegalReraiseActions = 
     { {0, 1},
       {0, 1, 8},
@@ -28,6 +30,7 @@ const std::vector<std::vector<int>> allLegalReraiseActions =
       {1, 5, 8},
       {1, 8 } };
 
+// 9 legal actions
 const std::vector<std::vector<int>> allLegalTurnRiverActions = 
     { {0, 1},
       {0, 1, 8},
@@ -39,6 +42,7 @@ const std::vector<std::vector<int>> allLegalTurnRiverActions =
       {1, 5, 8},
       {1, 8} };
 
+// 11 legal actions
 const std::vector<std::vector<int>> allLegalFlopActions = 
     { {0, 1},
       {0, 1, 8},

@@ -312,12 +312,25 @@ PYBIND11_MODULE(pyspiel, m) {
                 size_t N = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                 //std::vector<float> stratVec(stratPtr, stratPtr+N);
-                return extensions::test_cfr(idx, val, stratPtr); }, py::call_guard<py::gil_scoped_release>() )
-      .def("cfr", [](int updatePlayerIdx, bool useRealTimeSearch, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy)
-              { py::buffer_info stratBuf = sharedStrategy.request();
-                size_t N = stratBuf.ndim;
+                return extensions::test_cfr(idx, val, stratPtr); 
+              }, py::call_guard<py::gil_scoped_release>() )
+      
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+              { py::buffer_info handIdsBuf = handIds.request();
+                size_t handIdsSize = handIdsBuf.ndim;
+                int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
+
+                py::buffer_info stratBuf = sharedStrategy.request();
+                size_t Nstrat = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
-                return extensions::cfr(updatePlayerIdx, useRealTimeSearch, state->Clone(), stratPtr); }, py::call_guard<py::gil_scoped_release>())
+                 
+                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
+                size_t NfrozenStrat = frozenStratBuf.ndim;
+                float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
+ 
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, state->Clone(), stratPtr, frozenStratPtr); 
+              }, py::call_guard<py::gil_scoped_release>() )
+
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)
       .def("apply_actions_with_legality_checks",

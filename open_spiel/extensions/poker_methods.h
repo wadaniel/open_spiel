@@ -93,19 +93,18 @@ inline T randomChoice(std::vector<T> options, std::vector<float> weights)
     return choice;
 }
 
-int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, int handId=-1)
+int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
     int cumSumProd = 0.;
-    if (handId > -1)
+    const std::vector<int> values = {bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise};
+    if (useRealTimeSearch)
     {
-      const std::vector<int> values = {handId, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise};
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProdRTS[idx];
 
     }
     else
     {
-      const std::vector<float> values = {bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise};
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProd[idx];
     }

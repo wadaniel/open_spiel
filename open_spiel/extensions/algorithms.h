@@ -25,14 +25,18 @@ int test_cfr(int idx, float val, float* sharedStrategy);
 
 /**
 * @brief CFR calculation and updated of shared strategy
-* @param updatePlayerIdx
-* @param useRealTimeSearch
-* @param state
+* @param updatePlayerIdx Index of the player to update
+* @param time The training iteration
+* @param pruneThreshold Threshold to skip cfr updates
+* @param useRealTimeSearch Set true durin real time search
+* @param handIds Pointer to hand IDs
+* @param handIdsSize The length of the handIds vector
+* @param state State of the pyspiel
 * @param shardStrategy TODO
 * @param shardStrategyFrozen TODO
 * @return The expected value of the CFR
 */
-float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyFrozen = nullptr);
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyFrozen);
 
 }
 

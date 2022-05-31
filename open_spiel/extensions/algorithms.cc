@@ -17,7 +17,7 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 }
 
 
-float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spiel::State> state, float* sharedStrategy) 
+float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyFrozen) 
 { 
     const int currentPlayer = state->CurrentPlayer();
     const bool isTerminal = state->IsTerminal();
@@ -111,77 +111,62 @@ float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spie
  
 
     // Container for action probabilities calculation
-    std::vector<float> probabilities;
+    std::vector<float> probabilities(9, 0.);
 
     if(currentPlayer == updatePlayerIdx)
     {
-        std::vector<float> regret(9);
+        std::vector<float>regrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
         if(useRealTimeSearch)
         {
-            const std::vector<float> strategy(&sharedRTSstrategyFrozen[arrayIndex], &sharedRTSstrategyFrozen[arrayIndex+9]);
 
             bool allZero = true;
-            for(float s : strategy) if (s != 0.) { allZero = false; break; }
+            for(float regret : regrets) if (regret != 0.) { allZero = false; break; }
             
             if (allZero)
             {
-                std::copy(&sharedRTSRegret[arrayIndex], &sharedRTSRegret[arrayIndex+9], regret.begin());
+                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin());
             }
             else
             {
                 std::vector<float> probabilities(ourLegalActions.size(), 0.f);
 
                 for(int action : ourLegalActions)
-                    probabilities[action] = strategy[action];
+                    probabilities[action] = regrets[action];
 
                 float expectedValue = 0.;
                 for(size_t i = 0; i < ourLegalActions.size(); ++i)
                 {
                     long int action = ourLegalActions[i];
                     auto newState = state->Child(action);
-                    const float actionValue = cfr(0, true, std::move(newState), sharedStrategy);
+                    const float actionValue = cfr(0, true, std::move(newState), sharedStrategy, sharedStrategyFrozen);
                     expectedValue += actionValue * probabilities[action];
                 }
 
             }
         }
-        else
-        {
-            std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regret.begin());
-        }
 
-        probabilities = calculateProbabilities(regret, ourLegalActions);
-        
-        const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
+        calculateProbabilities(regrets, ourLegalActions, probabilities);
 
     }
     else
     {
 
+        std::vector<float> regrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
         if(useRealTimeSearch)
         {
-            const std::vector<float> strategy(&sharedRTSstrategyFrozen[arrayIndex], &sharedRTSstrategyFrozen[arrayIndex+9]);
             bool allZero = true;
-            for(float s : strategy) if (s != 0.) { allZero = false; break; }
+            for(float regret : regrets) if (regret != 0.) { allZero = false; break; }
             if(allZero)
             {
-                std::vector<float> regret(&sharedRTSRegret[arrayIndex], &sharedRTSRegret[arrayIndex+9]);
-                probabilities = calculateProbabilities(regret, ourLegalActions);
-            }
-            else
-            {
-                probabilities = calculateProbabilities(strategy, ourLegalActions);
+                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin());
             }
         }
-        else
-        {
-            const std::vector<float> regret(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9]);
-            probabilities = calculateProbabilities(regret, ourLegalActions);
-        }
+        
+        calculateProbabilities(regrets, ourLegalActions, probabilities);
     }
  
     const int action = randomChoice(ourLegalActions, probabilities);
-    const float expectedValue = cfr(0, true, state->Child(action), sharedStrategy);
+    const float expectedValue = cfr(0, true, state->Child(action), sharedStrategy, sharedStrategyFrozen);
 
     // TODO(DW): update strategy mode 'opponent' (optional)
 

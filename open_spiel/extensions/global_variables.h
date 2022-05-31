@@ -6,11 +6,6 @@
 #define NUM_BUCKETS 500
 #define NUM_RTS_BUCKETS 1326
 
-std::vector<float> sharedRTSstrategy;
-std::vector<float> sharedRTSstrategyFrozen;
-std::vector<float> sharedRTSRegret;
-std::vector<float> sharedRegret;
-
 const std::vector<std::vector<int>> allLegalActions = { {0, 1},
                                                   {0, 1, 8},
                                                   {0, 1, 4, 8},

@@ -44,7 +44,7 @@ inline void getBets(std::string info, std::vector<int>& bets)
     }
 }
 
-std::vector<float> calculateProbabilities(const std::vector<float>& regret, const std::vector<int>& legalActions)
+void calculateProbabilities(const std::vector<float>& regret, const std::vector<int>& legalActions, std::vector<float>& probabilities)
 {
     float sumValue = 0.f;
     std::vector<float> flooredRegret(legalActions.size(), 0.);
@@ -56,13 +56,13 @@ std::vector<float> calculateProbabilities(const std::vector<float>& regret, cons
         sumValue += floored;
     }
 
-    std::vector<float> probabilities(legalActions.size(), 0.);
     if( sumValue > 0.f )
     {
         const float invSum = 1./sumValue;
         for(size_t i = 0; i < legalActions.size(); ++i)
         {
-            probabilities[i] = flooredRegret[i] * invSum;
+            const int action = legalActions[i];
+            probabilities[action] = flooredRegret[i] * invSum;
         }
     }
     else
@@ -70,12 +70,10 @@ std::vector<float> calculateProbabilities(const std::vector<float>& regret, cons
         const float unif = 1./legalActions.size();
         for(size_t i = 0; i < legalActions.size(); ++i)
         {
-            probabilities[i] = unif; //TODO(DW): balanced version
+            const int action = legalActions[i];
+            probabilities[action] = unif; //TODO(DW): balanced version
         }
     }
-
-    return probabilities;
-
 }
 
 template <class T>

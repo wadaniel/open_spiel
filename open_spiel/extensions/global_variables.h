@@ -15,6 +15,8 @@
 namespace extensions
 {
 
+bool applyPruning = true;
+
 // 14 legal actions
 const std::vector<std::vector<int>> allLegalActions = { {0, 1},
                                                   {0, 1, 8},

@@ -20,7 +20,7 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 }
 
 
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyFrozen) 
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyActive) 
 { 
     const int currentPlayer = state->CurrentPlayer();
     const bool isTerminal = state->IsTerminal();
@@ -56,19 +56,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
     const int currentBet = bets[currentPlayer];
     const int callSize = maxBet - currentBet;
-
-    const auto tmp3 = split(informationStateSplit[4],": ");
-    std::string privateCardsStr = tmp3[1];
-    assert(privateCardsStr.size() == 4);
-
-    // Read private cards
-    std::vector<int> privateCards = 
-        { getCardCode(privateCardsStr[0], privateCardsStr[1]),
-          getCardCode(privateCardsStr[2], privateCardsStr[3]) };
-
-    const auto tmp4 = split(informationStateSplit[5], ": ");
-    std::string publicCardsStr = tmp4[1];
-    assert(publicCardsStr.size()%2 == 0);
 
     // Find active players code
     int activePlayersCode = 0; // all active
@@ -116,17 +103,32 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     }
     else
     {
-       // Read public cards
-       std::vector<int> publicCards(privateCardsStr.size()/2);
-       for(size_t i = 0; i < publicCardsStr.size(); i += 2)
-       {
-         publicCards[i] = getCardCode(publicCardsStr[i], publicCardsStr[i+1]);
-       }
+        // Prepare private cards string
+        const auto tmp3 = split(informationStateSplit[4],": ");
+        std::string privateCardsStr = tmp3[1];
+        assert(privateCardsStr.size() == 4);
 
-       // Get card bucket based on abstraction
-       const int bucket = getCardBucket(privateCards, publicCards, bettingStage);
+        // Read private cards
+        std::vector<int> privateCards = 
+            { getCardCode(privateCardsStr[0], privateCardsStr[1]),
+              getCardCode(privateCardsStr[2], privateCardsStr[3]) };
 
-       arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
+        // Prepare public cards string
+        const auto tmp4 = split(informationStateSplit[5], ": ");
+        std::string publicCardsStr = tmp4[1];
+        assert(publicCardsStr.size()%2 == 0);
+
+        // Read public cards
+        std::vector<int> publicCards(privateCardsStr.size()/2);
+        for(size_t i = 0; i < publicCardsStr.size(); i += 2)
+        {
+            publicCards[i] = getCardCode(publicCardsStr[i], publicCardsStr[i+1]);
+        }
+
+        // Get card bucket based on abstraction
+        const int bucket = getCardBucket(privateCards, publicCards, bettingStage);
+
+        arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
     }
 
     // Container for action probabilities calculation
@@ -143,12 +145,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             
             if (allZero)
             {
-                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin());
+                std::copy(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9], regrets.begin());
             }
             else
             {
-                std::vector<float> probabilities(ourLegalActions.size(), 0.f);
-
                 for(int action : ourLegalActions)
                     probabilities[action] = regrets[action];
 
@@ -156,15 +156,74 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 for(size_t i = 0; i < ourLegalActions.size(); ++i)
                 {
                     const int action = ourLegalActions[i];
-                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyFrozen);
+                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyActive);
                     expectedValue += actionValue * probabilities[action];
                 }
-
+                return expectedValue;
             }
         }
 
         calculateProbabilities(regrets, ourLegalActions, probabilities);
 
+
+        // Find actions to prune
+        const bool noprune = (applyPruning == false) or (bettingStage >= 3); // dont prune in turn or river
+        std::vector<bool> explored(ourLegalActions.size(), noprune);
+
+        if(noprune == false)
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
+        {
+            const int action = ourLegalActions[idx];
+            if ((action == 0) || action == 8) explored[idx] = true;
+            if (regrets[action] > pruneThreshold) explored[idx] = true;
+        }
+
+        float expectedValue = 0.;
+        std::vector<float> actionValues(ourLegalActions.size(), 0.);
+        
+        // Iterate only over explored actions
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
+        {
+            const int action = ourLegalActions[idx];
+            actionValues[idx] = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyActive);
+            expectedValue += probabilities[action] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
+        }
+     
+        // Container for action probabilities calculation
+        std::vector<float> newProbabilities(9, 0.);
+
+        const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
+        
+        // Update active shared strategy
+        if (useRealTimeSearch)
+        {
+            for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
+            {
+                const int action = ourLegalActions[idx];
+                const size_t arrayActionIndex = arrayIndex + action;
+                sharedStrategyActive[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
+                if(sharedStrategyActive[arrayActionIndex] > 1e32) sharedStrategyActive[arrayActionIndex] = 1e32;
+                if(sharedStrategyActive[arrayActionIndex] < pruneThreshold*1.03) sharedStrategyActive[arrayActionIndex] = pruneThreshold*1.03;
+            }
+        
+            std::vector<float> newRegrets(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9]);
+            calculateProbabilities(newRegrets, ourLegalActions, newProbabilities); // TODO(DW): is this needed?
+        }
+        // Update shared strategy
+        else
+        {
+            for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
+            {
+                const int action = ourLegalActions[idx];
+                const size_t arrayActionIndex = arrayIndex + action;
+                sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
+                if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
+                if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
+            }
+            
+            std::vector<float> newRegrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
+            calculateProbabilities(newRegrets, ourLegalActions, newProbabilities); // TODO(DW): is this needed?
+        }
     }
     else
     {
@@ -176,17 +235,17 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             for(float regret : regrets) if (regret != 0.) { allZero = false; break; }
             if(allZero)
             {
-                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin());
+                std::copy(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9], regrets.begin());
             }
         }
         
         calculateProbabilities(regrets, ourLegalActions, probabilities);
+        // TODO(DW): update strategy mode 'opponent' (optional)
     }
- 
-    const int action = randomChoice(ourLegalActions, probabilities);
-    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyFrozen);
+         
+    const int sampledAction = randomChoice(ourLegalActions, probabilities);
+    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(sampledAction), sharedStrategy, sharedStrategyActive);
 
-    // TODO(DW): update strategy mode 'opponent' (optional)
 
     return expectedValue;
 }

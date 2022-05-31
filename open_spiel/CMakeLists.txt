@@ -220,6 +220,7 @@ set (OPEN_SPIEL_OBJECTS
   $<TARGET_OBJECTS:bridge_double_dummy_solver>
   $<TARGET_OBJECTS:algorithms>
   $<TARGET_OBJECTS:utils>
+  $<TARGET_OBJECTS:extensions>
   $<TARGET_OBJECTS:tests>
 )
 if (OPEN_SPIEL_BUILD_WITH_HIGC)
@@ -298,6 +299,7 @@ add_subdirectory (examples)
 add_subdirectory (games)
 add_subdirectory (game_transforms)
 add_subdirectory (contrib)
+add_subdirectory (extensions)
 
 if (OPEN_SPIEL_BUILD_WITH_GO)
   add_subdirectory(go)

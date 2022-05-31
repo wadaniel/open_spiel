@@ -3,6 +3,9 @@
 
 #include <regex>
 
+namespace extensions
+{
+
 std::vector<std::string> split(const std::string str, const std::string regex_str)
 {
     std::regex regexz(regex_str);
@@ -17,6 +20,8 @@ size_t vecHash(const std::vector<int>& vec) {
                 seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
                   }
           return seed;
+}
+
 }
 
 #endif //_UTILS_H_

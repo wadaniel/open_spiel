@@ -4,6 +4,9 @@
 
 #include <iostream>
 
+namespace extensions
+{
+
 int test_sum(int a, int b) { return a + b; } 
 
 int test_cfr(int idx, float val, float* sharedStrategy) 
@@ -171,4 +174,6 @@ float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spie
     // TODO(DW): update strategy mode 'opponent' (optional)
 
     return expectedValue;
+}
+
 }

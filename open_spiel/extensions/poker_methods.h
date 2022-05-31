@@ -5,6 +5,9 @@
 #include <stdlib.h> // rand
 #include "open_spiel/extensions/utils.h"
 
+namespace extensions
+{
+
 int getCardCode(char number, char suit)
 {
     const int num = (int)number - 48;
@@ -426,6 +429,8 @@ std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet, int
     {
         return getLegalActionsTurnRiver(numActions, totalPot, maxBet, currentBet, isReraise, legalActions);
     }
+}
+
 }
 
 #endif //_POKER_METHODS_H_

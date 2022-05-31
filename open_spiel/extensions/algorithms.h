@@ -3,6 +3,9 @@
 
 #include "open_spiel/spiel.h"
 
+namespace extensions
+{
+
 /**
 * @brief Calculates the sum of two numbers.
 * @param a The first summand
@@ -30,5 +33,7 @@ int test_cfr(int idx, float val, float* sharedStrategy);
 * @return The expected value of the CFR
 */
 float cfr(int updatePlayerIdx, bool useRealTimeSearch, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyFrozen = nullptr);
+
+}
 
 #endif // _ALGORITHMS_H_

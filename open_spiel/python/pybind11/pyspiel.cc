@@ -317,15 +317,15 @@ PYBIND11_MODULE(pyspiel, m) {
       
       .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { py::buffer_info handIdsBuf = handIds.request();
-                size_t handIdsSize = handIdsBuf.ndim;
+                size_t handIdsSize = handIdsBuf.shape[0];
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
-                size_t Nstrat = stratBuf.ndim;
+                size_t Nstrat = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
-                size_t NfrozenStrat = frozenStratBuf.ndim;
+                size_t NfrozenStrat = frozenStratBuf.shape[0];
                 float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
  
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, state->Clone(), stratPtr, frozenStratPtr); 

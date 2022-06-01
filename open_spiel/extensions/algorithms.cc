@@ -22,11 +22,23 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyActive) 
 { 
-    const int currentPlayer = state->CurrentPlayer();
+
+	// First skip all chance nodes
+	while(state->IsChanceNode())
+	{
+		printf("is chance node\n");
+    	auto chanceActions = state->ChanceOutcomes();
+		std::vector<float> weights(chanceActions.size(), 1./chanceActions.size());
+		auto action = randomChoice(chanceActions, weights);
+        state = state->Child(action.first);
+	}
+    
+	const int currentPlayer = state->CurrentPlayer();
     const bool isTerminal = state->IsTerminal();
 
     // If terminal, return players reward
     if (isTerminal) {
+		printf("player %d\n", currentPlayer);
         return state->PlayerReward(currentPlayer);
     }
 
@@ -38,11 +50,12 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
     // Split of information state string
     auto informationStateSplit = split(informationState, "][");
+    printf("iss %zu\n", informationStateSplit.size());
 
     // Bets of players
     std::vector<int> bets(3, 0);
     getBets(informationStateSplit[3], bets);
-    
+    printf("A\n");
     // Retrieve pot information
     int maxBet = 0;
     int minBet = TOTALSTACK;
@@ -73,6 +86,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
     }
 
+    printf("B\n");
     const auto roundActions = split(informationStateSplit[6], "|");
     std::string currentRoundActions = roundActions[roundActions.size()-1];
 
@@ -85,7 +99,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     
     // Calculate our legal actions based on abstraction
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+	printVec("our legal actions", ourLegalActions);
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
+    printf("C\n");
     
     // Bet size in values from 0 to 9
     const int betSizeFrac = std::min(maxBet / 50, 9);
@@ -96,6 +112,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     // Init array index
     int arrayIndex = -1;
 
+	printf("his : %zu\n", handIdsSize);
     // Get index in strategy array
     if(handIdsSize > 0)
     {
@@ -131,6 +148,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
     }
 
+    printf("D\n");
     // Container for action probabilities calculation
     std::vector<float> probabilities(9, 0.);
 
@@ -156,7 +174,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 for(size_t i = 0; i < ourLegalActions.size(); ++i)
                 {
                     const int action = ourLegalActions[i];
-                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyActive);
+					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(absoluteAction), sharedStrategy, sharedStrategyActive);
                     expectedValue += actionValue * probabilities[action];
                 }
                 return expectedValue;
@@ -164,6 +183,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         }
 
         calculateProbabilities(regrets, ourLegalActions, probabilities);
+    	printf("E\n");
 
 
         // Find actions to prune
@@ -185,7 +205,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
         {
             const int action = ourLegalActions[idx];
-            actionValues[idx] = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(action), sharedStrategy, sharedStrategyActive);
+			const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+			printf("action %zu absaction %zu\n", action, absoluteAction);
+            actionValues[idx] = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(absoluteAction), sharedStrategy, sharedStrategyActive);
             expectedValue += probabilities[action] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
      
@@ -194,6 +216,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
         
+    	printf("F\n");
         // Update active shared strategy
         if (useRealTimeSearch)
         {
@@ -244,7 +267,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     }
          
     const int sampledAction = randomChoice(ourLegalActions, probabilities);
-    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(sampledAction), sharedStrategy, sharedStrategyActive);
+	const int absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
+    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state->Child(absoluteAction), sharedStrategy, sharedStrategyActive);
 
 
     return expectedValue;

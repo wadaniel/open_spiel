@@ -29,15 +29,15 @@ int getCardCode(char number, char suit)
     {
         suitCode = 3;
     }
+
+	printf("%c %c: %d\n", number, suit, (num-2)*4+suitCode);
     return (num-2)*4+suitCode;
 }
 
-inline void getBets(std::string info, std::vector<int>& bets)
+inline void getBets(const std::string& info, std::vector<int>& bets)
 {
-
-    //bets = np.fromiter((gv.stack - int(x) for x in information_state_split[3].split(": ")[1].split(" ")), dtype=np.int)
-    auto tmp = split(info, ": ");
-    const auto betStrings = split(tmp[1]," ");
+    auto money = split(info, ": ");
+    const auto betStrings = split(money[1]," ");
     for (size_t idx = 0; idx < bets.size(); ++idx)
     {
       bets[idx] = TOTALSTACK - std::stoi(betStrings[idx]);
@@ -74,23 +74,6 @@ void calculateProbabilities(const std::vector<float>& regret, const std::vector<
             probabilities[action] = unif; //TODO(DW): balanced version
         }
     }
-}
-
-template <class T>
-inline T randomChoice(std::vector<T> options, std::vector<float> weights)
-{
-    T choice;
-    const float unif = std::rand()/RAND_MAX;
-    float sumWeight = 0.f;
-    for(size_t i = 0; i < weights.size(); ++i)
-    {
-        sumWeight += weights[i];
-        if (sumWeight > unif)
-        {
-            choice = options[i];
-        }
-    }
-    return choice;
 }
 
 int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
@@ -211,6 +194,37 @@ inline int getCardBucket(const std::vector<int>& privateCards, const std::vector
 
 }
 
+inline int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
+{
+	if (actionIndex == 0)
+	{
+		return 0; // fold
+	}
+    else if (actionIndex == 1)
+	{
+		return 1; // call
+	}
+    else if (actionIndex == 8)
+	{
+		return TOTALSTACK; // all-in
+	}
+    else if (actionIndex < 6)
+	{
+		// const std::vector<int> factors = {0, 0, .25, 0.5, .75, 1., 2., 3.};
+		const float factor = 0.25 * (actionIndex-1.);
+		const int betSize = totalPot * factor;
+		return biggestBet + betSize;
+	}
+	else if (actionIndex == 6)
+	{
+		return biggestBet + totalPot * 2; // factor == 2
+	}
+	else
+	{
+		return biggestBet + totalPot * 3; // factor == 3
+	}
+}
+
 inline std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet, bool isReraise, const std::vector<long int>& legalActions)
 {
     if ( (numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1) )
@@ -262,14 +276,11 @@ inline std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int
 
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
-    for (size_t i = 0; i < totalActions-1; ++i)
-    {
-        if (i < numPreActions)
-            actions[i] = legalActions[i];
-        else
-            actions[i] = minAction + i - numPreActions; // actions between range maxAction and minAction, including maxAction
-    }
-    actions[totalActions] = 8; // always allow all-in
+	for(size_t idx = 0; idx < numPreActions; ++idx)
+		actions[idx] = legalActions[idx];
+    for(size_t idx = 0; idx < totalActions-1; ++idx)
+		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
+	actions[totalActions-1] = 8; // always allow all-in
     return actions;
 }
 
@@ -311,14 +322,11 @@ inline std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int ma
 
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
-    for (size_t i = 0; i < totalActions-1; ++i)
-    {
-        if (i < numPreActions)
-            actions[i] = legalActions[i];
-        else
-            actions[i] = minAction + i - numPreActions; // actions between range maxAction and minAction, including maxAction
-    }
-    actions[totalActions] = 8; // always allow all-in
+	for(size_t idx = 0; idx < numPreActions; ++idx)
+		actions[idx] = legalActions[idx];
+	for (size_t idx = 0; idx < totalActions-1; ++idx)
+		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
+    actions[totalActions-1] = 8; // always allow all-in
     return actions;
 
 }
@@ -359,14 +367,11 @@ inline std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, i
 
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
-    for (size_t idx = 0; idx < totalActions-1; ++idx)
-    {
-        if (idx < numPreActions)
-            actions[idx] = legalActions[idx];
-        else
-            actions[idx] = minAction + idx - numPreActions; // actions between range maxAction and minAction, including maxAction
-    }
-    actions[totalActions] = 8; // always allow all-in
+	for(size_t idx = 0; idx < numPreActions; ++idx)
+		actions[idx] = legalActions[idx];
+	for(size_t idx = 0; idx < totalActions-1; ++idx)
+		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
+    actions[totalActions-1] = 8; // always allow all-in
     return actions;
 
 

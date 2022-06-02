@@ -36,7 +36,7 @@ int test_cfr(int idx, float val, float* sharedStrategy);
 * @param shardStrategyActive The shared strategy, only used for RTS
 * @return The expected value of the CFR
 */
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, std::unique_ptr<open_spiel::State> state, float* sharedStrategy, float* sharedStrategyActive);
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyActive, size_t nSharedActiveStrat);
 
 }
 

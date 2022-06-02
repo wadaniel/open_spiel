@@ -5,7 +5,7 @@ namespace extensions
 {
 
 template <class T>
-void printVec(std::string name, std::vector<T> vec)
+void printVec(const std::string& name, const std::vector<T>& vec)
 {
 	printf("%s\n", name.c_str());
 	for(T element : vec)
@@ -19,42 +19,52 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 	auto start = 0U;
     auto end = text.find(delim);
 	std::vector<std::string> res;
+	res.reserve(12);
     while (end != std::string::npos)
     {
-        res.push_back(text.substr(start, end - start));
+		const auto substring = text.substr(start, end - start);
+		printf("[%s]\n",substring.c_str());
+        res.push_back(substring);
+		printf("pushed\n");
         start = end + delim.length();
         end = text.find(delim, start);
     }
-    res.push_back(text.substr(start, end - start));
+	const auto rest = text.substr(start, end - start);
+	if (rest.empty() == false)
+    	res.push_back(rest);
+	res.shrink_to_fit();
+	for(auto& s : res) printf("[%s]\n",s.c_str());
 	
-	for(auto s : res) printf("%s\n",s.c_str());
 	return res;
 }
 
 // Calculate hash of a vector of ints (TODO (DW): verify if this is clas hfree)
 size_t vecHash(const std::vector<int>& vec) {
-      std::size_t seed = vec.size();
-        for(auto& i : vec) {
-                seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-                  }
-          return seed;
+  	std::size_t seed = vec.size();
+	for(auto& element : vec) seed ^= element + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+ 	return seed;
 }
 
 // Randomly sample one element from options according to the probability weights
 template <class T>
-inline T randomChoice(std::vector<T> options, std::vector<float> weights)
+T randomChoice(const std::vector<T>& options, const std::vector<float>& weights)
 {
     T choice;
-    const float unif = std::rand()/RAND_MAX;
     float sumWeight = 0.f;
-    for(size_t i = 0; i < weights.size(); ++i)
+    const float unif = (float)std::rand()/(float)RAND_MAX;
+	printf("unif %f\n");
+	
+	size_t idx = 0;
+    for(; idx < weights.size(); ++idx)
     {
-        sumWeight += weights[i];
-        if (sumWeight > unif)
+        sumWeight += weights[idx];
+        if (sumWeight >= unif)
         {
-            choice = options[i];
+            choice = options[idx];
+			break;
         }
     }
+	assert(sumWeight >= unif);
     return choice;
 }
 

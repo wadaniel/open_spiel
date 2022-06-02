@@ -315,20 +315,20 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::test_cfr(idx, val, stratPtr); 
               }, py::call_guard<py::gil_scoped_release>() )
       
-      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, py::array_t<float>& activeSharedStrategy)
               { py::buffer_info handIdsBuf = handIds.request();
-                size_t handIdsSize = handIdsBuf.shape[0];
+                const size_t handIdsSize = handIdsBuf.shape[0];
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
-                size_t Nstrat = stratBuf.shape[0];
+                const  size_t nStrat = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                  
-                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
-                size_t NfrozenStrat = frozenStratBuf.shape[0];
-                float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
+                py::buffer_info activeStratBuf = activeSharedStrategy.request();
+                const size_t nActiveStrat = activeStratBuf.shape[0];
+                float *activeStratPtr = static_cast<float *>(activeStratBuf.ptr);
  
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, state->Clone(), stratPtr, frozenStratPtr); 
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, activeStratPtr, nActiveStrat); 
               }, py::call_guard<py::gil_scoped_release>() )
 
       .def("undo_action", &State::UndoAction)

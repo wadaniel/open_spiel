@@ -91,16 +91,18 @@ const auto globalLegalReraiseActionsToIndexMap = createActionsToIndexMap(allLega
 // Overall max number of legal actions in stages
 const size_t globalNumLegalActions = allLegalActions.size();
 // Vector containing max values for each category
-const std::vector<size_t> maxValues = {1, NUM_BUCKETS, 4, 3, 10, 10, 3, globalNumLegalActions, 2 }; // first is dummy
+// bucket, stage, active players code, pot pct, call pot pct, current player, num legal actions, is reraise
+const std::vector<size_t> maxValues = {1, NUM_BUCKETS, 4, 3, 10, 10, 3, globalNumLegalActions, 2 }; 
 // Vector containing max values for each category (RTS)
+// total max hand, stage, active players code, pot pct, call pot pct, current player, num legal actions, is reraise
 const std::vector<size_t> maxValuesRTS = {1, NUM_RTS_BUCKETS, 4, 3, 10, 10, 3, globalNumLegalActions, 2 };
 
 // Calculates the cumulative product and stores intermediate values in vector
 std::vector<size_t> getCumMaxValVector(const std::vector<size_t>& maxValVec)
 {    
-    std::vector<size_t> cumMaxValVec(maxValVec.size());
+    std::vector<size_t> cumMaxValVec(maxValVec.size()-1);
     size_t cumProd = 1;
-    for(size_t idx = 0; idx < maxValVec.size(); ++idx)
+    for(size_t idx = 0; idx < maxValVec.size()-1; ++idx)
     {
         cumProd *= maxValVec[idx];
         cumMaxValVec[idx] = cumProd;
@@ -150,6 +152,7 @@ size_t getLegalActionCodeFlop(const std::vector<int>& actions)
 // Gets legal action code for legal action vector for given betting stage and reraise scenario
 size_t getLegalActionCode(bool isReraise, size_t bettingStage, const std::vector<int>& actions)
 {
+    printf("isReraise %d, bettingStage %zu\n", isReraise, bettingStage);
     if(isReraise)
         return getLegalActionCodeReraise(actions);
     else if(bettingStage == 0)

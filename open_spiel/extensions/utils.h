@@ -17,7 +17,7 @@ void printVec(const std::string& name, const std::vector<T>& vec)
 // Split the string in substrings given by delim, return substrings in vecetor
 std::vector<std::string> split(const std::string& text, const std::string& delim)
 {
-	printf("split: %s\n", text.c_str());
+	//printf("split: %s\n", text.c_str());
 	auto start = 0U;
     auto end = text.find(delim);
 	std::vector<std::string> res;
@@ -30,7 +30,7 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 	const auto rest = text.substr(start, end - start);
 	if (rest.empty() == false)
     	res.push_back(rest);
-	for(auto& s : res) printf("[%s]\n",s.c_str());
+	//for(auto& s : res) printf("[%s]\n",s.c_str());
 	
 	return res;
 }
@@ -43,24 +43,26 @@ size_t vecHash(const std::vector<int>& vec) {
 }
 
 // Randomly sample one element from options according to the probability weights
-template <class T>
-T randomChoice(const std::vector<T>& options, const std::vector<float>& weights)
+template<typename Iterator, typename Iterator2>
+typename std::iterator_traits<Iterator>::value_type 
+randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
 {
-	T choice;
-    float sumWeight = 0.f;
+    using value_type = typename std::iterator_traits<Iterator>::value_type;
+    using value_type2 = typename std::iterator_traits<Iterator2>::value_type;
+	value_type choice = value_type();
+    value_type2 sumWeight = value_type2();
     const float unif = (float)rand()/(float)RAND_MAX;
 	
-	size_t idx = 0;
-    for(; idx < weights.size(); ++idx)
+    for(size_t idx=0; begin != end; ++begin)
     {
-        sumWeight += weights[idx];
+        sumWeight += *begin;
         if (sumWeight >= unif)
         {
-            choice = options[idx];
+            choice = *(options_iterator_start+idx);
 			break;
         }
+		idx++;
     }
-	printf("sw %f unif %f\n", sumWeight, unif);
 	assert(sumWeight >= unif);
     return choice;
 }

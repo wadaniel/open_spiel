@@ -20,15 +20,12 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 }
 
 
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyActive, size_t nSharedActiveStrat) 
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyActive, size_t nSharedActiveStrat, cfrMemory& work) 
 { 
-	printf("CALL CFR %zu %zu\n", nSharedStrat, nSharedActiveStrat);
-	 
     const bool isTerminal = state.IsTerminal();
     
 	// If terminal, return players reward
     if (isTerminal) {
-		printf("isTerminal: update player %d\n", updatePlayerIdx);
         return state.PlayerReward(updatePlayerIdx);
     }
 
@@ -37,11 +34,19 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	{
     	const auto chanceActions = state.ChanceOutcomes();
 		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
-		const auto sampledAction = randomChoice(chanceActions, weights);
+		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
         const auto new_state = state.Child(sampledAction.first);
-        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
+        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
 	}
-    
+
+	auto& actionValues = work.actionValues;
+	auto& probabilities = work.probabilities;
+	auto& explored = work.explored;
+	auto& bets = work.bets;
+	auto& privateCards = work.privateCards;
+	auto& publicCards = work.publicCards;
+	auto& regrets = work.regrets;
+
 	const int currentPlayer = state.CurrentPlayer();
 
     // Retrieve information state
@@ -54,10 +59,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     const auto informationStateSplit = split(informationState, "]");
 
     // Bets of players
-    std::vector<int> bets(3, 0);
+	std::fill(bets.begin(), bets.end(), 0);
     getBets(informationStateSplit[3], bets);
-    printf("A\n");
-    // Retrieve pot information
+    
+	// Retrieve pot information
     int maxBet = 0;
     int minBet = TOTALSTACK;
     int totalPot = 0;
@@ -87,7 +92,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
     }
 
-    printf("B\n");
     const auto roundActions = split(informationStateSplit[6], "|");
     std::string currentRoundActions = roundActions[roundActions.size()-1];
 
@@ -100,11 +104,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     
     // Calculate our legal actions based on abstraction
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
-	printVec("gameLegalActions", gameLegalActions);
-	printVec("ourLegalActions", ourLegalActions);
-	//printVec("our legal actions", ourLegalActions);
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
-    printf("C\n");
     
     // Bet size in values from 0 to 9
     const int betSizeFrac = std::min(maxBet / 50, 9);
@@ -114,8 +114,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
    
     // Init array index
     int arrayIndex = -1;
-
-	std::vector<int> publicCards(0); // for a test moved here (DW)
 	
     // Get index in strategy array
     if(handIdsSize > 0)
@@ -132,10 +130,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         assert(privateCardsStr.size() == 4);
 
         // Read private cards
-        std::vector<int> privateCards = 
-            { getCardCode(privateCardsStr[0], privateCardsStr[1]),
-              getCardCode(privateCardsStr[2], privateCardsStr[3]) };
-
+        privateCards[0] = getCardCode(privateCardsStr[0], privateCardsStr[1]);
+        privateCards[1] = getCardCode(privateCardsStr[2], privateCardsStr[3]);
 
 		// Process public cards if flop or later
 		if (bettingStage > 0)
@@ -144,12 +140,12 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         	const auto publicCardSplit = split(informationStateSplit[5], ": ");
         	const auto publicCardsStr = publicCardSplit[1];
         	assert(publicCardsStr.size()%2 == 0);
+        	assert(publicCardsStr.size() == (2 + bettingStage)*2);
 
         	// Read public cards
-        	publicCards.resize(privateCardsStr.size()/2);
-        	for(size_t i = 0; i < publicCardsStr.size(); i += 2)
+        	for(size_t idx = 0; idx < publicCardsStr.size()/2; ++idx)
         	{
-            	publicCards[i] = getCardCode(publicCardsStr[i], publicCardsStr[i+1]);
+            	publicCards[idx] = getCardCode(publicCardsStr[2*idx], publicCardsStr[2*idx+1]);
         	}
 		}
 
@@ -161,16 +157,15 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		assert(arrayIndex < nSharedActiveStrat);
     }
 
-    printf("D\n");
 	//printVec("game legal actions" , gameLegalActions);
 	//printVec("our legal actions" , ourLegalActions);
     
 	// Container for action probabilities calculation
-    std::vector<float> probabilities(ourLegalActions.size(), 0.);
+    std::fill(probabilities.begin(), probabilities.end(), 0.f);
 
     if(currentPlayer == updatePlayerIdx)
     {
-        std::vector<float>regrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
+		std::copy(sharedStrategy+arrayIndex, sharedStrategy+arrayIndex+9 , regrets.begin() );
         if(useRealTimeSearch)
         {
 
@@ -194,7 +189,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
                     probabilities[idx] = regrets[action];
     				const auto new_state = state.Child(absoluteAction);
-                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
+        			const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
                     expectedValue += actionValue * probabilities[action];
                 }
                 return expectedValue;
@@ -202,22 +197,20 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         }
 
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
-    	printf("E\n");
 
         // Find actions to prune
-        const bool noprune = (applyPruning == false) or (bettingStage >= 3); // dont prune in turn or river
-        std::vector<bool> explored(9, noprune);
+    	std::fill(explored.begin(), explored.end(), false);
 
-        if(noprune == false)
+        if(applyPruning == true && bettingStage < 3)
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
         {
             const int action = ourLegalActions[idx];
-            if ((action == 0) || (action == 8)) explored[idx] = true;
-            if (regrets[action] > pruneThreshold) explored[idx] = true;
+            if ((action > 0) && (action < 8)) explored[idx] = false;
+            if (regrets[action] < pruneThreshold) explored[idx] = false;
         }
 
         float expectedValue = 0.;
-        std::vector<float> actionValues(ourLegalActions.size(), 0.);
+        std::fill(actionValues.begin(), actionValues.end(), 0.f);
         
         // Iterate only over explored actions
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
@@ -225,8 +218,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             const int action = ourLegalActions[idx];
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
     		const auto new_state = state.Child(absoluteAction);
-
-            actionValues[idx] = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
+        	const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
+            actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
      
@@ -234,7 +227,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
         
-    	printf("G\n");
         // Update active shared strategy
         if (useRealTimeSearch)
         {
@@ -246,8 +238,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 if(sharedStrategyActive[arrayActionIndex] > 1e32) sharedStrategyActive[arrayActionIndex] = 1e32;
                 if(sharedStrategyActive[arrayActionIndex] < pruneThreshold*1.03) sharedStrategyActive[arrayActionIndex] = pruneThreshold*1.03;
             }
-        
-            std::vector<float> newRegrets(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9]);
         }
         // Update shared strategy
         else
@@ -260,14 +250,12 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
                 if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
             }
-            
-            std::vector<float> newRegrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
         }
     }
     else
     {
 
-        std::vector<float> regrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
+		std::copy(sharedStrategy+arrayIndex, sharedStrategy+arrayIndex+9 , regrets.begin() );
         if(useRealTimeSearch)
         {
             bool allZero = true;
@@ -283,14 +271,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     }
          
 
-	printVec("ourLegalActions", ourLegalActions);
-	printVec("probabilities", probabilities);
-    const int sampledAction = randomChoice(ourLegalActions, probabilities);
+    const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
 	const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
-	printf("Z, action %zu absolute action %zu\n", sampledAction, absoluteAction);
 	const auto new_state = state.Child(absoluteAction);
-    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
-
+    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
 
     return expectedValue;
 }

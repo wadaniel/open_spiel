@@ -327,8 +327,12 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info activeStratBuf = activeSharedStrategy.request();
                 const size_t nActiveStrat = activeStratBuf.shape[0];
                 float *activeStratPtr = static_cast<float *>(activeStratBuf.ptr);
+
+				// allocate work memory
+				extensions::cfrMemory workmem;
  
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, activeStratPtr, nActiveStrat); 
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, activeStratPtr, nActiveStrat, workmem);
+
               }, py::call_guard<py::gil_scoped_release>() )
 
       .def("undo_action", &State::UndoAction)

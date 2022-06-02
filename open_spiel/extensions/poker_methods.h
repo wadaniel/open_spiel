@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include "open_spiel/extensions/utils.h"
-
+#include <stdlib.h>
 namespace extensions
 {
 
@@ -28,7 +28,7 @@ int getCardCode(char rank, char suit)
     return num*4+suitCode;
 }
 
-void getBets(const std::string& info, std::vector<int>& bets)
+void getBets(const std::string& info, std::array<int,3>& bets)
 {
     auto money = split(info, ": ");
     const auto betStrings = split(money[1]," ");
@@ -38,15 +38,15 @@ void getBets(const std::string& info, std::vector<int>& bets)
     }
 }
 
-void calculateProbabilities(const std::vector<float>& regret, const std::vector<int>& legalActions, std::vector<float>& probabilities)
+void calculateProbabilities(const std::array<float, 9>& regret, const std::vector<int>& legalActions, std::array<float, 9>& probabilities)
 {
     float sumValue = 0.f;
-    std::vector<float> flooredRegret(legalActions.size(), 0.f);
+    
     for(size_t idx = 0; idx < legalActions.size(); ++idx)
     {
         const int action = legalActions[idx];
         const float floored = regret[action] > 0.f ? regret[action] : 0.f;   
-        flooredRegret[idx] = floored;
+        probabilities[idx] = floored;
         sumValue += floored;
     }
 
@@ -55,7 +55,7 @@ void calculateProbabilities(const std::vector<float>& regret, const std::vector<
         const float invSum = 1./sumValue;
         for(size_t idx = 0; idx < legalActions.size(); ++idx)
         {
-            probabilities[idx] = flooredRegret[idx] * invSum;
+            probabilities[idx] *= invSum;
         }
     }
     else
@@ -86,11 +86,11 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
     return 9*cumSumProd;
 }
 
-int getCardBucket(const std::vector<int>& privateCards, const std::vector<int>& publicCards, size_t bettingStage)
+int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
 
 #ifdef FAKEDICT
-    return std::rand()%150;
+    return std::rand()%150; 
 #endif
 
     std::vector<int> lookUpCards;

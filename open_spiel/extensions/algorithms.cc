@@ -39,6 +39,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
 	}
 
+	// Extract work variables
 	auto& actionValues = work.actionValues;
 	auto& probabilities = work.probabilities;
 	auto& explored = work.explored;
@@ -118,6 +119,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     // Get index in strategy array
     if(handIdsSize > 0)
     {
+		assert(handIdsSize == 3);
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
 		assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedActiveStrat);
@@ -154,7 +156,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
 		assert(arrayIndex < nSharedStrat);
-		assert(arrayIndex < nSharedActiveStrat);
+		assert(useRealTimeSearch == false || (arrayIndex < nSharedActiveStrat));
     }
 
 	//printVec("game legal actions" , gameLegalActions);

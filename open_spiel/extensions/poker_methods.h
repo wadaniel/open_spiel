@@ -41,31 +41,29 @@ void getBets(const std::string& info, std::vector<int>& bets)
 void calculateProbabilities(const std::vector<float>& regret, const std::vector<int>& legalActions, std::vector<float>& probabilities)
 {
     float sumValue = 0.f;
-    std::vector<float> flooredRegret(legalActions.size(), 0.);
+    std::vector<float> flooredRegret(legalActions.size(), 0.f);
     for(size_t idx = 0; idx < legalActions.size(); ++idx)
     {
         const int action = legalActions[idx];
-        const float floored = regret[action] > 0.f ? regret[action] : 0.;   
+        const float floored = regret[action] > 0.f ? regret[action] : 0.f;   
         flooredRegret[idx] = floored;
         sumValue += floored;
     }
 
-    if( sumValue > 0.f )
+    if( sumValue > 1e-12 )
     {
         const float invSum = 1./sumValue;
         for(size_t idx = 0; idx < legalActions.size(); ++idx)
         {
-            const int action = legalActions[idx];
-            probabilities[action] = flooredRegret[idx] * invSum;
+            probabilities[idx] = flooredRegret[idx] * invSum;
         }
     }
     else
     {
-        const float unif = 1./legalActions.size();
+        const float unif = 1./(float)legalActions.size();
         for(size_t idx = 0; idx < legalActions.size(); ++idx)
         {
-            const int action = legalActions[idx];
-            probabilities[action] = unif; //TODO(DW): balanced version
+            probabilities[idx] = unif; //TODO(DW): balanced version
         }
     }
 }

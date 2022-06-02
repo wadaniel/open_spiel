@@ -39,8 +39,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
 		const auto sampledAction = randomChoice(chanceActions, weights);
         const auto new_state = state.Child(sampledAction.first);
-        cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
-		return 0.; // irelevant
+        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
 	}
     
 	const int currentPlayer = state.CurrentPlayer();
@@ -167,7 +166,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	//printVec("our legal actions" , ourLegalActions);
     
 	// Container for action probabilities calculation
-    std::vector<float> probabilities(9, 0.);
+    std::vector<float> probabilities(ourLegalActions.size(), 0.);
 
     if(currentPlayer == updatePlayerIdx)
     {
@@ -181,17 +180,19 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             if (allZero)
             {
                 std::copy(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9], regrets.begin());
+				calculateProbabilities(regrets, ourLegalActions, probabilities);
             }
             else
             {
-                for(int action : ourLegalActions)
-                    probabilities[action] = regrets[action];
+        
+				calculateProbabilities(regrets, ourLegalActions, probabilities);
 
                 float expectedValue = 0.;
-                for(size_t i = 0; i < ourLegalActions.size(); ++i)
+                for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
                 {
-                    const int action = ourLegalActions[i];
+                    const int action = ourLegalActions[idx];
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+                    probabilities[idx] = regrets[action];
     				const auto new_state = state.Child(absoluteAction);
                     const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
                     expectedValue += actionValue * probabilities[action];
@@ -200,9 +201,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
         }
 
-        calculateProbabilities(regrets, ourLegalActions, probabilities);
+		calculateProbabilities(regrets, ourLegalActions, probabilities);
     	printf("E\n");
-
 
         // Find actions to prune
         const bool noprune = (applyPruning == false) or (bettingStage >= 3); // dont prune in turn or river
@@ -217,7 +217,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         }
 
         float expectedValue = 0.;
-        std::vector<float> actionValues(9, 0.);
+        std::vector<float> actionValues(ourLegalActions.size(), 0.);
         
         // Iterate only over explored actions
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
@@ -227,11 +227,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     		const auto new_state = state.Child(absoluteAction);
 
             actionValues[idx] = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat);
-            expectedValue += probabilities[action] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
+            expectedValue += probabilities[idx] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
      
         // Container for action probabilities calculation
-        std::vector<float> newProbabilities(9, 0.);
 
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
         
@@ -249,7 +248,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
         
             std::vector<float> newRegrets(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9]);
-            calculateProbabilities(newRegrets, ourLegalActions, newProbabilities); // TODO(DW): is this needed?
         }
         // Update shared strategy
         else
@@ -264,7 +262,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
             
             std::vector<float> newRegrets(&sharedStrategy[arrayIndex], &sharedStrategy[arrayIndex+9]);
-            calculateProbabilities(newRegrets, ourLegalActions, newProbabilities); // TODO(DW): is this needed?
         }
     }
     else

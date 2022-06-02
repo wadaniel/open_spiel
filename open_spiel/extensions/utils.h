@@ -60,6 +60,7 @@ T randomChoice(const std::vector<T>& options, const std::vector<float>& weights)
 			break;
         }
     }
+	printf("sw %f unif %f\n", sumWeight, unif);
 	assert(sumWeight >= unif);
     return choice;
 }

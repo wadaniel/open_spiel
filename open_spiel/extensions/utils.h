@@ -4,6 +4,8 @@
 namespace extensions
 {
 
+#include <stdlib.h> // rand
+
 template <class T>
 void printVec(const std::string& name, const std::vector<T>& vec)
 {
@@ -19,20 +21,15 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 	auto start = 0U;
     auto end = text.find(delim);
 	std::vector<std::string> res;
-	res.reserve(12);
     while (end != std::string::npos)
     {
-		const auto substring = text.substr(start, end - start);
-		printf("[%s]\n",substring.c_str());
-        res.push_back(substring);
-		printf("pushed\n");
+		res.push_back(text.substr(start, end - start));
         start = end + delim.length();
         end = text.find(delim, start);
     }
 	const auto rest = text.substr(start, end - start);
 	if (rest.empty() == false)
     	res.push_back(rest);
-	res.shrink_to_fit();
 	for(auto& s : res) printf("[%s]\n",s.c_str());
 	
 	return res;
@@ -49,10 +46,9 @@ size_t vecHash(const std::vector<int>& vec) {
 template <class T>
 T randomChoice(const std::vector<T>& options, const std::vector<float>& weights)
 {
-    T choice;
+	T choice;
     float sumWeight = 0.f;
-    const float unif = (float)std::rand()/(float)RAND_MAX;
-	printf("unif %f\n");
+    const float unif = (float)rand()/(float)RAND_MAX;
 	
 	size_t idx = 0;
     for(; idx < weights.size(); ++idx)

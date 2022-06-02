@@ -152,7 +152,7 @@ size_t getLegalActionCodeFlop(const std::vector<int>& actions)
 // Gets legal action code for legal action vector for given betting stage and reraise scenario
 size_t getLegalActionCode(bool isReraise, size_t bettingStage, const std::vector<int>& actions)
 {
-    printf("isReraise %d, bettingStage %zu\n", isReraise, bettingStage);
+    //printf("isReraise %d, bettingStage %zu\n", isReraise, bettingStage);
     if(isReraise)
         return getLegalActionCodeReraise(actions);
     else if(bettingStage == 0)

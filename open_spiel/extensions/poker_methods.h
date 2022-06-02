@@ -2,7 +2,6 @@
 #define _POKER_METHODS_H_
 
 #include <algorithm>
-#include <stdlib.h> // rand
 #include "open_spiel/extensions/utils.h"
 
 namespace extensions
@@ -26,7 +25,6 @@ int getCardCode(char rank, char suit)
     else if (suit == 'h') suitCode = 2; // hearts
     else				  suitCode = 3; // spades
 
-	printf("%c %c: %d\n", rank, suit, num*4+suitCode);
     return num*4+suitCode;
 }
 
@@ -100,9 +98,7 @@ int getCardBucket(const std::vector<int>& privateCards, const std::vector<int>& 
     std::vector<int> lookUpCards;
     if (bettingStage == 0)
     {
-		printf("W\n");
 		lookUpCards.assign(privateCards.begin(), privateCards.end());
-		printf("W\n");
     }
     else
     {
@@ -213,15 +209,15 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 		// const std::vector<int> factors = {0, 0, .25, 0.5, .75, 1., 2., 3.};
 		const float factor = 0.25 * (actionIndex-1.);
 		const int betSize = totalPot * factor;
-		return biggestBet + betSize;
+		return std::max(biggestBet + betSize, TOTALSTACK);
 	}
 	else if (actionIndex == 6)
 	{
-		return biggestBet + totalPot * 2; // factor == 2
+		return std::max(biggestBet + totalPot * 2, TOTALSTACK); // factor == 2
 	}
 	else
 	{
-		return biggestBet + totalPot * 3; // factor == 3
+		return std::max(biggestBet + totalPot * 3, TOTALSTACK); // factor == 3
 	}
 }
 
@@ -247,14 +243,14 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (TOTALSTACK - prevBet)/totalPot;
+    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
     
     size_t maxAction = 1;
-    if(maxRaiseInPctPot > 3)
+    if(maxRaiseInPctPot > 3.)
         maxAction = 7;
-    else if(maxRaiseInPctPot > 2)
+    else if(maxRaiseInPctPot > 2.)
         maxAction = 6;
-    else if(maxRaiseInPctPot > 1)
+    else if(maxRaiseInPctPot > 1.)
         maxAction = 5;
     else if(maxRaiseInPctPot > 0.75)
         maxAction = 4;
@@ -305,12 +301,12 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (TOTALSTACK - prevBet)/totalPot;
+    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
    
     int maxAction = 1;
-    if(maxRaiseInPctPot > 2)
+    if(maxRaiseInPctPot > 2.)
         maxAction = 6;
-    else if(maxRaiseInPctPot > 1)
+    else if(maxRaiseInPctPot > 1.)
         maxAction = 5;
     else if(maxRaiseInPctPot > 0.5)
         maxAction = 3;
@@ -373,10 +369,10 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (TOTALSTACK - prevBet)/totalPot;
+    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
    
     int maxAction = 1;
-    if(maxRaiseInPctPot > 1)
+    if(maxRaiseInPctPot > 1.)
         maxAction = 5;
     else if(maxRaiseInPctPot > 0.5)
         maxAction = 3;
@@ -430,7 +426,7 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
         return std::vector<int> {0, 1, 8};
     else
     {
-        const float maxRaiseInPctPot = (TOTALSTACK - maxBet)/totalPot;
+    	const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
     
         std::vector<int> preActions;
         if (legalActions[0] == 0)

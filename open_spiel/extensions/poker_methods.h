@@ -89,21 +89,18 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
 int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
 
-#ifdef FAKEDICT
-    return std::rand()%150; 
-#endif
-
     std::vector<int> lookUpCards;
+	printf("A\n");
     if (bettingStage == 0)
     {
 		lookUpCards.assign(privateCards.begin(), privateCards.end());
     }
     else
     {
-        const size_t numCards = privateCards.size() + publicCards.size();
+        const size_t numCards = 3 + bettingStage;
 
         std::vector<int> sortedCards(numCards);
-        std::copy(privateCards.begin(), privateCards.begin()+2, sortedCards.begin());
+        std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
         std::copy(publicCards.begin(), publicCards.end(), sortedCards.begin()+2);
 
         std::vector<int> cardRanks(numCards);
@@ -114,9 +111,9 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             cardSuits[i] = sortedCards[i]%4;
         }
 
-        const size_t abstractionLen = numCards + 6;
+	printf("B\n");
         std::vector<int> abstraction(6);
-        std::copy(sortedCards.begin(), sortedCards.end(), abstraction.begin());
+        std::copy(sortedCards.begin(), sortedCards.begin(), abstraction.begin());
         
         const auto cardSuitsOrig = cardSuits;
         const bool isSameSuits = (cardSuits[0] == cardSuits[1]);
@@ -156,6 +153,7 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
 
         }
 
+	printf("C\n");
         if( (cardSuitsOrig[1] != 0) && (cardSuitsOrig[1] != 1) )
         {
             int origHandSuit = cardSuits[1]; // Changing above is important!
@@ -167,6 +165,7 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
 
         }
 
+	printf("D\n");
         std::copy(publicSuitsHist.begin(), publicSuitsHist.end(), abstraction.end()-4);
         if(isSameSuits)
             std::sort(abstraction.end()-3, abstraction.end(), std::greater<int>());
@@ -176,6 +175,9 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
 		lookUpCards.assign(abstraction.begin(), abstraction.end());
     }
 
+#ifdef FAKEDICT
+    return std::rand()%150; 
+#endif
     
 	//TODO
     assert(false);

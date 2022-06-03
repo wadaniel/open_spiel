@@ -110,7 +110,8 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             cardRanks[i] = sortedCards[i]/4;
             cardSuits[i] = sortedCards[i]%4;
         }
-		
+		printVec("ranks", cardRanks.begin(), cardRanks.end());
+		printVec("suits", cardSuits.begin(), cardSuits.end());
 		// first numCards filled with ranks, card ids
 		// next two entries filled with '[2,0]' for same suits or '[1, 1]' for other suits
 		// last four entries filled with suit histogram
@@ -137,7 +138,7 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             publicSuitsHist[cardSuits[idx]]++;
         
        
-		// If second card clubs we give it to first (we ignore the rank in flush)
+		// If second card clubs we swap (Note: we ignore the rank in flush)
 		if(cardSuits[0] != 0 && cardSuits[1] == 0)
 		{
 			cardSuits[1] = cardSuits[0];
@@ -186,6 +187,8 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
 			std::sort(publicSuitsHist.begin()+2, publicSuitsHist.end(), std::greater<int>());
 
 		std::copy(publicSuitsHist.begin(), publicSuitsHist.end(), abstraction.end()-4);
+
+		printVec("abstraction", abstraction.begin(), abstraction.end());
 	}
 #ifdef FAKEDICT
     return std::rand()%150; 

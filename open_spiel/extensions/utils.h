@@ -6,12 +6,17 @@ namespace extensions
 
 #include <stdlib.h> // rand
 
-template <class T>
-void printVec(const std::string& name, const std::vector<T>& vec)
+template<typename Iterator>
+void printVec(const std::string& name, Iterator begin, Iterator end)
 {
+    using value_type = typename std::iterator_traits<Iterator>::value_type;
+	
 	printf("%s\n", name.c_str());
-	for(T element : vec)
-		printf("%s\n",std::to_string(element).c_str());
+	while(begin != end)
+	{
+		printf("%s\n",std::to_string(*begin).c_str());
+		begin++;
+	}
 }
 
 // Split the string in substrings given by delim, return substrings in vecetor

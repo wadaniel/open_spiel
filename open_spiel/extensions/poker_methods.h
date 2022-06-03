@@ -90,18 +90,18 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
 {
 
     std::vector<int> lookUpCards;
-	printf("A\n");
     if (bettingStage == 0)
     {
 		lookUpCards.assign(privateCards.begin(), privateCards.end());
     }
     else
     {
-        const size_t numCards = 3 + bettingStage;
+		const size_t numPublicCards = bettingStage + 2;
+        const size_t numCards = 4 + bettingStage;
 
         std::vector<int> sortedCards(numCards);
         std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
-        std::copy(publicCards.begin(), publicCards.end(), sortedCards.begin()+2);
+        std::copy(publicCards.begin(), publicCards.begin()+numPublicCards, sortedCards.begin()+2);
 
         std::vector<int> cardRanks(numCards);
         std::vector<int> cardSuits(numCards);
@@ -110,16 +110,19 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             cardRanks[i] = sortedCards[i]/4;
             cardSuits[i] = sortedCards[i]%4;
         }
-
-	printf("B\n");
-        std::vector<int> abstraction(6);
-        std::copy(sortedCards.begin(), sortedCards.begin(), abstraction.begin());
+		
+		// first numCards filled with ranks, card ids
+		// next two entries filled with '[2,0]' for same suits or '[1, 1]' for other suits
+		// last four entries filled with suit histogram
+		// Note: first card converted to clubs (0) and second to diamond (1)
+		// Note: if same suits, hist of last three cards sorted, otherwise hist of last two cards sorted
+        std::vector<int> abstraction(numCards+6); 
+        std::copy(cardRanks.begin(), cardRanks.end(), abstraction.begin());
         
-        const auto cardSuitsOrig = cardSuits;
         const bool isSameSuits = (cardSuits[0] == cardSuits[1]);
         if (isSameSuits)
         {
-            abstraction[numCards] = 2;
+            abstraction[numCards] = 2; //TODO (DW): why do we need '[2,0]' or '[1,1]'? one entry (0 or 1) is enough
             abstraction[numCards+1] = 0;
         }
         else
@@ -128,20 +131,44 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             abstraction[numCards+1] = 1;
         }
         
+		// Count how much there are of each suit in public cards
         std::vector<int> publicSuitsHist(4,0);
-        for(size_t i = 0; i < numCards-2; ++i)
-            publicSuitsHist[cardSuits[i+2]]++;
+        for(size_t idx = 2; idx < numCards; ++idx)
+            publicSuitsHist[cardSuits[idx]]++;
         
-        // First private card is not clubs '0'
-        if(cardSuitsOrig[0] != 0)
+       
+		// If second card clubs we give it to first (we ignore the rank in flush)
+		if(cardSuits[0] != 0 && cardSuits[1] == 0)
+		{
+			cardSuits[1] = cardSuits[0];
+			cardSuits[0] = 0;
+		}
+        
+		const int origPrivateFirstSuit = cardSuits[0];
+		const int origPrivateSecondSuit = cardSuits[1];
+ 
+		// First private card is not clubs '0'
+        if(origPrivateFirstSuit != 0)
         {
-            int origPrivateSuit = cardSuitsOrig[0];
-            int origPublicNumSuit = publicSuitsHist[origPrivateSuit];
-            int origPublicNumClubs = publicSuitsHist[0];
+            const int origPublicNumSameSuit = publicSuitsHist[origPrivateFirstSuit];
+            const int origPublicNumClubs = publicSuitsHist[0];
 
-            publicSuitsHist[origPrivateSuit] = origPublicNumClubs;
-            cardSuits[0] = 0;
+            publicSuitsHist[origPrivateFirstSuit] = origPublicNumClubs;
+            publicSuitsHist[0] = origPublicNumSameSuit;
+		}
 
+		// Second private card is not diamonds '1' and not of same suit as first
+        if(origPrivateSecondSuit != 1 && isSameSuits == false)
+        {
+            const int origPublicNumSameSuit = publicSuitsHist[origPrivateSecondSuit];
+            const int origPublicNumDiamonds = publicSuitsHist[1];
+
+            publicSuitsHist[origPrivateSecondSuit] = origPublicNumDiamonds;
+            publicSuitsHist[1] = origPublicNumSameSuit;
+		}
+
+
+			/*
             // Both private cards same
             if (cardSuitsOrig[1] == origPrivateSuit)
                 cardSuits[1] = 0;
@@ -149,32 +176,17 @@ int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5
             else if (cardSuitsOrig[1] == 0)
             {
                 cardSuits[1] == origPrivateSuit;
-            }
+            }*/
 
-        }
+		// Sort histogram of diamond, spades and hearts
+		if(isSameSuits)
+			std::sort(publicSuitsHist.begin()+1, publicSuitsHist.end(), std::greater<int>());
+		// Sort histogram of spades and hearts
+		else
+			std::sort(publicSuitsHist.begin()+2, publicSuitsHist.end(), std::greater<int>());
 
-	printf("C\n");
-        if( (cardSuitsOrig[1] != 0) && (cardSuitsOrig[1] != 1) )
-        {
-            int origHandSuit = cardSuits[1]; // Changing above is important!
-            int origNumSuit = publicSuitsHist[origHandSuit];
-            int origNumDiamonds = publicSuitsHist[1];
-
-            publicSuitsHist[1] = origHandSuit;
-            publicSuitsHist[origHandSuit] = origNumDiamonds;
-
-        }
-
-	printf("D\n");
-        std::copy(publicSuitsHist.begin(), publicSuitsHist.end(), abstraction.end()-4);
-        if(isSameSuits)
-            std::sort(abstraction.end()-3, abstraction.end(), std::greater<int>());
-        else
-            std::sort(abstraction.end()-2, abstraction.end(), std::greater<int>());
-
-		lookUpCards.assign(abstraction.begin(), abstraction.end());
-    }
-
+		std::copy(publicSuitsHist.begin(), publicSuitsHist.end(), abstraction.end()-4);
+	}
 #ifdef FAKEDICT
     return std::rand()%150; 
 #endif

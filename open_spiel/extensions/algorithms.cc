@@ -20,7 +20,7 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 }
 
 
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyActive, size_t nSharedActiveStrat, cfrMemory& work) 
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat, cfrMemory& work) 
 { 
     const bool isTerminal = state.IsTerminal();
     
@@ -36,7 +36,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
 		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
         const auto new_state = state.Child(sampledAction.first);
-        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
+        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
 	}
 
 	// Extract work variables
@@ -107,11 +107,11 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
     
-    // Bet size in values from 0 to 9
-    const int betSizeFrac = std::min(maxBet / 50, 9);
+    // Call size in 10% of total stack size (values from 0 to 9)
+    const int chipsToCallFrac = std::min(callSize / 50, 9); //TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
     
-    // Call size in values from 0 to 9
-    const int chipsToCallFrac = std::min(callSize / 50, 9);
+    // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I suggest min(10*current_bet // total_chips_in_play, 9)
+    const int betSizeFrac = std::min(currentBet / 50, 9);
    
     // Init array index
     int arrayIndex = -1;
@@ -122,7 +122,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		assert(handIdsSize == 3);
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
 		assert(arrayIndex < nSharedStrat);
-		assert(arrayIndex < nSharedActiveStrat);
+		assert(arrayIndex < nSharedFrozenStrat);
     }
     else
     {
@@ -156,12 +156,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
 		assert(arrayIndex < nSharedStrat);
-		assert(useRealTimeSearch == false || (arrayIndex < nSharedActiveStrat));
+		assert(useRealTimeSearch == false || (arrayIndex < nSharedFrozenStrat));
     }
 
-	//printVec("game legal actions" , gameLegalActions);
-	//printVec("our legal actions" , ourLegalActions);
-    
 	// Container for action probabilities calculation
     std::fill(probabilities.begin(), probabilities.end(), 0.f);
 
@@ -174,14 +171,13 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             bool allZero = true;
             for(float regret : regrets) if (regret != 0.) { allZero = false; break; }
             
+			// if all entries zero, take regrets from passed learned strategy
             if (allZero)
             {
-                std::copy(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9], regrets.begin());
-				calculateProbabilities(regrets, ourLegalActions, probabilities);
+                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin());
             }
             else
             {
-        
 				calculateProbabilities(regrets, ourLegalActions, probabilities);
 
                 float expectedValue = 0.;
@@ -191,7 +187,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
                     probabilities[idx] = regrets[action];
     				const auto new_state = state.Child(absoluteAction);
-        			const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
+        			const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
                     expectedValue += actionValue * probabilities[action];
                 }
                 return expectedValue;
@@ -220,39 +216,25 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             const int action = ourLegalActions[idx];
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
     		const auto new_state = state.Child(absoluteAction);
-        	const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
+        	const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
             actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
      
-        // Container for action probabilities calculation
-
+		// Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
         
-        // Update active shared strategy
-        if (useRealTimeSearch)
+        // Update active *non frozen* shared strategy
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
         {
-            for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
-            {
-                const int action = ourLegalActions[idx];
-                const size_t arrayActionIndex = arrayIndex + action;
-                sharedStrategyActive[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
-                if(sharedStrategyActive[arrayActionIndex] > 1e32) sharedStrategyActive[arrayActionIndex] = 1e32;
-                if(sharedStrategyActive[arrayActionIndex] < pruneThreshold*1.03) sharedStrategyActive[arrayActionIndex] = pruneThreshold*1.03;
-            }
-        }
-        // Update shared strategy
-        else
-        {
-            for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
-            {
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
                 sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
                 if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
                 if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
-            }
-        }
+     	}
+		
+		return expectedValue;
     }
     else
     {
@@ -264,21 +246,21 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             for(float regret : regrets) if (regret != 0.) { allZero = false; break; }
             if(allZero)
             {
-                std::copy(&sharedStrategyActive[arrayIndex], &sharedStrategyActive[arrayIndex+9], regrets.begin());
+                std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], regrets.begin()); //TODO (DW): why do we use non-frozen in python version? contradictory to aboves approach!
             }
         }
         
         calculateProbabilities(regrets, ourLegalActions, probabilities);
-        // TODO(DW): update strategy mode 'opponent' (optional)
-    }
          
 
-    const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
-	const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
-	const auto new_state = state.Child(absoluteAction);
-    const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyActive, nSharedActiveStrat, work);
-
-    return expectedValue;
+    	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
+		const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
+		const auto new_state = state.Child(absoluteAction);
+		const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
+        
+		// TODO(DW): update strategy mode 'opponent' (optional)
+    	return expectedValue;
+    }
 }
 
 }

@@ -1,10 +1,14 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <stdlib.h> // rand
+#include "json.hpp"
+
 namespace extensions
 {
 
-#include <stdlib.h> // rand
+
+
 
 template<typename Iterator>
 void printVec(const std::string& name, Iterator begin, Iterator end)
@@ -70,6 +74,15 @@ randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
     }
 	assert(sumWeight >= unif);
     return choice;
+}
+
+
+std::map<std::string, size_t> readDictionaryFromJson(std::string filename)
+{
+	std::ifstream ifs(filename);
+	json jobj = json::parse(ifs);
+	auto dict = j.get<std::map<std::string, size_t>>();
+	return dict;
 }
 
 

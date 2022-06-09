@@ -315,7 +315,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::test_cfr(idx, val, stratPtr); 
               }, py::call_guard<py::gil_scoped_release>() )
       
-      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, py::array_t<float>& activeSharedStrategy)
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, const py::array_t<float>& frozenSharedStrategy)
               { py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
@@ -324,14 +324,14 @@ PYBIND11_MODULE(pyspiel, m) {
                 const  size_t nStrat = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                  
-                py::buffer_info activeStratBuf = activeSharedStrategy.request();
-                const size_t nActiveStrat = activeStratBuf.shape[0];
-                float *activeStratPtr = static_cast<float *>(activeStratBuf.ptr);
+                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
+                const size_t nFrozenStrat = frozenStratBuf.shape[0];
+                const float *frozenStratPtr = static_cast<const float *>(frozenStratBuf.ptr);
 
 				// allocate work memory
 				extensions::cfrMemory workmem;
  
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, activeStratPtr, nActiveStrat, workmem);
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat, workmem);
 
               }, py::call_guard<py::gil_scoped_release>() )
 

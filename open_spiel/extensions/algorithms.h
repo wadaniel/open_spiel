@@ -44,11 +44,11 @@ struct cfrMemory
 * @param handIds Pointer to hand IDs
 * @param handIdsSize The length of the handIds vector
 * @param state State of the pyspiel
-* @param shardStrategy The shared strategy, for RTS it is the frozen strategy
-* @param shardStrategyActive The shared strategy, only used for RTS
+* @param shardStrategy The shared strategy
+* @param shardStrategyFrozen The frozen constant backup strategy, only used for RTS
 * @return The expected value of the CFR
 */
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyActive, size_t nSharedActiveStrat, cfrMemory& work);
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat, cfrMemory& work);
 
 }
 

@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-#define FAKEDICT
+//#define FAKEDICT
 
 #define TOTALSTACK 500
 #define BBSIZE 20
@@ -16,6 +16,12 @@ namespace extensions
 {
 
 bool applyPruning = true;
+
+
+std::map<std::string, size_t> preflopBucket;
+std::map<std::string, size_t> flopBucket;
+std::map<std::string, size_t> turnBucket;
+std::map<std::string, size_t> riverBucket;
 
 // 14 legal actions
 const std::vector<std::vector<int>> allLegalActions = { {0, 1},
@@ -162,6 +168,7 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage, const std::vector
     else if(bettingStage == 2)
         return getLegalActionCodeTurnRiver(actions);
 }
+
 
 }
 

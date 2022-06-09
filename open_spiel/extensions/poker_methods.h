@@ -100,12 +100,13 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
 
 std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
-	assert(std::is_sorted(privateCards.begin(),privateCards.end(), std::greater<int>()) == true);
-	assert(std::is_sorted(publicCards.begin(),publicCards.end(), std::greater<int>()) == true);
-	
 	const size_t numPublicCards = bettingStage + 2;
 	const size_t numCards = 4 + bettingStage;
-
+	
+	assert(std::is_sorted(privateCards.begin(),privateCards.end())); 				// ascending
+	if (bettingStage > 0)
+		assert(std::is_sorted(publicCards.begin(),publicCards.begin()+numPublicCards));	// ascending 
+	
 	std::vector<int> sortedCards(numCards);
 	std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
 	std::copy(publicCards.begin(), publicCards.begin()+numPublicCards, sortedCards.begin()+2);
@@ -199,30 +200,50 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 	return abstraction;
 }
 
-int getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
+size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
+
+#ifndef FAKEDICT
+	static bool areBucketsInitialized = false;
+	if (areBucketsInitialized == false)
+	{
+		printf("Initializing buckets..\n");
+		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/pre_flop.txt", preflopBucket);
+		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/flop.txt", flopBucket);
+		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/turn.txt", turnBucket);
+		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/river.txt", riverBucket);
+		areBucketsInitialized = true;
+		printf("DONE!\n");
+	}
+#endif
 
     if (bettingStage == 0)
     {
-    	std::vector<int> lookUpCards(privateCards.begin(), privateCards.end());
+   		char str[20];
+   		sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+		return preflopBucket.at(str);
+
     }
     else
     {
 		std::vector<int> abstraction = getCardAbstraction(privateCards, publicCards, bettingStage);
+		std::stringstream abstractionStrStream;
+		std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
+
+		if (bettingStage == 1)
+			return flopBucket.at(abstractionStrStream.str());
+		else if (bettingStage == 2)
+			return turnBucket.at(abstractionStrStream.str());
+		else
+			return riverBucket.at(abstractionStrStream.str());
 	}
 
 #ifdef FAKEDICT
     return std::rand()%150; 
 #endif
-    
+ 
     assert(false);
-	
-	//TODO
-    // bucket = gv.card_info_lut[betting_stage_str][lookupCards]
-    // if(betting_stage_str != "pre_flop"):
-    //   bucket = bucket[0]
-	// printf("bucket %zu\n", bucket);
-    
+
 	return -1;
 
 }
@@ -325,7 +346,7 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
         return std::vector<int> {0, 1, 8};
     
-    int numPreActions = 0;
+    size_t numPreActions = 0;
     int minBet = 0;
     if(legalActions[0] == 0)
     {
@@ -393,7 +414,7 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
         return std::vector<int> {0, 1, 8};
     
-    int numPreActions = 0;
+    size_t numPreActions = 0;
     int minBet = 0;
     if(legalActions[0] == 0)
     {

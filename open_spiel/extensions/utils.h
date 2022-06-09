@@ -8,10 +8,15 @@
 namespace extensions
 {
 
+void readDictionaryFromJson(const std::string filename, std::map<std::string, size_t>& dict)
+{
+	std::ifstream ifs(filename);
+	auto jobj = nlohmann::json::parse(ifs);
+	dict = jobj.get<std::map<std::string, size_t>>();
 
-
-
+}
 template<typename Iterator>
+
 void printVec(const std::string& name, Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
@@ -77,14 +82,6 @@ randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
     return choice;
 }
 
-
-std::map<std::string, size_t> readDictionaryFromJson(std::string filename)
-{
-	std::ifstream ifs(filename);
-	auto jobj = nlohmann::json::parse(ifs);
-	auto dict = jobj.get<std::map<std::string, size_t>>();
-	return dict;
-}
 
 
 }

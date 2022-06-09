@@ -152,7 +152,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		}
 
         // Get card bucket based on abstraction
-        const int bucket = getCardBucket(privateCards, publicCards, bettingStage);
+        const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
 		assert(arrayIndex < nSharedStrat);

@@ -1,13 +1,12 @@
 # Json package required for extensions
-#add_subdirectory (json)
-#find_package(nlohmann_json 3.2.0 REQUIRED)
+find_package(nlohmann_json 3.2.0 REQUIRED)
 
 add_library (extensions OBJECT
   algorithms.cc
   algorithms.h
 )
 
-#target_link_libraries(extensions PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(extensions PRIVATE nlohmann_json::nlohmann_json)
 
 target_include_directories (extensions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

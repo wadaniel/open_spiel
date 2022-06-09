@@ -1,8 +1,9 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#include <fstream>
 #include <stdlib.h> // rand
-#include "json.hpp"
+#include "nlohmann/json.hpp"
 
 namespace extensions
 {
@@ -80,8 +81,8 @@ randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
 std::map<std::string, size_t> readDictionaryFromJson(std::string filename)
 {
 	std::ifstream ifs(filename);
-	json jobj = json::parse(ifs);
-	auto dict = j.get<std::map<std::string, size_t>>();
+	auto jobj = nlohmann::json::parse(ifs);
+	auto dict = jobj.get<std::map<std::string, size_t>>();
 	return dict;
 }
 

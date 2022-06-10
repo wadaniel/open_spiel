@@ -23,18 +23,6 @@ int test_sum(int a, int b);
 */
 int test_cfr(int idx, float val, float* sharedStrategy);
 
-
-struct cfrMemory
-{
-	std::array<float, 9> actionValues;
-	std::array<float, 9> probabilities;
-	std::array<bool, 9> explored;
-	std::array<int, 3> bets;
-	std::array<int, 2> privateCards;
-	std::array<int, 5> publicCards;
-	std::array<float, 9> regrets;
-};
-
 /**
 * @brief CFR calculation and updated of shared strategy
 * @param updatePlayerIdx Index of the player to update
@@ -48,7 +36,7 @@ struct cfrMemory
 * @param shardStrategyFrozen The frozen constant backup strategy, only used for RTS
 * @return The expected value of the CFR
 */
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat, cfrMemory& work);
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
 
 }
 

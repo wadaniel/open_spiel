@@ -14,9 +14,10 @@ int getCardCode(char rank, char suit)
 {
 	int num = (int)rank - 50; // no '0' and no '1', ie '2' == 0
 
-	if (num > 8)
+	if (num > 7)
 	{
-		if      (rank == 'J') num = 9;
+		if      (rank == 'T') num = 8;
+		else if (rank == 'J') num = 9;
 		else if (rank == 'Q') num = 10;
 		else if (rank == 'K') num = 11;
 		else  			  	  num = 12;
@@ -103,10 +104,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 	const size_t numPublicCards = bettingStage + 2;
 	const size_t numCards = 4 + bettingStage;
 	
-	assert(std::is_sorted(privateCards.begin(),privateCards.end())); 				// ascending
-	if (bettingStage > 0)
-		assert(std::is_sorted(publicCards.begin(),publicCards.begin()+numPublicCards));	// ascending 
-	
 	std::vector<int> sortedCards(numCards);
 	std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
 	std::copy(publicCards.begin(), publicCards.begin()+numPublicCards, sortedCards.begin()+2);
@@ -118,8 +115,9 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 		cardRanks[i] = sortedCards[i]/4;
 		cardSuits[i] = sortedCards[i]%4;
 	}
-	printVec("ranks", cardRanks.begin(), cardRanks.end());
-	printVec("suits", cardSuits.begin(), cardSuits.end());
+	
+	//printVec("ranks", cardRanks.begin(), cardRanks.end());
+	//printVec("suits", cardSuits.begin(), cardSuits.end());
 
 	// first numCards filled with ranks, card ids
 	// next two entries filled with '[2,0]' for same suits or '[1, 1]' for other suits
@@ -203,7 +201,10 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
 
-#ifndef FAKEDICT
+
+#ifdef FAKEDICT
+    return std::rand()%150; 
+#else
 	static bool areBucketsInitialized = false;
 	if (areBucketsInitialized == false)
 	{
@@ -217,35 +218,40 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 	}
 #endif
 
-    if (bettingStage == 0)
-    {
-   		char str[20];
-   		sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
-		return preflopBucket.at(str);
+	size_t bucket = 0;
 
-    }
-    else
-    {
-		std::vector<int> abstraction = getCardAbstraction(privateCards, publicCards, bettingStage);
-		std::stringstream abstractionStrStream;
-		std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
-
-		if (bettingStage == 1)
-			return flopBucket.at(abstractionStrStream.str());
-		else if (bettingStage == 2)
-			return turnBucket.at(abstractionStrStream.str());
+	try
+	{
+		if (bettingStage == 0)
+		{
+			char str[20];
+			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+			bucket = preflopBucket.at(str);
+		}
 		else
-			return riverBucket.at(abstractionStrStream.str());
+		{
+			std::vector<int> abstraction = getCardAbstraction(privateCards, publicCards, bettingStage);
+			std::stringstream abstractionStrStream;
+			std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
+
+			if (bettingStage == 1)
+				bucket = flopBucket.at(abstractionStrStream.str());
+			else if (bettingStage == 2)
+				bucket = turnBucket.at(abstractionStrStream.str());
+			else
+				bucket = riverBucket.at(abstractionStrStream.str());
+		}
+	}
+	catch (const std::exception& e)
+	{
+		printf("Key not found in buckets!");
+		printf("Betting stage %zu\n", bettingStage);
+		printVec("privateCards", privateCards.begin(), privateCards.end());
+		printVec("publicCards", publicCards.begin(), publicCards.end());
+		exit(2);
 	}
 
-#ifdef FAKEDICT
-    return std::rand()%150; 
-#endif
- 
-    assert(false);
-
-	return -1;
-
+	return bucket;
 }
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)

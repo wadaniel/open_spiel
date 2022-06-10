@@ -20,7 +20,7 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 }
 
 
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat, cfrMemory& work) 
+float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat) 
 { 
     const bool isTerminal = state.IsTerminal();
     
@@ -36,17 +36,18 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
 		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
         const auto new_state = state.Child(sampledAction.first);
-        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
+        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
-	// Extract work variables
-	auto& actionValues = work.actionValues;
-	auto& probabilities = work.probabilities;
-	auto& explored = work.explored;
-	auto& bets = work.bets;
-	auto& privateCards = work.privateCards;
-	auto& publicCards = work.publicCards;
-	auto& regrets = work.regrets;
+	// Define work variables
+	std::array<int, 3> bets;
+	std::array<int, 2> privateCards;
+	std::array<int, 5> publicCards;
+	
+	std::array<bool, 9> explored;
+	std::array<float, 9> actionValues;
+	std::array<float, 9> probabilities;
+	std::array<float, 9> regrets;
 
 	const int currentPlayer = state.CurrentPlayer();
 
@@ -132,9 +133,15 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         assert(privateCardsStr.size() == 4);
 
         // Read private cards
-        privateCards[0] = getCardCode(privateCardsStr[0], privateCardsStr[1]);
-        privateCards[1] = getCardCode(privateCardsStr[2], privateCardsStr[3]);
+        privateCards[1] = getCardCode(privateCardsStr[0], privateCardsStr[1]); 	// lo card
+        privateCards[0] = getCardCode(privateCardsStr[2], privateCardsStr[3]);  // hi card
+		
+		assert(privateCards[0] != privateCards[1]);
 
+		// Make sure they are sorted
+		//std::sort(privateCards.begin(), privateCards.end());
+		assert(std::is_sorted(privateCards.begin(), privateCards.end()));
+	
 		// Process public cards if flop or later
 		if (bettingStage > 0)
         {
@@ -145,10 +152,18 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         	assert(publicCardsStr.size() == (2 + bettingStage)*2);
 
         	// Read public cards
-        	for(size_t idx = 0; idx < publicCardsStr.size()/2; ++idx)
+			const size_t numPublicCards = bettingStage + 2;
+			assert(numPublicCards == publicCardsStr.size()/2);
+
+        	for(size_t idx = 0; numPublicCards; ++idx)
         	{
             	publicCards[idx] = getCardCode(publicCardsStr[2*idx], publicCardsStr[2*idx+1]);
         	}
+	        
+			// Make sure they are sorted
+			std::sort(publicCards.begin(), publicCards.begin()+numPublicCards); // TODO (DW) is this a requirement?? ask Jonathan
+			// assert(std::is_sorted(publicCards.begin(),publicCards.begin()+numPublicCards));	// ascending 
+	
 		}
 
         // Get card bucket based on abstraction
@@ -187,7 +202,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
                     probabilities[idx] = regrets[action];
     				const auto new_state = state.Child(absoluteAction);
-        			const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
+        			const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
                     expectedValue += actionValue * probabilities[action];
                 }
                 return expectedValue;
@@ -216,7 +231,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             const int action = ourLegalActions[idx];
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
     		const auto new_state = state.Child(absoluteAction);
-        	const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
+        	const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
             actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValues[idx]; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
@@ -256,7 +271,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
 		const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
 		const auto new_state = state.Child(absoluteAction);
-		const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, work);
+		const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         
 		// TODO(DW): update strategy mode 'opponent' (optional)
     	return expectedValue;

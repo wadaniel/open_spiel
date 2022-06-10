@@ -329,9 +329,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 const float *frozenStratPtr = static_cast<const float *>(frozenStratBuf.ptr);
 
 				// allocate work memory
-				extensions::cfrMemory workmem;
- 
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat, workmem);
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 
               }, py::call_guard<py::gil_scoped_release>() )
 

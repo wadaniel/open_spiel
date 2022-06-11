@@ -14,7 +14,6 @@
 
 #include <memory>
 #include <unordered_map>
-
 #include "open_spiel/algorithms/matrix_game_utils.h"
 #include "open_spiel/algorithms/nfg_writer.h"
 #include "open_spiel/algorithms/tensor_game_utils.h"
@@ -45,6 +44,7 @@
 #include "open_spiel/spiel.h"
 #include "open_spiel/spiel_globals.h"
 #include "open_spiel/spiel_utils.h"
+#include "open_spiel/extensions/algorithms.h"
 #include "open_spiel/tests/basic_tests.h"
 
 // List of optional python submodules.
@@ -305,6 +305,34 @@ PYBIND11_MODULE(pyspiel, m) {
       .def("clone", &State::Clone)
       .def("child", &State::Child)
       .def("set_partial_game_state", &State::SetPartialGameState)
+      .def("test_sum", &extensions::test_sum)
+      .def("test_cfr", [](int idx, float val, py::array_t<float>& sharedStrategy)
+              {
+                py::buffer_info stratBuf = sharedStrategy.request();
+                size_t N = stratBuf.ndim;
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+                //std::vector<float> stratVec(stratPtr, stratPtr+N);
+                return extensions::test_cfr(idx, val, stratPtr); 
+              }, py::call_guard<py::gil_scoped_release>() )
+      
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, const py::array_t<float>& frozenSharedStrategy)
+              { py::buffer_info handIdsBuf = handIds.request();
+                const size_t handIdsSize = handIdsBuf.shape[0];
+                int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
+
+                py::buffer_info stratBuf = sharedStrategy.request();
+                const  size_t nStrat = stratBuf.shape[0];
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+                 
+                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
+                const size_t nFrozenStrat = frozenStratBuf.shape[0];
+                const float *frozenStratPtr = static_cast<const float *>(frozenStratBuf.ptr);
+
+				// allocate work memory
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+
+              }, py::call_guard<py::gil_scoped_release>() )
+
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)
       .def("apply_actions_with_legality_checks",

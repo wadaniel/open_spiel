@@ -574,6 +574,15 @@ class State {
   virtual void SetPartialGameState(std::vector<std::vector<uint8_t>> state) {
     SpielFatalError("SetPartialGameState unimplemented!");
   }
+  
+  // SetPartialGameState modifies the state of the game. Eg for poker it sets 
+  // the hole and public cards of the players.
+  static void Cfr(float* sharedStrategy, size_t arrSize) {
+    sharedStrategy[arrSize] = 1.;
+    return;
+    SpielFatalError("SetPartialGameState unimplemented!");
+  }
+
 
   // Undoes the last action, which must be supplied. This is a fast method to
   // undo an action. It is only necessary for algorithms that need a fast undo

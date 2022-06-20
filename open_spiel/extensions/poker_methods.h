@@ -208,13 +208,26 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 	static bool areBucketsInitialized = false;
 	if (areBucketsInitialized == false)
 	{
+
 		printf("Initializing buckets..\n");
+        std::ofstream myfile ("output.txt");
+        if (myfile.is_open())
+        {
+          myfile << "To file: Initializing buckets..\n";
+        }
+
 		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/pre_flop.txt", preflopBucket);
 		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/flop.txt", flopBucket);
 		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/turn.txt", turnBucket);
 		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/river.txt", riverBucket);
 		areBucketsInitialized = true;
+
 		printf("DONE!\n");
+        if (myfile.is_open())
+        {
+          myfile << "To file: DONE!\n";
+          myfile.close();
+        }
 	}
 #endif
 

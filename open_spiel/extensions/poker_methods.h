@@ -211,11 +211,9 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 
 		printf("Initializing buckets..\n");
 		
-        std::ofstream myfile ("output.txt");
-        if (myfile.is_open())
-        {
-          myfile << "To file: Initializing buckets..\n";
-        }
+        std::ofstream outfile;
+        outfile.open("testfile.txt", std::ios_base::app);
+        outfile << "loading json files" << std::endl;
 
 		readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
 		readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
@@ -225,12 +223,14 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 		areBucketsInitialized = true;
 
 		printf("DONE!\n");
-        if (myfile.is_open())
-        {
-          myfile << "To file: DONE!\n";
-          myfile.close();
-        }
+        outfile.close();
 	}
+    else{
+        std::ofstream outfile;
+        outfile.open("testfile.txt", std::ios_base::app);
+        outfile << "already loaded" << std::endl;
+        outfile.close();
+    }
 #endif
 
 	size_t bucket = 0;

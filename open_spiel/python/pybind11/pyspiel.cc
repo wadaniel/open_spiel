@@ -316,10 +316,15 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::test_cfr(idx, val, stratPtr); 
               }, py::call_guard<py::gil_scoped_release>() )
       
-      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& sharedStrategy, const py::array_t<float>& frozenSharedStrategy)
-              { py::buffer_info handIdsBuf = handIds.request();
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+              { 
+                py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
+
+                py::buffer_info regBuf = sharedRegret.request();
+                const  size_t nReg = regBuf.shape[0];
+                int *regPtr = static_cast<int *>(regBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
                 const  size_t nStrat = stratBuf.shape[0];
@@ -327,7 +332,7 @@ PYBIND11_MODULE(pyspiel, m) {
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
-                const float *frozenStratPtr = static_cast<const float *>(frozenStratBuf.ptr);
+                float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); // TODO could use const but not necessary at this point
                 
                 //py::scoped_ostream_redirect stream(
                 //    std::cout,                               // std::ostream&
@@ -335,7 +340,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 //);
 
 				// allocate work memory
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 
               }, py::call_guard<py::gil_scoped_release>() )
 

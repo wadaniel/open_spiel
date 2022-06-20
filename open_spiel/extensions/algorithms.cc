@@ -19,13 +19,13 @@ int test_cfr(int idx, float val, float* sharedStrategy)
         return test_cfr(idx, val, sharedStrategy);
 }
 
-float multi_cfr(int numIter, int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
+/*float multi_cfr(int numIter, int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
 {
     float value;
     for (int i = 0; i < numIter; i++) {
         value = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
     }
-}
+}*/
 
 
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat) 

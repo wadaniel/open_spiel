@@ -147,7 +147,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
-    if(bettingStage == currentStage)
+    // and only during realtime search
+    if(useRealTimeSearch && bettingStage == currentStage)
     {
 		assert(handIdsSize == 3);
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
@@ -200,7 +201,12 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-		assert(arrayIndex < nSharedStrat);
+		if(arrayIndex < nSharedStrat){
+            std::ofstream outfile5;
+            outfile5.open("array_indices.txt", std::ios_base::app);
+            outfile5 << "index too small " << arrayIndex << " vs " << nSharedStrat << std::endl;
+            outfile5.close();
+        }
 		assert(useRealTimeSearch == false || (arrayIndex < nSharedFrozenStrat));
     }
 

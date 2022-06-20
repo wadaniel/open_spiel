@@ -32,8 +32,8 @@ int test_cfr(int idx, float val, float* sharedStrategy);
 * @param handIds Pointer to hand IDs
 * @param handIdsSize The length of the handIds vector
 * @param state State of the pyspiel
-* @param shardStrategy The shared strategy
-* @param shardStrategyFrozen The frozen constant backup strategy, only used for RTS
+* @param sharedStrategy The shared strategy
+* @param sharedStrategyFrozen The frozen constant backup strategy, only used for RTS
 * @return The expected value of the CFR
 */
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, float* sharedStrategy, size_t nSharedStrat, const float* sharedStrategyFrozen, size_t nSharedFrozenStrat);

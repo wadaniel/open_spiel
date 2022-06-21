@@ -203,27 +203,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 
 size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
-    /*std::ofstream outfile;
-    outfile.open("chance.txt", std::ios_base::app);
-    outfile << bettingStage << " - ";
-
-    std::ostringstream os;
-    for (int i: privateCards) {
-        os << i << ",";
-    }
-    std::string str(os.str());
-    outfile << str << " - ";
-
-    std::ostringstream os2;
-    for (int i: publicCards) {
-        os2 << i << ",";
-    }
-    std::string str2(os2.str());
-    outfile << str2;
-
-    outfile << std::endl;
-    outfile.close();
-    return 0;*/
 
 #ifdef FAKEDICT
     return std::rand()%150; 
@@ -265,7 +244,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 				bucket = riverBucket.at(abstractionStrStream.str());
 		}
 	}
-	catch (const std::exception& e)
+	catch (const std::out_of_range& e)
 	{
 		printf("Key not found in buckets!");
 		printf("Betting stage %zu\n", bettingStage);

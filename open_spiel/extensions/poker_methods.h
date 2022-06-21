@@ -210,6 +210,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 	{
 
 		printf("Initializing buckets..\n");
+        std::cerr << "Initializing buckets.." << std::endl;
         std::ofstream myfile ("output.txt");
         if (myfile.is_open())
         {
@@ -222,6 +223,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/river.txt", riverBucket);
 		areBucketsInitialized = true;
 
+        std::cerr << "DONE!" << std::endl;
 		printf("DONE!\n");
         if (myfile.is_open())
         {

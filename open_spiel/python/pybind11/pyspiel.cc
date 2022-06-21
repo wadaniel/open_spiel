@@ -41,7 +41,6 @@
 #include "open_spiel/python/pybind11/pybind11.h"
 #include "open_spiel/python/pybind11/python_games.h"
 #include "open_spiel/python/pybind11/referee.h"
-//#include "pybind11/iostream.h"
 #include "open_spiel/spiel.h"
 #include "open_spiel/spiel_globals.h"
 #include "open_spiel/spiel_utils.h"
@@ -329,11 +328,6 @@ PYBIND11_MODULE(pyspiel, m) {
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 const float *frozenStratPtr = static_cast<const float *>(frozenStratBuf.ptr);
                 
-                //py::scoped_ostream_redirect stream(
-                //    std::cout,                               // std::ostream&
-                //    py::module_::import("sys").attr("stdout") // Python output
-                //);
-
 				// allocate work memory
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 

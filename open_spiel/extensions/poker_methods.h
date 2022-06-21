@@ -208,29 +208,14 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 	static bool areBucketsInitialized = false;
 	if (areBucketsInitialized == false)
 	{
-
-		printf("Initializing buckets..\n");
-		
-        std::ofstream outfile;
-        outfile.open("testfile.txt", std::ios_base::app);
-        outfile << "loading json files" << std::endl;
-
+		printf("Initializing buckets...\n");
 		readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
 		readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
 		readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
 		readDictionaryFromJson("./lut_200/river.txt", riverBucket);
-
 		areBucketsInitialized = true;
-
 		printf("DONE!\n");
-        outfile.close();
 	}
-    else{
-        std::ofstream outfile;
-        outfile.open("testfile.txt", std::ios_base::app);
-        outfile << "already loaded" << std::endl;
-        outfile.close();
-    }
 #endif
 
 	size_t bucket = 0;
@@ -349,6 +334,7 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
     else if (totalPot >= int(minRaise/0.75))
         minAction = 4;
 
+    assert(maxAction > minAction);
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
 	for(size_t idx = 0; idx < numPreActions; ++idx)

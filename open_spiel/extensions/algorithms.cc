@@ -30,16 +30,12 @@ int test_cfr(int idx, float val, float* sharedStrategy)
 
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat) 
 { 
-    std::ofstream outfile;
-    outfile.open("cfr_logs.txt", std::ios_base::app);
-    outfile << "running CFR" << std::endl;
-    outfile.close();
-
     const bool isTerminal = state.IsTerminal();
     
 	// If terminal, return players reward
     if (isTerminal) {
-        return state.PlayerReward(updatePlayerIdx);
+        float playerReward = state.PlayerReward(updatePlayerIdx);
+        return playerReward;
     }
 
 	// If chance node, sample random outcome and reiterate cfr
@@ -50,27 +46,18 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
         const auto new_state = state.Child(sampledAction.first);
 
-        std::ofstream outfile;
-        outfile.open("chance.txt", std::ios_base::app);
-        outfile << "running chance" << std::endl;
-        outfile.close();
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
-    std::ofstream outfile2;
-    outfile2.open("chance_node.txt", std::ios_base::app);
-    outfile2 << "passed chance node" << std::endl;
-    outfile2.close();
-
 	// Define work variables
-	std::array<int, 3> bets;
 	std::array<int, 2> privateCards;
 	std::array<int, 5> publicCards;
+	std::array<int, 3> bets{0, 0, 0};
 	
-	std::array<bool, 9> explored;
-	std::array<float, 9> actionValues;
-	std::array<float, 9> probabilities;
-	std::array<float, 9> regrets;
+	std::array<bool, 9> explored{true, true, true, true, true, true, true, true, true};
+	std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
+	std::array<float, 9> probabilities{0., 0., 0., 0., 0., 0., 0., 0., 0.};
+	std::array<float, 9> regrets{0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
 	const int currentPlayer = state.CurrentPlayer();
 
@@ -140,11 +127,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     // Init array index
     int arrayIndex = -1;
 
-    std::ofstream outfile3;
-    outfile3.open("handidsize.txt", std::ios_base::app);
-    outfile3 << "before check" << std::endl;
-    outfile3.close();
-	
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
     // and only during realtime search
@@ -201,17 +183,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-		if(arrayIndex < nSharedStrat){
-            std::ofstream outfile5;
-            outfile5.open("array_indices.txt", std::ios_base::app);
-            outfile5 << "index too small " << arrayIndex << " vs " << nSharedStrat << std::endl;
-            outfile5.close();
-        }
 		assert(useRealTimeSearch == false || (arrayIndex < nSharedFrozenStrat));
     }
-
-	// Container for action probabilities calculation
-    std::fill(probabilities.begin(), probabilities.end(), 0.f);
 
     if(currentPlayer == updatePlayerIdx)
     {
@@ -239,7 +212,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                     probabilities[idx] = regrets[action];
     				const auto new_state = state.Child(absoluteAction);
                     const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
-                    expectedValue += actionValue * probabilities[action];
+                    expectedValue += actionValue * probabilities[idx];
                 }
                 return expectedValue;
             }
@@ -248,14 +221,12 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
 
         // Find actions to prune
-    	std::fill(explored.begin(), explored.end(), false);
-
         if(applyPruning == true && bettingStage < 3)
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
         {
             const int action = ourLegalActions[idx];
-            if ((action > 0) && (action < 8)) explored[idx] = false;
             if (regrets[action] < pruneThreshold) explored[idx] = false;
+            if ((action == 0) || (action == 8)) explored[idx] = true;
         }
 
         float expectedValue = 0.;

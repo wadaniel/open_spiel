@@ -220,7 +220,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             }
             else
             {
-                assert(false); // Jonathan: for testing we do not set the frozen regrets so it should not be called
+                //assert(false); // Jonathan: for testing we do not set the frozen regrets so it should not be called
 
                 float expectedValue = 0.;
                 for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)

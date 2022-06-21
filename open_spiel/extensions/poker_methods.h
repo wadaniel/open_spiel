@@ -208,6 +208,7 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 
 size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
+    return std::rand()%150;
     /*std::ofstream outfile;
     outfile.open("chance.txt", std::ios_base::app);
     outfile << bettingStage << " - ";
@@ -254,7 +255,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 		{
 			char str[20];
 			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
-			bucket = preflopBucket.at(str);
+			bucket = preflopBucket[str];
 		}
 		else
 		{
@@ -263,11 +264,11 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 			std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
 
 			if (bettingStage == 1)
-				bucket = flopBucket.at(abstractionStrStream.str());
+				bucket = flopBucket[abstractionStrStream.str()];
 			else if (bettingStage == 2)
-				bucket = turnBucket.at(abstractionStrStream.str());
+				bucket = turnBucket[abstractionStrStream.str()];
 			else
-				bucket = riverBucket.at(abstractionStrStream.str());
+				bucket = riverBucket[abstractionStrStream.str()];
 		}
 	}
 	catch (const std::exception& e)

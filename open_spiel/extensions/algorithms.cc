@@ -136,13 +136,16 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
     // and only during realtime search
+    // and RTS only starts after the preflop round
     if(useRealTimeSearch && bettingStage == currentStage)
     {
+        assert(bettingStage > 0);
         //std::cout << " using rts to get array index" << std::endl;
 		assert(handIdsSize == 3);
+        // gives error IndexError: map::at with multiple processes
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
-		assert(arrayIndex < nSharedStrat);
-		assert(arrayIndex < nSharedFrozenStrat);
+        //assert(arrayIndex < nSharedStrat);
+		//assert(arrayIndex < nSharedFrozenStrat);
     }
     else
     {
@@ -210,7 +213,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             bool allZero = true;
             for(float actionProb : strategy) if (actionProb != 0.) { allZero = false; break; }
             
-			// if all entries zero, take regrets from passed learned strategy
+			// if all entries zero, take regrets from passed trained strategy
             if (allZero)
             {
                 std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
@@ -232,9 +235,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 return expectedValue;
             }
         }
-
-        // Jonathan: not sure this was copied before
-        std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
+        else{
+            std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
+        }
+        
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
 
         // Find actions to prune
@@ -267,15 +271,23 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         // Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
 
+        //std::ofstream outfile;
+        //outfile.open("arrayIndex.txt", std::ios_base::app);
+        //outfile << arrayIndex << " - ";
+        
         // Update active player regrets
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
         {
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
-                sharedRegret[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
+                sharedRegret[arrayActionIndex] += int(multiplier*(actionValues[idx] - expectedValue));
+                //outfile << sharedRegret[arrayActionIndex] << ", ";
                 if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
                 if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
+
+        //outfile << std::endl;
+        //outfile.close();
 
 		return expectedValue;
     }

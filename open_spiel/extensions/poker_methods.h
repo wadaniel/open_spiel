@@ -42,11 +42,12 @@ void getBets(const std::string& info, std::array<int,3>& bets)
     }
 }
 
+// Jonathan: looks good
 // Calculate action probabilities
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS) TODO
 // Version 2: balanced TODO
-void calculateProbabilities(const std::array<float, 9>& regret, const std::vector<int>& legalActions, std::array<float, 9>& probabilities, int version = 0)
+void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<int>& legalActions, std::array<float, 9>& probabilities, int version = 0)
 {
     float sumValue = 0.f;
     

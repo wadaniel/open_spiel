@@ -47,10 +47,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	{
         //printf(" chancenode");
     	const auto chanceActions = state.ChanceOutcomes();
-		//const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
-		//const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
-        //const auto new_state = state.Child(sampledAction.first);
-        const auto new_state = state.Child(chanceActions[0].first);
+		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
+		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
+        const auto new_state = state.Child(sampledAction.first);
 
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
@@ -265,6 +264,19 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             expectedValue += probabilities[idx] * actionValue; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
 		
+        // Multiplier for linear regret
+        const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
+
+        // Update active player regrets
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
+        {
+                const int action = ourLegalActions[idx];
+                const size_t arrayActionIndex = arrayIndex + action;
+                sharedRegret[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
+                if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
+                if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
+     	}
+
 		return expectedValue;
     }
     else
@@ -289,14 +301,14 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         }
          
         // Jonathan: looks good
-    	// const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
-        const int sampledAction = ourLegalActions[0];
+    	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
+
         //std::printf("legal actions ");
-        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
+        /*for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
             {
                 const int action = ourLegalActions[idx];
                 //std::cout << action << ",";
-            }
+            }*/
         //std::printf("actions relative ");
         //std::cout << sampledAction << ", absolute ";
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
@@ -311,13 +323,11 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
         
         // Update active *non frozen* shared strategy
-        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
         {
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
-                sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
-                if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
-                if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
+                sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
      	}
 
         return expectedValue;

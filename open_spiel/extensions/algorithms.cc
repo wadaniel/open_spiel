@@ -31,13 +31,10 @@ float multi_cfr(int numIter, int updatePlayerIdx, int startTime, float pruneThre
 
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat) 
 { 
-    //printf(" cfr begin functions " );
-    //std::cout << std::endl;
     const bool isTerminal = state.IsTerminal();
     
 	// If terminal, return players reward
     if (isTerminal) {
-        //printf(" terminal");
         float playerReward = state.PlayerReward(updatePlayerIdx);
         return playerReward;
     }
@@ -45,7 +42,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	// If chance node, sample random outcome and reiterate cfr
 	if(state.IsChanceNode())
 	{
-        //printf(" chancenode");
     	const auto chanceActions = state.ChanceOutcomes();
 		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
 		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
@@ -140,18 +136,13 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     if(useRealTimeSearch && bettingStage == currentStage)
     {
         assert(bettingStage > 0);
-        //std::cout << " using rts to get array index" << std::endl;
 		assert(handIdsSize == 3);
-        // gives error IndexError: map::at with multiple processes
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
-        //assert(arrayIndex < nSharedStrat);
-		//assert(arrayIndex < nSharedFrozenStrat);
+        assert(arrayIndex < nSharedStrat);
+		assert(arrayIndex < nSharedFrozenStrat);
     }
     else
     {
-        // Jonathan: this looks good, but should check it is equivalent to get_array_pos
-        //std::cout << " using non rts" << std::endl;
-
         // Prepare private cards string
         const auto privateCardsSplit = split(informationStateSplit[4],": ");
         const auto privateCardsStr = privateCardsSplit[1];
@@ -170,8 +161,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 		// Process public cards if flop or later
 		if (bettingStage > 0)
         {
-            //std::cout << " process public cards " << std::endl;
-
 			// Prepare public cards string
         	const auto publicCardSplit = split(informationStateSplit[5], ": ");
         	const auto publicCardsStr = publicCardSplit[1];
@@ -182,7 +171,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 			const size_t numPublicCards = bettingStage + 2;
 			assert(numPublicCards == publicCardsStr.size()/2);
 
-            //std::cout << " num public cards " << numPublicCards << std::endl;
         	for(size_t idx = 0; idx < numPublicCards; ++idx)
         	{
             	publicCards[idx] = getCardCode(publicCardsStr[2*idx], publicCardsStr[2*idx+1]);
@@ -190,7 +178,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	        
 			// Make sure they are sorted
 			std::sort(publicCards.begin(), publicCards.begin()+numPublicCards); // TODO (DW) is this a requirement?? ask Jonathan
-			// assert(std::is_sorted(publicCards.begin(),publicCards.begin()+numPublicCards));	// ascending 
+			assert(std::is_sorted(publicCards.begin(),publicCards.begin()+numPublicCards));	// ascending 
 	
 		}
 
@@ -198,14 +186,13 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-		//assert(arrayIndex < nSharedStrat); // this fails, don't put it
-		//assert(arrayIndex < nSharedFrozenStrat);
+		assert(arrayIndex < nSharedStrat); // this fails, don't put it
+		assert(arrayIndex < nSharedFrozenStrat);
     }
     assert(arrayIndex > -1);
 
     if(currentPlayer == updatePlayerIdx)
     {
-        //printf(" current player is updated ");
 		std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], strategy.begin() );
         if(useRealTimeSearch)
         {
@@ -255,12 +242,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         std::fill(actionValues.begin(), actionValues.end(), 0.f);
         
         // Iterate only over explored actions
-        //printf(" iterating in main player");
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
         {
-            //std::cout << " idx " << idx << std::endl;
             const int action = ourLegalActions[idx];
-            //std::cout << " " << action << std::endl;
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
     		auto new_state = state.Child(absoluteAction);
             const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
@@ -271,25 +255,15 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         // Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
 
-        //std::ofstream outfile;
-        //outfile.open("arrayIndex.txt", std::ios_base::app);
-        //outfile << arrayIndex << " - ";
-        
         // Update active player regrets
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
         {
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
                 sharedRegret[arrayActionIndex] += int(multiplier*(actionValues[idx] - expectedValue));
-                //outfile << sharedRegret[arrayActionIndex] << ", ";
                 if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
                 if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
-
-        //outfile << std::endl;
-        //outfile.close();
-
-		return expectedValue;
     }
     else
     {
@@ -315,18 +289,8 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         // Jonathan: looks good
     	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
 
-        //std::printf("legal actions ");
-        /*for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
-            {
-                const int action = ourLegalActions[idx];
-                //std::cout << action << ",";
-            }*/
-        //std::printf("actions relative ");
-        //std::cout << sampledAction << ", absolute ";
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
-		//std::cout << absoluteAction << std::endl;
         auto new_state = state.Child(absoluteAction);
-        //printf(" action chosen for non-active player ");
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         
 		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)

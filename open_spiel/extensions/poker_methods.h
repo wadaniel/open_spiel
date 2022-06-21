@@ -12,6 +12,7 @@ namespace extensions
 
 int getCardCode(char rank, char suit)
 {
+    //std::cout << "rank " << rank << " - " << "suit " << suit << std::endl;
 	int num = (int)rank - 50; // no '0' and no '1', ie '2' == 0
 
 	if (num > 7)
@@ -83,7 +84,7 @@ void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<
 // #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" - arrayposcfr "+str(arrayPos))
 int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
-    return 0;
+    //return 0;
     int cumSumProd = 0.;
     const std::vector<int> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
     if (useRealTimeSearch)
@@ -202,7 +203,7 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 
 size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
-    std::ofstream outfile;
+    /*std::ofstream outfile;
     outfile.open("chance.txt", std::ios_base::app);
     outfile << bettingStage << " - ";
 
@@ -222,7 +223,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 
     outfile << std::endl;
     outfile.close();
-    return 0;
+    return 0;*/
 
 #ifdef FAKEDICT
     return std::rand()%150; 

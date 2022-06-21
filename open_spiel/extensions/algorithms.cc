@@ -54,11 +54,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
-<<<<<<< HEAD
-    //printf(" main part ");
-    // Jonathan: this looks good
-=======
->>>>>>> c0543bac20e81bf4a7d6a7b12cba52362b476ffe
 	// Define work variables
 	std::array<int, 2> privateCards{-1, -1};
 	std::array<int, 5> publicCards{-1, -1, -1, -1, -1};

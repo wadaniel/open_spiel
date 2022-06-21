@@ -102,8 +102,8 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
     /*std::ofstream outfile;
     outfile.open("arrayInfoset.txt", std::ios_base::app);
     outfile << "index " << index << " - " << bucket << " - " << bettingStage << " - " << activePlayersCode << " - " << chipsToCallFrac << " - " << betSizeFrac << " - " << currentPlayer << " - " << legalActionsCode << " - " << isReraise<< std::endl;
-    outfile.close();
-    return index;*/
+    outfile.close();*/
+    return index;
 }
 
 

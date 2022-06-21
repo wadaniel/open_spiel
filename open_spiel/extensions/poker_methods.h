@@ -98,7 +98,12 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProd[idx];
     }
-    return 9*cumSumProd;
+    int index = 9*cumSumProd;
+    /*std::ofstream outfile;
+    outfile.open("arrayInfoset.txt", std::ios_base::app);
+    outfile << "index " << index << " - " << bucket << " - " << bettingStage << " - " << activePlayersCode << " - " << chipsToCallFrac << " - " << betSizeFrac << " - " << currentPlayer << " - " << legalActionsCode << " - " << isReraise<< std::endl;
+    outfile.close();*/
+    return index;
 }
 
 

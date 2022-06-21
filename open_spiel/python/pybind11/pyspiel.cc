@@ -337,7 +337,28 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 
               }, py::call_guard<py::gil_scoped_release>() )
+      .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+              { 
+                py::buffer_info handIdsBuf = handIds.request();
+                const size_t handIdsSize = handIdsBuf.shape[0];
+                int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
 
+                py::buffer_info regBuf = sharedRegret.request();
+                const  size_t nReg = regBuf.shape[0];
+                int *regPtr = static_cast<int *>(regBuf.ptr);
+
+                py::buffer_info stratBuf = sharedStrategy.request();
+                const  size_t nStrat = stratBuf.shape[0];
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+                 
+                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
+                const size_t nFrozenStrat = frozenStratBuf.shape[0];
+                float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); // TODO could use const but not necessary at this point
+
+				// allocate work memory
+                return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+
+              }, py::call_guard<py::gil_scoped_release>() )
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)
       .def("apply_actions_with_legality_checks",

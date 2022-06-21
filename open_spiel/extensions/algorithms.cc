@@ -19,13 +19,14 @@ int test_cfr(int idx, float val, float* sharedStrategy)
         return test_cfr(idx, val, sharedStrategy);
 }
 
-/*float multi_cfr(int numIter, int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
+float multi_cfr(int numIter, int updatePlayerIdx, int startTime, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
 {
     float value;
-    for (int i = 0; i < numIter; i++) {
-        value = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
+    for (int iter = 0; iter < numIter; iter++) {
+        value = cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
     }
-}*/
+    return value;
+}
 
 
 float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat) 
@@ -46,10 +47,9 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	{
         //printf(" chancenode");
     	const auto chanceActions = state.ChanceOutcomes();
-		//const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
-		//const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
-        //const auto new_state = state.Child(sampledAction.first);
-        const auto new_state = state.Child(chanceActions[0].first);
+		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
+		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
+        const auto new_state = state.Child(sampledAction.first);
 
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
@@ -136,13 +136,16 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
     // and only during realtime search
+    // and RTS only starts after the preflop round
     if(useRealTimeSearch && bettingStage == currentStage)
     {
+        assert(bettingStage > 0);
         //std::cout << " using rts to get array index" << std::endl;
 		assert(handIdsSize == 3);
+        // gives error IndexError: map::at with multiple processes
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
-		assert(arrayIndex < nSharedStrat);
-		assert(arrayIndex < nSharedFrozenStrat);
+        //assert(arrayIndex < nSharedStrat);
+		//assert(arrayIndex < nSharedFrozenStrat);
     }
     else
     {
@@ -210,7 +213,7 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             bool allZero = true;
             for(float actionProb : strategy) if (actionProb != 0.) { allZero = false; break; }
             
-			// if all entries zero, take regrets from passed learned strategy
+			// if all entries zero, take regrets from passed trained strategy
             if (allZero)
             {
                 std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
@@ -232,9 +235,10 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
                 return expectedValue;
             }
         }
-
-        // Jonathan: not sure this was copied before
-        std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
+        else{
+            std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
+        }
+        
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
 
         // Find actions to prune
@@ -263,20 +267,28 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValue; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
-     
-		// Multiplier for linear regret
+		
+        // Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
+
+        //std::ofstream outfile;
+        //outfile.open("arrayIndex.txt", std::ios_base::app);
+        //outfile << arrayIndex << " - ";
         
-        // Update active *non frozen* shared strategy
+        // Update active player regrets
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
         {
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
-                sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
-                if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
-                if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
+                sharedRegret[arrayActionIndex] += int(multiplier*(actionValues[idx] - expectedValue));
+                //outfile << sharedRegret[arrayActionIndex] << ", ";
+                if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
+                if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
-		
+
+        //outfile << std::endl;
+        //outfile.close();
+
 		return expectedValue;
     }
     else
@@ -301,14 +313,14 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         }
          
         // Jonathan: looks good
-    	// const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
-        const int sampledAction = ourLegalActions[0];
+    	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
+
         //std::printf("legal actions ");
-        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
+        /*for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
             {
                 const int action = ourLegalActions[idx];
                 //std::cout << action << ",";
-            }
+            }*/
         //std::printf("actions relative ");
         //std::cout << sampledAction << ", absolute ";
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
@@ -318,7 +330,19 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         
 		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
-    	return expectedValue;
+    	// has to be in non active player
+        // Multiplier for linear regret
+        const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
+        
+        // Update active *non frozen* shared strategy
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
+        {
+                const int action = ourLegalActions[idx];
+                const size_t arrayActionIndex = arrayIndex + action;
+                sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
+     	}
+
+        return expectedValue;
     }
 }
 

@@ -44,17 +44,18 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
 	if(state.IsChanceNode())
 	{
     	const auto chanceActions = state.ChanceOutcomes();
-		const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
-		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
-        const auto new_state = state.Child(sampledAction.first);
+		//const std::vector<float> weights(chanceActions.size(), 1./ (float)chanceActions.size());
+		//const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
+        //const auto new_state = state.Child(sampledAction.first);
+        const auto new_state = state.Child(chanceActions[0].first);
 
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
     // Jonathan: this looks good
 	// Define work variables
-	std::array<int, 2> privateCards;
-	std::array<int, 5> publicCards;
+	std::array<int, 2> privateCards{-1, -1};
+	std::array<int, 5> publicCards{-1, -1, -1, -1, -1};
 	std::array<int, 3> bets{0, 0, 0};
 	
 	std::array<bool, 9> explored{true, true, true, true, true, true, true, true, true};

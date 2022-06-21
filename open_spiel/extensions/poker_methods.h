@@ -83,6 +83,7 @@ void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<
 // #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" - arrayposcfr "+str(arrayPos))
 int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
+    return 0;
     int cumSumProd = 0.;
     const std::vector<int> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
     if (useRealTimeSearch)
@@ -201,7 +202,27 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 
 size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
 {
+    std::ofstream outfile;
+    outfile.open("chance.txt", std::ios_base::app);
+    outfile << bettingStage << " - ";
 
+    std::ostringstream os;
+    for (int i: privateCards) {
+        os << i << ",";
+    }
+    std::string str(os.str());
+    outfile << str << " - ";
+
+    std::ostringstream os2;
+    for (int i: publicCards) {
+        os2 << i << ",";
+    }
+    std::string str2(os2.str());
+    outfile << str2;
+
+    outfile << std::endl;
+    outfile.close();
+    return 0;
 
 #ifdef FAKEDICT
     return std::rand()%150; 

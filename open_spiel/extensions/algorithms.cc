@@ -264,19 +264,6 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
             actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValue; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
-     
-		// Multiplier for linear regret
-        const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
-        
-        // Update active *non frozen* shared strategy
-        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
-        {
-                const int action = ourLegalActions[idx];
-                const size_t arrayActionIndex = arrayIndex + action;
-                sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
-                if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
-                if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
-     	}
 		
 		return expectedValue;
     }
@@ -319,7 +306,21 @@ float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeS
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         
 		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
-    	return expectedValue;
+    	// has to be in non active player
+        // Multiplier for linear regret
+        const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
+        
+        // Update active *non frozen* shared strategy
+        for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if(explored[idx] == true)
+        {
+                const int action = ourLegalActions[idx];
+                const size_t arrayActionIndex = arrayIndex + action;
+                sharedStrategy[arrayActionIndex] += multiplier*(actionValues[idx] - expectedValue);
+                if(sharedStrategy[arrayActionIndex] > 1e32) sharedStrategy[arrayActionIndex] = 1e32;
+                if(sharedStrategy[arrayActionIndex] < pruneThreshold*1.03) sharedStrategy[arrayActionIndex] = pruneThreshold*1.03;
+     	}
+
+        return expectedValue;
     }
 }
 

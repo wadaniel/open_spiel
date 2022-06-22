@@ -19,9 +19,10 @@ int test_sum(int a, int b);
 * @param idx The highes index to modify
 * @param idx The vale we set
 * @param shardStrategy The array to modify
+* @param buckets A dictionary to read
 * @return The val
 */
-int test_cfr(int idx, float val, float* sharedStrategy);
+int test_cfr(int idx, float val, float* sharedStrategy, const std::map<std::string, int>& buckets);
 
 /**
 * @brief CFR calculation and updated of shared strategy
@@ -36,13 +37,45 @@ int test_cfr(int idx, float val, float* sharedStrategy);
 * @param sharedRegret State of the pyspiel
 * @param sharedStrategy The shared strategy
 * @param sharedStrategyFrozen The frozen constant backup strategy, only used for RTS
+* @param preflopBuckets
+* @param flopBuckets
+* @param turnBuckets
+* @param riverBuckets
 * @return The expected value of the CFR
 */
-float cfr(int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat); 
+float cfr(int updatePlayerIdx, 
+        int time, 
+        float pruneThreshold, 
+        bool useRealTimeSearch, 
+        int* handIds, 
+        size_t handIdsSize, 
+        const open_spiel::State& state, 
+        int currentStage, 
+        int* sharedRegret, size_t nSharedRegret, 
+        float* sharedStrategy, size_t nSharedStrat, 
+        float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
+        const std::map<std::string, int>& preflopBuckets,
+        const std::map<std::string, int>& flopBuckets,
+        const std::map<std::string, int>& turnBuckets,
+        const std::map<std::string, int>& riverBuckets);
 
-float multi_cfr(int numIter, int updatePlayerIdx, int startTime, float pruneThreshold, bool useRealTimeSearch, int* handIds, size_t handIdsSize, const open_spiel::State& state, int currentStage, int* sharedRegret, size_t nSharedRegret, float* sharedStrategy, size_t nSharedStrat, float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
 
-
+float multi_cfr(int numIter, 
+        int updatePlayerIdx, 
+        int startTime, 
+        float pruneThreshold, 
+        bool useRealTimeSearch, 
+        int* handIds, 
+        size_t handIdsSize, 
+        const open_spiel::State& state, 
+        int currentStage, 
+        int* sharedRegret, size_t nSharedRegret, 
+        float* sharedStrategy, size_t nSharedStrat, 
+        float* sharedStrategyFrozen, size_t nSharedFrozenStrat, 
+        const std::map<std::string, int>& preflopBuckets, 
+        const std::map<std::string, int>& flopBuckets, 
+        const std::map<std::string, int>& turnBuckets, 
+        const std::map<std::string, int>& riverBuckets);
 }
 
 #endif // _ALGORITHMS_H_

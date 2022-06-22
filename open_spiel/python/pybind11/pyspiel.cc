@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <memory>
+#include <map>
 #include <unordered_map>
 #include "open_spiel/algorithms/matrix_game_utils.h"
 #include "open_spiel/algorithms/nfg_writer.h"
@@ -306,16 +307,19 @@ PYBIND11_MODULE(pyspiel, m) {
       .def("child", &State::Child)
       .def("set_partial_game_state", &State::SetPartialGameState)
       .def("test_sum", &extensions::test_sum)
-      .def("test_cfr", [](int idx, float val, py::array_t<float>& sharedStrategy)
+      .def("test_cfr", [](int idx, float val, py::array_t<float>& sharedStrategy, const py::dict& buckets)
               {
                 py::buffer_info stratBuf = sharedStrategy.request();
                 size_t N = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
-                //std::vector<float> stratVec(stratPtr, stratPtr+N);
-                return extensions::test_cfr(idx, val, stratPtr); 
+                
+                // cast dict to cpp map
+                auto cppdict = buckets.cast<std::map<std::string, int>>();
+                return extensions::test_cfr(idx, val, stratPtr, cppdict); 
+
               }, py::call_guard<py::gil_scoped_release>() )
       
-      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy, const py::dict& preflopBuckets, const py::dict& flopBuckets, const py::dict& turnBuckets, const py::dict& riverBuckets)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
@@ -332,12 +336,16 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); // TODO could use const but not necessary at this point
-
-				// allocate work memory
-                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                // cast dicts to cpp maps
+                auto preflopMap = preflopBuckets.cast<std::map<std::string, int>>();
+                auto flopMap = flopBuckets.cast<std::map<std::string, int>>();
+                auto turnMap = turnBuckets.cast<std::map<std::string, int>>();
+                auto riverMap = riverBuckets.cast<std::map<std::string, int>>();
+                
+                return extensions::cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat, preflopMap, flopMap, turnMap, riverMap);
 
               }, py::call_guard<py::gil_scoped_release>() )
-      .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+      .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy, const py::dict& preflopBuckets, const py::dict& flopBuckets, const py::dict& turnBuckets, const py::dict& riverBuckets)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
@@ -354,9 +362,13 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); // TODO could use const but not necessary at this point
-
-				// allocate work memory
-                return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                // cast dicts to cpp maps
+                auto preflopMap = preflopBuckets.cast<std::map<std::string, int>>();
+                auto flopMap = flopBuckets.cast<std::map<std::string, int>>();
+                auto turnMap = turnBuckets.cast<std::map<std::string, int>>();
+                auto riverMap = riverBuckets.cast<std::map<std::string, int>>();
+ 
+                return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat, preflopMap, flopMap, turnMap, riverMap);
 
               }, py::call_guard<py::gil_scoped_release>() )
       .def("undo_action", &State::UndoAction)

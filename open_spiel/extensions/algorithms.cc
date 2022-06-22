@@ -161,6 +161,7 @@ float cfr(int updatePlayerIdx,
     // Init array index
     int arrayIndex = -1;
 
+    printf("A\n");
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
     // and only during realtime search
@@ -172,6 +173,7 @@ float cfr(int updatePlayerIdx,
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
         assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedFrozenStrat);
+        printf("B1\n");
     }
     else
     {
@@ -214,8 +216,9 @@ float cfr(int updatePlayerIdx,
 	
 		}
 
+        printf("B2\n");
         // Get card bucket based on abstraction
-        const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
+        const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
 		assert(arrayIndex < nSharedStrat); // this fails, don't put it
@@ -225,6 +228,7 @@ float cfr(int updatePlayerIdx,
 
     if(currentPlayer == updatePlayerIdx)
     {
+        printf("C1\n");
 		std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], strategy.begin() );
         if(useRealTimeSearch)
         {
@@ -259,6 +263,7 @@ float cfr(int updatePlayerIdx,
         }
         
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
+        printf("D1\n");
 
         // Find actions to prune
         if(applyPruning == true && bettingStage < 3){
@@ -296,9 +301,13 @@ float cfr(int updatePlayerIdx,
                 if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
                 if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
+        printf("E1\n");
+
+        return expectedValue;
     }
     else
     {
+        printf("C2\n");
         if(useRealTimeSearch)
         {
             std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], strategy.begin() );
@@ -324,6 +333,7 @@ float cfr(int updatePlayerIdx,
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
         auto new_state = state.Child(absoluteAction);
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+        printf("D2\n");
         
 		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
     	// has to be in non active player
@@ -337,6 +347,7 @@ float cfr(int updatePlayerIdx,
                 const size_t arrayActionIndex = arrayIndex + action;
                 sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
      	}
+        printf("E2\n");
 
         return expectedValue;
     }

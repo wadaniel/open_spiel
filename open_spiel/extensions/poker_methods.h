@@ -98,12 +98,7 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProd[idx];
     }
-    int index = 9*cumSumProd;
-    /*std::ofstream outfile;
-    outfile.open("arrayInfoset.txt", std::ios_base::app);
-    outfile << "index " << index << " - " << bucket << " - " << bettingStage << " - " << activePlayersCode << " - " << chipsToCallFrac << " - " << betSizeFrac << " - " << currentPlayer << " - " << legalActionsCode << " - " << isReraise<< std::endl;
-    outfile.close();*/
-    return index;
+    return 9*cumSumProd;
 }
 
 
@@ -183,16 +178,15 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 		publicSuitsHist[1] = origPublicNumSameSuit;
 	}
 
-
-		/*
-		// Both private cards same
-		if (cardSuitsOrig[1] == origPrivateSuit)
-			cardSuits[1] = 0;
-		// If seconds private card clubs switch card suits
-		else if (cardSuitsOrig[1] == 0)
-		{
-			cardSuits[1] == origPrivateSuit;
-		}*/
+    /*
+    // Both private cards same
+    if (cardSuitsOrig[1] == origPrivateSuit)
+        cardSuits[1] = 0;
+    // If seconds private card clubs switch card suits
+    else if (cardSuitsOrig[1] == 0)
+    {
+        cardSuits[1] == origPrivateSuit;
+    }*/
 
 	// Sort histogram of diamond, spades and hearts
 	if(isSameSuits)
@@ -206,7 +200,13 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 	return abstraction;
 }
 
-size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
+size_t getCardBucket(const std::array<int, 2>& privateCards, 
+        const std::array<int,5>& publicCards, 
+        size_t bettingStage,
+        const std::map<std::string, int>& preflopBuckets,
+        const std::map<std::string, int>& flopBuckets,
+        const std::map<std::string, int>& turnBuckets,
+        const std::map<std::string, int>& riverBuckets)
 {
 
 #ifdef FAKEDICT
@@ -233,7 +233,8 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 		{
 			char str[20];
 			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
-			bucket = preflopBucket[str];
+            // bucket = preflopBuckets.at(str); //TODO: use this
+			bucket = preflopBucket.at(str);
 		}
 		else
 		{
@@ -242,11 +243,14 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 			std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
 
 			if (bettingStage == 1)
-				bucket = flopBucket[abstractionStrStream.str()];
+                // bucket = flopBuckets.at(abstractionStrStream.str()); // TODO: use this
+				bucket = flopBucket.at(abstractionStrStream.str());
 			else if (bettingStage == 2)
-				bucket = turnBucket[abstractionStrStream.str()];
+                // bucket = turnBuckets.at(abstractionStrStream.str()); //TODO: use this
+				bucket = turnBucket.at(abstractionStrStream.str());
 			else
-				bucket = riverBucket[abstractionStrStream.str()];
+                // bucket = riverBuckets.at(abstractionStrStream.str()); //TODO: use this
+				bucket = riverBucket.at(abstractionStrStream.str());
 		}
 	}
 	catch (const std::out_of_range& e)

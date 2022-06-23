@@ -24,14 +24,14 @@ int test_cfr(int idx, float val, float* sharedStrategy, const std::map<std::stri
 }
 
 float multi_cfr(int numIter, 
-        int updatePlayerIdx, 
-        int startTime, 
-        float pruneThreshold, 
-        bool useRealTimeSearch, 
-        int* handIds, 
-        size_t handIdsSize, 
+        const int updatePlayerIdx, 
+        const int startTime, 
+        const float pruneThreshold, 
+        const bool useRealTimeSearch, 
+        const int* handIds, 
+        const size_t handIdsSize, 
         const open_spiel::State& state, 
-        int currentStage, 
+        const int currentStage, 
         int* sharedRegret, size_t nSharedRegret, 
         float* sharedStrategy, size_t nSharedStrat, 
         float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
@@ -48,13 +48,13 @@ float multi_cfr(int numIter,
 
 
 float cfr(int updatePlayerIdx, 
-            int time, 
-            float pruneThreshold, 
-            bool useRealTimeSearch, 
-            int* handIds, 
-            size_t handIdsSize, 
+            const int time, 
+            const float pruneThreshold, 
+            const bool useRealTimeSearch, 
+            const int* handIds, 
+            const size_t handIdsSize, 
             const open_spiel::State& state, 
-            int currentStage, 
+            const int currentStage, 
             int* sharedRegret, size_t nSharedRegret, 
             float* sharedStrategy, size_t nSharedStrat, 
             float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
@@ -221,7 +221,7 @@ float cfr(int updatePlayerIdx,
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-		// assert(arrayIndex < nSharedStrat); // this fails, don't put it
+		assert(arrayIndex < nSharedStrat); // this fails, don't put it
 		assert(arrayIndex < nSharedFrozenStrat);
     }
     assert(arrayIndex > -1);
@@ -298,7 +298,7 @@ float cfr(int updatePlayerIdx,
                 const int action = ourLegalActions[idx];
                 const size_t arrayActionIndex = arrayIndex + action;
                 sharedRegret[arrayActionIndex] += int(multiplier*(actionValues[idx] - expectedValue));
-                if(sharedRegret[arrayActionIndex] > 1e32) sharedRegret[arrayActionIndex] = 1e32;
+                if(sharedRegret[arrayActionIndex] > std::numeric_limits<int>::max()) sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
                 if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
         printf("E1\n");
@@ -343,9 +343,9 @@ float cfr(int updatePlayerIdx,
         // Update active *non frozen* shared strategy
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
         {
-            printf("idx %zu / %zu\n", idx, ourLegalActions.size());
             const int action = ourLegalActions[idx];
             const size_t arrayActionIndex = arrayIndex + action;
+            assert(arrayActionIndex < nSharedStrat);
             sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
      	}
         printf("E2\n");

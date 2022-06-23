@@ -93,9 +93,12 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chips
     else
     {
       for(size_t idx = 0; idx < values.size(); ++idx)
+      {
+        printf("v %d\n", values[idx]);
         cumSumProd += values[idx]*maxValuesProd[idx];
+      }
     }
-    return 9*cumSumProd;
+    return cumSumProd * 9; //TODO: check again this logic
 }
 
 

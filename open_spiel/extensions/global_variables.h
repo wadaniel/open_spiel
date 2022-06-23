@@ -8,7 +8,7 @@
 #define TOTALSTACK 500
 #define BBSIZE 20
 
-#define NUM_BUCKETS 500
+#define NUM_BUCKETS 200
 #define NUM_RTS_BUCKETS 1326
 
 
@@ -158,7 +158,6 @@ size_t getLegalActionCodeFlop(const std::vector<int>& actions)
 // Gets legal action code for legal action vector for given betting stage and reraise scenario
 size_t getLegalActionCode(bool isReraise, size_t bettingStage, const std::vector<int>& actions)
 {
-    //printf("isReraise %d, bettingStage %zu\n", isReraise, bettingStage);
     if(isReraise)
         return getLegalActionCodeReraise(actions);
     else if(bettingStage == 0)

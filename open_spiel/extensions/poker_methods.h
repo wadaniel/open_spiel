@@ -80,25 +80,20 @@ void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<
 //if(len(handIDs) != 0 and stage == currentStage):
 // arrayPos = get_array_pos(info_set, handIDs[player])
 // #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" - arrayposcfr "+str(arrayPos))
-int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
+size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
-    int cumSumProd = 0.;
-    const std::vector<int> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
+    size_t cumSumProd = 0.;
+    const std::vector<size_t> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
     if (useRealTimeSearch)
-    {
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProdRTS[idx];
-
-    }
     else
-    {
       for(size_t idx = 0; idx < values.size(); ++idx)
       {
-        printf("v %d\n", values[idx]);
         cumSumProd += values[idx]*maxValuesProd[idx];
       }
-    }
-    return cumSumProd * 9; //TODO: check again this logic
+    cumSumProd *= 9;
+    return cumSumProd; //TODO: check again this logic
 }
 
 
@@ -206,7 +201,6 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
         const std::map<std::string, int>& riverBuckets)
 {
 
-    printf("getCardBucket\n");
 #ifdef FAKEDICT
     return std::rand()%150; 
 #else
@@ -215,7 +209,6 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
     assert(turnBucket.size() > 0);
     assert(riverBucket.size() > 0);
 #endif
-    printf("after assert\n");
 
 	size_t bucket = 0;
 
@@ -254,7 +247,6 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		exit(2);
 	}
 
-    printf("before return\n");
 	return bucket;
 }
 

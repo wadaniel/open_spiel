@@ -159,7 +159,7 @@ float cfr(int updatePlayerIdx,
     const int betSizeFrac = std::min(currentBet / 50, 9);
    
     // Init array index
-    int arrayIndex = -1;
+    size_t arrayIndex = 0;
 
     printf("A\n");
     // Get index in strategy array
@@ -171,6 +171,7 @@ float cfr(int updatePlayerIdx,
         assert(bettingStage > 0);
 		assert(handIdsSize == 3);
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
+        printf("%zu %zu\n", arrayIndex, nSharedStrat);
         assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedFrozenStrat);
         printf("B1\n");
@@ -221,10 +222,10 @@ float cfr(int updatePlayerIdx,
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
+        printf("%zu %zu\n", arrayIndex, nSharedStrat);
 		assert(arrayIndex < nSharedStrat); // this fails, don't put it
 		assert(arrayIndex < nSharedFrozenStrat);
     }
-    assert(arrayIndex > -1);
 
     if(currentPlayer == updatePlayerIdx)
     {

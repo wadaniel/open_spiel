@@ -244,6 +244,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 {
+    std::cout << "actiontoabsolute" << actionIndex << " - " << biggestBet << " - " << totalPot;
 	if (actionIndex == 0)
 	{
 		return 0; // fold
@@ -256,20 +257,12 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 	{
 		return TOTALSTACK; // all-in
 	}
-    else if (actionIndex < 6)
+    else
 	{
         float factors[] = { 0, 0, .25, 0.5, .75, 1., 2., 3. };
 		const float factor = factors[actionIndex];
 		const int betSize = int(totalPot * factor);
-		return std::min(biggestBet + betSize, TOTALSTACK);
-	}
-	else if (actionIndex == 6)
-	{
-		return std::min(biggestBet + totalPot * 2, TOTALSTACK); // factor == 2
-	}
-	else
-	{
-		return std::min(biggestBet + totalPot * 3, TOTALSTACK); // factor == 3
+		return std::min((biggestBet + betSize), TOTALSTACK);
 	}
 }
 
@@ -329,7 +322,10 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
 		actions[idx] = legalActions[idx];
     for(size_t idx = 0; idx < totalActions-1; ++idx)
 		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
-	actions[totalActions-1] = 8; // always allow all-in
+	
+    actions[totalActions-1] = 8; // always allow all-in
+    for (size_t idx = 0; idx < totalActions; ++idx)
+        std::cout << " actions preflop " << actions[idx] << std::endl;
     return actions;
 }
 
@@ -397,6 +393,8 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
 	}
 
     actions[totalActions-1] = 8; // always allow all-in
+    for (size_t idx = 0; idx < totalActions; ++idx)
+        std::cout << " actions flop " << actions[idx] << std::endl;
     return actions;
 
 }
@@ -465,40 +463,43 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
 	}
 
     actions[totalActions-1] = 8; // always allow all-in
+    for (size_t idx = 0; idx < totalActions; ++idx)
+        std::cout << " actions river " << actions[idx] << std::endl;
     return actions;
 
 
 }
 
 std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet, bool isReraise, const std::vector<long int>& legalActions)
-{
+{   
+    std::vector<int> actions;
     if (numActions == 2)
-        return std::vector<int> {0, 1};
+        std::vector<int> actions{0, 1};
     else if ( (numActions == 3) && (legalActions[0] == 0) && 
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
-        return std::vector<int> {0, 1, 8};
+            std::vector<int> actions{0, 1, 8};
     else
     {
     	const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
     
-        std::vector<int> preActions;
         if (legalActions[0] == 0)
         {
             if (maxRaiseInPctPot > 1.)
-                return std::vector<int> { legalActions[0] , legalActions[1], 5, 8 };
+                std::vector<int> actions{ 0, 1, 5, 8 };
             else
-                return std::vector<int> { legalActions[0] , legalActions[1], 8 };
-
-            preActions = std::vector<int>(legalActions.begin(), legalActions.begin()+2);
+                std::vector<int> actions{ 0, 1, 8 };
         }
         else
         {
             if (maxRaiseInPctPot > 1.)
-                return std::vector<int> { legalActions[0], 5, 8 };
+                std::vector<int> actions{ 1, 5, 8 };
             else 
-                return std::vector<int> { legalActions[0], 8 };
+                std::vector<int> actions{ 1, 8 };
         }
     }
+    for (size_t idx = 0; idx < actions.size(); ++idx)
+        std::cout << " actions river " << actions[idx] << std::endl;
+    return actions;
 }
 
 

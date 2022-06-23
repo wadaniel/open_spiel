@@ -3,12 +3,10 @@
 
 #include "utils.h"
 
-//#define FAKEDICT
-
 #define TOTALSTACK 500
 #define BBSIZE 20
 
-#define NUM_BUCKETS 500
+#define NUM_BUCKETS 200
 #define NUM_RTS_BUCKETS 1326
 
 
@@ -87,13 +85,13 @@ std::map<int, int> createActionsToIndexMap(const std::vector<std::vector<int>>& 
 }
 
 // Maps hash to legal actions index
-const auto globalLegalActionsToIndexMap = createActionsToIndexMap(allLegalActions);
+auto globalLegalActionsToIndexMap = createActionsToIndexMap(allLegalActions);
 // Maps hash to legal flop actions index
-const auto globalLegalFlopActionsToIndexMap = createActionsToIndexMap(allLegalFlopActions);
+auto globalLegalFlopActionsToIndexMap = createActionsToIndexMap(allLegalFlopActions);
 // Maps hash to legal turn and river actions index
-const auto globalLegalTurnRiverActionsToIndexMap = createActionsToIndexMap(allLegalTurnRiverActions);
+auto globalLegalTurnRiverActionsToIndexMap = createActionsToIndexMap(allLegalTurnRiverActions);
 // Maps hash to legal reraise actions index
-const auto globalLegalReraiseActionsToIndexMap = createActionsToIndexMap(allLegalReraiseActions);
+auto globalLegalReraiseActionsToIndexMap = createActionsToIndexMap(allLegalReraiseActions);
 // Overall max number of legal actions in stages
 const size_t globalNumLegalActions = allLegalActions.size();
 // Vector containing max values for each category
@@ -124,41 +122,40 @@ const auto maxValuesProdRTS = getCumMaxValVector(maxValuesRTS);
 // Gets legal action vector for given hash
 std::vector<int> codeToLegalAction(size_t code)
 {
-    return allLegalActions.at(code);
+    return allLegalActions[code];
 }
 
 // Gets legal preflop action code for legal action vector
 size_t getLegalActionCodePreFlop(const std::vector<int>& actions)
 {
     int hashValue = vecHash(actions);
-    return globalLegalActionsToIndexMap.at(hashValue);
+    return globalLegalActionsToIndexMap[hashValue];
 }
 
 // Gets legal rereaise action code for legal action vector
 size_t getLegalActionCodeReraise(const std::vector<int>& actions)
 {
     int hashValue = vecHash(actions);
-    return globalLegalReraiseActionsToIndexMap.at(hashValue);
+    return globalLegalReraiseActionsToIndexMap[hashValue];
 }
 
 // Gets legal turnriver action code for legal action vector
 size_t getLegalActionCodeTurnRiver(const std::vector<int>& actions)
 {
     int hashValue = vecHash(actions);
-    return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
+    return globalLegalTurnRiverActionsToIndexMap[hashValue];
 }
 
 // Gets legal flop action code for legal action vector
 size_t getLegalActionCodeFlop(const std::vector<int>& actions)
 {
     int hashValue = vecHash(actions);
-    return globalLegalFlopActionsToIndexMap.at(hashValue);
+    return globalLegalFlopActionsToIndexMap[hashValue];
 }
 
 // Gets legal action code for legal action vector for given betting stage and reraise scenario
 size_t getLegalActionCode(bool isReraise, size_t bettingStage, const std::vector<int>& actions)
 {
-    //printf("isReraise %d, bettingStage %zu\n", isReraise, bettingStage);
     if(isReraise)
         return getLegalActionCodeReraise(actions);
     else if(bettingStage == 0)

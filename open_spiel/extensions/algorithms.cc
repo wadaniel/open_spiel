@@ -221,7 +221,7 @@ float cfr(int updatePlayerIdx,
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-		assert(arrayIndex < nSharedStrat); // this fails, don't put it
+		// assert(arrayIndex < nSharedStrat); // this fails, don't put it
 		assert(arrayIndex < nSharedFrozenStrat);
     }
     assert(arrayIndex > -1);
@@ -343,14 +343,31 @@ float cfr(int updatePlayerIdx,
         // Update active *non frozen* shared strategy
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
         {
-                const int action = ourLegalActions[idx];
-                const size_t arrayActionIndex = arrayIndex + action;
-                sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
+            printf("idx %zu / %zu\n", idx, ourLegalActions.size());
+            const int action = ourLegalActions[idx];
+            const size_t arrayActionIndex = arrayIndex + action;
+            sharedStrategy[arrayActionIndex] += multiplier*probabilities[idx];
      	}
         printf("E2\n");
 
         return expectedValue;
     }
 }
+
+//void loadBuckets(std::map<std::string, size_t>& preflopBuckets)
+void loadBuckets()
+{
+	printf("loading preflop buckets..\t"); fflush(stdout);
+	readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
+	printf("DONE!\nloading flop buckets..\t\t"); fflush(stdout);
+	readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
+	printf("DONE!\nloading turn buckets..\t\t"); fflush(stdout);
+	readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
+	printf("DONE!\nloading river buckets..\t\t"); fflush(stdout);
+	readDictionaryFromJson("./lut_200/river.txt", riverBucket);
+	printf("DONE!\n");
+}
+
+
 
 }

@@ -12,7 +12,6 @@ namespace extensions
 
 int getCardCode(char rank, char suit)
 {
-    //std::cout << "rank " << rank << " - " << "suit " << suit << std::endl;
 	int num = (int)rank - 50; // no '0' and no '1', ie '2' == 0
 
 	if (num > 7)
@@ -43,7 +42,6 @@ void getBets(const std::string& info, std::array<int,3>& bets)
     }
 }
 
-// Jonathan: looks good
 // Calculate action probabilities
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS) TODO
@@ -84,7 +82,6 @@ void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<
 // #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" - arrayposcfr "+str(arrayPos))
 int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
-    //return 0;
     int cumSumProd = 0.;
     const std::vector<int> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
     if (useRealTimeSearch)
@@ -119,9 +116,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 		cardSuits[i] = sortedCards[i]%4;
 	}
 	
-	//printVec("ranks", cardRanks.begin(), cardRanks.end());
-	//printVec("suits", cardSuits.begin(), cardSuits.end());
-
 	// first numCards filled with ranks, card ids
 	// next two entries filled with '[2,0]' for same suits or '[1, 1]' for other suits
 	// last four entries filled with suit histogram
@@ -209,21 +203,16 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
         const std::map<std::string, int>& riverBuckets)
 {
 
+    printf("getCardBucket\n");
 #ifdef FAKEDICT
     return std::rand()%150; 
 #else
-	static bool areBucketsInitialized = false;
-	if (areBucketsInitialized == false)
-	{
-		printf("Initializing buckets...\n");
-		readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
-		readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
-		readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
-		readDictionaryFromJson("./lut_200/river.txt", riverBucket);
-		areBucketsInitialized = true;
-		printf("DONE!\n");
-	}
+    assert(preflopBucket.size() > 0);
+    assert(flopBucket.size() > 0);
+    assert(turnBucket.size() > 0);
+    assert(riverBucket.size() > 0);
 #endif
+    printf("after assert\n");
 
 	size_t bucket = 0;
 
@@ -262,6 +251,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		exit(2);
 	}
 
+    printf("before return\n");
 	return bucket;
 }
 

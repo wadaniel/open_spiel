@@ -76,6 +76,10 @@ float multi_cfr(int numIter,
         const std::map<std::string, int>& flopBuckets, 
         const std::map<std::string, int>& turnBuckets, 
         const std::map<std::string, int>& riverBuckets);
-}
+
+//void loadBuckets(std::map<std::string, size_t>& preflopBuckets);
+void loadBuckets();
+
+} // namespace extensions
 
 #endif // _ALGORITHMS_H_

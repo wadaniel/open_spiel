@@ -306,11 +306,8 @@ PYBIND11_MODULE(pyspiel, m) {
       .def("clone", &State::Clone)
       .def("child", &State::Child)
       .def("set_partial_game_state", &State::SetPartialGameState)
-      .def("load_all_buckets", [](py::dict& preflopBuckets)
+      .def("load_all_buckets", []()
               {
-                // cast dict to cpp map
-                std::map<std::string, size_t> preflopMap = preflopBuckets.cast<std::map<std::string, size_t>>();
-                //extensions::loadBuckets(preflopMap); 
                 extensions::loadBuckets();
               }, py::call_guard<py::gil_scoped_release>() )
  

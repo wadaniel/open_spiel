@@ -36,10 +36,11 @@ float multi_cfr(int numIter,
         float* sharedStrategy, size_t nSharedStrat, 
         float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
 {
+    float cumValue = 0;
     for (int iter = 0; iter < numIter; iter++) {
-        cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
+        cumValue += cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
     }
-    return 0.;
+    return cumValue / (float)numIter;
 }
 
 
@@ -309,7 +310,6 @@ float cfr(int updatePlayerIdx,
             calculateProbabilities(regrets, ourLegalActions, probabilities);
         }
          
-        // Jonathan: looks good
     	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
 
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);

@@ -34,14 +34,10 @@ float multi_cfr(int numIter,
         const int currentStage, 
         int* sharedRegret, size_t nSharedRegret, 
         float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
-        const std::map<std::string, int>& preflopBuckets,
-        const std::map<std::string, int>& flopBuckets,
-        const std::map<std::string, int>& turnBuckets,
-        const std::map<std::string, int>& riverBuckets) 
+        float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
 {
     for (int iter = 0; iter < numIter; iter++) {
-        cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+        cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
     }
     return 0.;
 }
@@ -57,11 +53,7 @@ float cfr(int updatePlayerIdx,
             const int currentStage, 
             int* sharedRegret, size_t nSharedRegret, 
             float* sharedStrategy, size_t nSharedStrat, 
-            float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
-            const std::map<std::string, int>& preflopBuckets,
-            const std::map<std::string, int>& flopBuckets,
-            const std::map<std::string, int>& turnBuckets,
-            const std::map<std::string, int>& riverBuckets) 
+            float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
 { 
     const bool isTerminal = state.IsTerminal();
 	// If terminal, return players reward
@@ -78,7 +70,7 @@ float cfr(int updatePlayerIdx,
 		const auto sampledAction = randomChoice(chanceActions.begin(), weights.begin(), weights.end());
         const auto new_state = state.Child(sampledAction.first);
 
-        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+        return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
 	// Define work variables
@@ -214,7 +206,7 @@ float cfr(int updatePlayerIdx,
 		}
 
         // Get card bucket based on abstraction
-        const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+        const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
 		assert(arrayIndex < nSharedStrat); // this fails, don't put it
@@ -246,7 +238,7 @@ float cfr(int updatePlayerIdx,
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
                     probabilities[idx] = strategy[action];
     				auto new_state = state.Child(absoluteAction);
-                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+                    const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
                     expectedValue += actionValue * probabilities[idx];
                 }
                 return expectedValue;
@@ -277,7 +269,7 @@ float cfr(int updatePlayerIdx,
             const int action = ourLegalActions[idx];
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
     		auto new_state = state.Child(absoluteAction);
-            const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+            const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
             actionValues[idx] = actionValue;
             expectedValue += probabilities[idx] * actionValue; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
@@ -322,7 +314,7 @@ float cfr(int updatePlayerIdx,
 
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
         auto new_state = state.Child(absoluteAction);
-        const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat, preflopBuckets, flopBuckets, turnBuckets, riverBuckets);
+        const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         
 		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
     	// has to be in non active player

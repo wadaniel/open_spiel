@@ -194,11 +194,7 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 
 size_t getCardBucket(const std::array<int, 2>& privateCards, 
         const std::array<int,5>& publicCards, 
-        size_t bettingStage,
-        const std::map<std::string, int>& preflopBuckets,
-        const std::map<std::string, int>& flopBuckets,
-        const std::map<std::string, int>& turnBuckets,
-        const std::map<std::string, int>& riverBuckets)
+        size_t bettingStage)
 {
 
 #ifdef FAKEDICT
@@ -218,7 +214,6 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		{
 			char str[20];
 			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
-            // bucket = preflopBuckets.at(str); //TODO: use this
 			bucket = preflopBucket.at(str);
 		}
 		else
@@ -228,13 +223,10 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 			std::copy(abstraction.begin(), abstraction.end(), std::ostream_iterator<int>(abstractionStrStream, ""));
 
 			if (bettingStage == 1)
-                // bucket = flopBuckets.at(abstractionStrStream.str()); // TODO: use this
 				bucket = flopBucket.at(abstractionStrStream.str());
 			else if (bettingStage == 2)
-                // bucket = turnBuckets.at(abstractionStrStream.str()); //TODO: use this
 				bucket = turnBucket.at(abstractionStrStream.str());
 			else
-                // bucket = riverBuckets.at(abstractionStrStream.str()); //TODO: use this
 				bucket = riverBucket.at(abstractionStrStream.str());
 		}
 	}

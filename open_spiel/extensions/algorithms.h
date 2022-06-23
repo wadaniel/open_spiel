@@ -37,10 +37,6 @@ int test_cfr(int idx, float val, float* sharedStrategy, const std::map<std::stri
 * @param sharedRegret State of the pyspiel
 * @param sharedStrategy The shared strategy
 * @param sharedStrategyFrozen The frozen constant backup strategy, only used for RTS
-* @param preflopBuckets
-* @param flopBuckets
-* @param turnBuckets
-* @param riverBuckets
 * @return The expected value of the CFR
 */
 float cfr(int updatePlayerIdx, 
@@ -53,12 +49,7 @@ float cfr(int updatePlayerIdx,
         const int currentStage, 
         int* sharedRegret, size_t nSharedRegret, 
         float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat,
-        const std::map<std::string, int>& preflopBuckets,
-        const std::map<std::string, int>& flopBuckets,
-        const std::map<std::string, int>& turnBuckets,
-        const std::map<std::string, int>& riverBuckets);
-
+        float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
 
 float multi_cfr(int numIter, 
         const int updatePlayerIdx, 
@@ -71,13 +62,8 @@ float multi_cfr(int numIter,
         const int currentStage, 
         int* sharedRegret, size_t nSharedRegret, 
         float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat, 
-        const std::map<std::string, int>& preflopBuckets, 
-        const std::map<std::string, int>& flopBuckets, 
-        const std::map<std::string, int>& turnBuckets, 
-        const std::map<std::string, int>& riverBuckets);
+        float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
 
-//void loadBuckets(std::map<std::string, size_t>& preflopBuckets);
 void loadBuckets();
 
 } // namespace extensions

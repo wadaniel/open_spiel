@@ -258,18 +258,18 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 	}
     else if (actionIndex < 6)
 	{
-		// const std::vector<int> factors = {0, 0, .25, 0.5, .75, 1., 2., 3.};
-		const float factor = 0.25 * (actionIndex-1.);
-		const int betSize = totalPot * factor;
-		return std::max(biggestBet + betSize, TOTALSTACK);
+        float factors[] = { 0, 0, .25, 0.5, .75, 1., 2., 3. };
+		const float factor = factors[actionIndex];
+		const int betSize = int(totalPot * factor);
+		return std::min(biggestBet + betSize, TOTALSTACK);
 	}
 	else if (actionIndex == 6)
 	{
-		return std::max(biggestBet + totalPot * 2, TOTALSTACK); // factor == 2
+		return std::min(biggestBet + totalPot * 2, TOTALSTACK); // factor == 2
 	}
 	else
 	{
-		return std::max(biggestBet + totalPot * 3, TOTALSTACK); // factor == 3
+		return std::min(biggestBet + totalPot * 3, TOTALSTACK); // factor == 3
 	}
 }
 

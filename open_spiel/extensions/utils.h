@@ -32,7 +32,6 @@ void printVec(const std::string& name, Iterator begin, Iterator end)
 // Split the string in substrings given by delim, return substrings in vecetor
 std::vector<std::string> split(const std::string& text, const std::string& delim)
 {
-	//printf("split: %s\n", text.c_str());
 	auto start = 0U;
     auto end = text.find(delim);
 	std::vector<std::string> res;
@@ -45,7 +44,6 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 	const auto rest = text.substr(start, end - start);
 	if (rest.empty() == false)
     	res.push_back(rest);
-	//for(auto& s : res) printf("[%s]\n",s.c_str());
 	
 	return res;
 }

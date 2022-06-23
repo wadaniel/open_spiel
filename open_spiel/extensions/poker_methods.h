@@ -46,7 +46,7 @@ void getBets(const std::string& info, std::array<int,3>& bets)
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS) TODO
 // Version 2: balanced TODO
-void calculateProbabilities(const std::array<float, 9>& regret, const std::vector<int>& legalActions, std::array<float, 9>& probabilities, int version = 0)
+void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<int>& legalActions, std::array<float, 9>& probabilities, int version = 0)
 {
     float sumValue = 0.f;
     
@@ -80,22 +80,20 @@ void calculateProbabilities(const std::array<float, 9>& regret, const std::vecto
 //if(len(handIDs) != 0 and stage == currentStage):
 // arrayPos = get_array_pos(info_set, handIDs[player])
 // #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" - arrayposcfr "+str(arrayPos))
-int getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
+size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode, int chipsToCallFrac, int betSizeFrac, int currentPlayer, int legalActionsCode, int isReraise, bool useRealTimeSearch)
 {
-    int cumSumProd = 0.;
-    const std::vector<int> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
+    size_t cumSumProd = 0.;
+    const std::vector<size_t> values = { bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise };
     if (useRealTimeSearch)
-    {
       for(size_t idx = 0; idx < values.size(); ++idx)
         cumSumProd += values[idx]*maxValuesProdRTS[idx];
-
-    }
     else
-    {
       for(size_t idx = 0; idx < values.size(); ++idx)
+      {
         cumSumProd += values[idx]*maxValuesProd[idx];
-    }
-    return 9*cumSumProd;
+      }
+    cumSumProd *= 9;
+    return cumSumProd; //TODO: check again this logic
 }
 
 
@@ -116,9 +114,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 		cardSuits[i] = sortedCards[i]%4;
 	}
 	
-	//printVec("ranks", cardRanks.begin(), cardRanks.end());
-	//printVec("suits", cardSuits.begin(), cardSuits.end());
-
 	// first numCards filled with ranks, card ids
 	// next two entries filled with '[2,0]' for same suits or '[1, 1]' for other suits
 	// last four entries filled with suit histogram
@@ -175,16 +170,15 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 		publicSuitsHist[1] = origPublicNumSameSuit;
 	}
 
-
-		/*
-		// Both private cards same
-		if (cardSuitsOrig[1] == origPrivateSuit)
-			cardSuits[1] = 0;
-		// If seconds private card clubs switch card suits
-		else if (cardSuitsOrig[1] == 0)
-		{
-			cardSuits[1] == origPrivateSuit;
-		}*/
+    /*
+    // Both private cards same
+    if (cardSuitsOrig[1] == origPrivateSuit)
+        cardSuits[1] = 0;
+    // If seconds private card clubs switch card suits
+    else if (cardSuitsOrig[1] == 0)
+    {
+        cardSuits[1] == origPrivateSuit;
+    }*/
 
 	// Sort histogram of diamond, spades and hearts
 	if(isSameSuits)
@@ -198,37 +192,18 @@ std::vector<int> getCardAbstraction(const std::array<int, 2>& privateCards, cons
 	return abstraction;
 }
 
-size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<int,5>& publicCards, size_t bettingStage)
+size_t getCardBucket(const std::array<int, 2>& privateCards, 
+        const std::array<int,5>& publicCards, 
+        size_t bettingStage)
 {
-
 
 #ifdef FAKEDICT
     return std::rand()%150; 
 #else
-	static bool areBucketsInitialized = false;
-	if (areBucketsInitialized == false)
-	{
-
-		printf("Initializing buckets..\n");
-        std::ofstream myfile ("output.txt");
-        if (myfile.is_open())
-        {
-          myfile << "To file: Initializing buckets..\n";
-        }
-
-		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/pre_flop.txt", preflopBucket);
-		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/flop.txt", flopBucket);
-		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/turn.txt", turnBucket);
-		readDictionaryFromJson("/home/wadaniel/projects/Fast-African-Poker/PokerAgent/lut_200/river.txt", riverBucket);
-		areBucketsInitialized = true;
-
-		printf("DONE!\n");
-        if (myfile.is_open())
-        {
-          myfile << "To file: DONE!\n";
-          myfile.close();
-        }
-	}
+    assert(preflopBucket.size() > 0);
+    assert(flopBucket.size() > 0);
+    assert(turnBucket.size() > 0);
+    assert(riverBucket.size() > 0);
 #endif
 
 	size_t bucket = 0;
@@ -255,7 +230,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards, const std::array<in
 				bucket = riverBucket.at(abstractionStrStream.str());
 		}
 	}
-	catch (const std::exception& e)
+	catch (const std::out_of_range& e)
 	{
 		printf("Key not found in buckets!");
 		printf("Betting stage %zu\n", bettingStage);
@@ -347,6 +322,7 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
     else if (totalPot >= int(minRaise/0.75))
         minAction = 4;
 
+    assert(maxAction > minAction);
     const size_t totalActions = numPreActions + maxAction - minAction + 2;
     std::vector<int> actions(totalActions);
 	for(size_t idx = 0; idx < numPreActions; ++idx)

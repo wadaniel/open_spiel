@@ -135,15 +135,15 @@ else:
   req_file = "../requirements.txt"
 
 setuptools.setup(
-    name="open_spiel",
-    version="1.1.0",
+    name="open_spiel_custom",
+    version="1.1.10",
     license="Apache 2.0",
     author="The OpenSpiel authors",
     author_email="open_spiel@google.com",
     description="A Framework for Reinforcement Learning in Games",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/deepmind/open_spiel",
+    url="https://github.com/wadaniel/open_spiel",
     install_requires=_get_requirements(req_file),
     python_requires=">=3",
     ext_modules=[CMakeExtension("pyspiel", sourcedir="open_spiel")],

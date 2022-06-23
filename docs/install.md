@@ -235,7 +235,7 @@ python3 open_spiel/python/examples/mcts.py --game=tic_tac_toe --player1=human --
 Conditional dependencies are configured using environment variables, e.g.
 
 ```bash
-export OPEN_SPIEL_BUILD_WITH_HANABI=ON
+export OPEN_SPIEL_BUILD_WITH_HANABI=OFF
 ```
 
 `install.sh` may need to be rerun after enabling new conditional dependencies.

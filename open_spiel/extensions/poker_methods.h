@@ -242,28 +242,37 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 	return bucket;
 }
 
-int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
+int actionToAbsolute(int actionIndex, int biggestBet, int totalPot, const open_spiel::State * state)
 {
-    //std::cout << "actiontoabsolute " << actionIndex << " - " << biggestBet << " - " << totalPot;
+    int absolute_action;
 	if (actionIndex == 0)
 	{
-		return 0; // fold
+        auto gameLegalActions = state->LegalActions();
+        if(gameLegalActions[0] != 0){
+            std::cout << "for whatever reason there is an illegal 0 action" << std::endl;
+            absolute_action = gameLegalActions[0];
+        }
+        else{
+		    absolute_action = 0; // fold
+        }
 	}
     else if (actionIndex == 1)
 	{
-		return 1; // call
+		absolute_action = 1; // call
 	}
     else if (actionIndex == 8)
 	{
-		return TOTALSTACK; // all-in
+		absolute_action = TOTALSTACK; // all-in
 	}
     else
 	{
         float factors[] = { 0, 0, .25, 0.5, .75, 1., 2., 3. };
 		const float factor = factors[actionIndex];
 		const int betSize = int(totalPot * factor);
-		return std::min((biggestBet + betSize), TOTALSTACK);
+		absolute_action = std::min((biggestBet + betSize), TOTALSTACK);
 	}
+    //std::cout << "actiontoabsolute " << actionIndex << " - " << biggestBet << " - " << totalPot << " - " << absolute_action << std::endl;
+    return absolute_action;
 }
 
 std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet, bool isReraise, const std::vector<long int>& legalActions)
@@ -463,8 +472,8 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
 	}
 
     actions[totalActions-1] = 8; // always allow all-in
-    for (size_t idx = 0; idx < totalActions; ++idx)
-        std::cout << " actions river " << actions[idx] << std::endl;
+    //for (size_t idx = 0; idx < totalActions; ++idx)
+    //    std::cout << " actions river " << actions[idx] << std::endl;
     return actions;
 
 

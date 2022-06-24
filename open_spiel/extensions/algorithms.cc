@@ -236,7 +236,7 @@ float cfr(int updatePlayerIdx,
                 for(size_t idx = 0; idx < ourLegalActions.size(); ++idx)
                 {
                     const int action = ourLegalActions[idx];
-					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot, &state);
                     //std::cout << " rtsxxx " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
                     const std::vector<long int> gameLegalActionsDebug = state.LegalActions();
                     //std::cout << " rtsxxx LA " << gameLegalActionsDebug[0] << std::endl;
@@ -272,7 +272,7 @@ float cfr(int updatePlayerIdx,
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
         {
             const int action = ourLegalActions[idx];
-			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot, &state);
             //std::cout << " rtsyyy " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
             const std::vector<long int> gameLegalActionsDebug = state.LegalActions();
             //std::cout << " rtsyy LA " << gameLegalActionsDebug[0] << std::endl;
@@ -321,7 +321,8 @@ float cfr(int updatePlayerIdx,
          
     	const int sampledAction = randomChoice(ourLegalActions.begin(), probabilities.begin(), probabilities.end());
 
-        const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
+        const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot, &state);
+
         auto new_state = state.Child(absoluteAction);
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         

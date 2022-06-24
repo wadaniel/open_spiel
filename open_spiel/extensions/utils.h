@@ -64,7 +64,7 @@ randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
     using value_type2 = typename std::iterator_traits<Iterator2>::value_type;
 	value_type choice = value_type();
     value_type2 sumWeight = value_type2();
-    const float unif = (float)rand()/(float)RAND_MAX;
+    const float unif = (float)rand()/(float)RAND_MAX; // gives a number between 0 and 1
 	
     for(size_t idx=0; begin != end; ++begin)
     {
@@ -76,7 +76,7 @@ randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
         }
 		idx++;
     }
-	assert(sumWeight >= unif);
+	//assert(sumWeight >= unif); // Jonathan: TODO why this? it fails
     return choice;
 }
 

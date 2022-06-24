@@ -237,9 +237,9 @@ float cfr(int updatePlayerIdx,
                 {
                     const int action = ourLegalActions[idx];
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
-                    std::cout << " rtsxxx " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
+                    //std::cout << " rtsxxx " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
                     const std::vector<long int> gameLegalActionsDebug = state.LegalActions();
-                    std::cout << " rtsxxx LA " << gameLegalActionsDebug[0] << std::endl;
+                    //std::cout << " rtsxxx LA " << gameLegalActionsDebug[0] << std::endl;
                     probabilities[idx] = strategy[action];
     				auto new_state = state.Child(absoluteAction);
                     const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
@@ -267,15 +267,15 @@ float cfr(int updatePlayerIdx,
         float expectedValue = 0.;
         std::fill(actionValues.begin(), actionValues.end(), 0.f);
         
-        std::cout << " loop -- " << std::endl;
+        //std::cout << " loop -- " << std::endl;
         // Iterate only over explored actions
         for(size_t idx = 0; idx < ourLegalActions.size(); ++idx) if (explored[idx] == true)
         {
             const int action = ourLegalActions[idx];
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
-            std::cout << " rtsyyy " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
+            //std::cout << " rtsyyy " << action << " - " << maxBet << " - " << totalPot << " - " << absoluteAction << std::endl;
             const std::vector<long int> gameLegalActionsDebug = state.LegalActions();
-            std::cout << " rtsyy LA " << gameLegalActionsDebug[0] << std::endl;
+            //std::cout << " rtsyy LA " << gameLegalActionsDebug[0] << std::endl;
             //for(size_t idx = 0; idx < numPreActions; ++idx)
 		     //   actions[idx] = legalActions[idx];
     		auto new_state = state.Child(absoluteAction);

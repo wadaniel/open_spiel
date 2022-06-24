@@ -244,7 +244,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 {
-    std::cout << "actiontoabsolute" << actionIndex << " - " << biggestBet << " - " << totalPot;
+    //std::cout << "actiontoabsolute" << actionIndex << " - " << biggestBet << " - " << totalPot;
 	if (actionIndex == 0)
 	{
 		return 0; // fold
@@ -324,8 +324,8 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
 		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
 	
     actions[totalActions-1] = 8; // always allow all-in
-    for (size_t idx = 0; idx < totalActions; ++idx)
-        std::cout << " actions preflop " << actions[idx] << std::endl;
+    //for (size_t idx = 0; idx < totalActions; ++idx)
+    //    std::cout << " actions preflop " << actions[idx] << std::endl;
     return actions;
 }
 
@@ -393,8 +393,8 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
 	}
 
     actions[totalActions-1] = 8; // always allow all-in
-    for (size_t idx = 0; idx < totalActions; ++idx)
-        std::cout << " actions flop " << actions[idx] << std::endl;
+    //for (size_t idx = 0; idx < totalActions; ++idx)
+    //    std::cout << " actions flop " << actions[idx] << std::endl;
     return actions;
 
 }
@@ -497,8 +497,8 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
                 std::vector<int> actions{ 1, 8 };
         }
     }
-    for (size_t idx = 0; idx < actions.size(); ++idx)
-        std::cout << " actions river " << actions[idx] << std::endl;
+    //for (size_t idx = 0; idx < actions.size(); ++idx)
+    //    std::cout << " actions river " << actions[idx] << std::endl;
     return actions;
 }
 

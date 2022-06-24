@@ -65,11 +65,13 @@ randomChoice(Iterator begin, Iterator end)
     const float unif = (float)rand()/(float)RAND_MAX;
 	
     size_t idx = 0;
-    while(begin != end && sumWeight < unif)
+    while((begin != end) && (sumWeight < unif))
     {
         sumWeight += *begin;
 		idx++;
         begin++;
+
+        printf("sw %f %f %f %zu\n", sumWeight, *begin, unif, idx);
     }
 	assert(sumWeight >= unif);
     return idx-1;

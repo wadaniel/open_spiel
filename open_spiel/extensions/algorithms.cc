@@ -142,6 +142,8 @@ float cfr(int updatePlayerIdx,
     
     // Calculate our legal actions based on abstraction
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+
+
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
     
     // Call size in 10% of total stack size (values from 0 to 9)
@@ -307,15 +309,17 @@ float cfr(int updatePlayerIdx,
 
         // Calculate probabilities from regrets
         calculateProbabilities(regrets, ourLegalActions, probabilities);
+        printVec("gl", gameLegalActions.begin(), gameLegalActions.end());
+
+        printVec("ola", ourLegalActions.begin(), ourLegalActions.end());
+        printf("%d %d %d %d %d\n", bettingStage, totalPot, maxBet, currentBet, isReraise);
+        printVec("r", regrets.begin(), regrets.end());
+        printVec("p", probabilities.begin(), probabilities.end());
          
     	const int sampledAction = randomChoice(probabilities.begin(), probabilities.end());
 
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
-        //printVec("gl", gameLegalActions.begin(), gameLegalActions.end());
-        //printVec("ola", ourLegalActions.begin(), ourLegalActions.end());
-        //printVec("p", probabilities.begin(), probabilities.end());
-        //printf("aA %zu (%zu)\n", absoluteAction, sampledAction);
-
+        printf("aA %zu (%zu)\n", absoluteAction, sampledAction);
         auto new_state = state.Child(absoluteAction);
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
         

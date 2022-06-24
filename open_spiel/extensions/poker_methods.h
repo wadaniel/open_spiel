@@ -304,7 +304,7 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
         maxAction = 2;
 
     // We need to raise at least 1 BB which is 20
-    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
+    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
     
     size_t minAction = 5;
     if(totalPot >= 4*minRaise)
@@ -358,7 +358,7 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
         maxAction = 3;
 
     // We need to raise at least 1 BB which is 20
-    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
+    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
     
     const int minAction = (totalPot >= 2*minRaise) ? 3 : 5;
 
@@ -424,7 +424,7 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
         maxAction = 3;
     
     // We need to raise at least 1 BB which is 20
-    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
+    const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
     
     const int minAction = (totalPot >= 2*minRaise) ? 3 : 5;
 
@@ -467,10 +467,14 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
 {   
     std::vector<int> actions;
     if (numActions == 2)
-        std::vector<int> actions{0, 1};
+    {
+        actions = std::vector<int>{0, 1};
+    }
     else if ( (numActions == 3) && (legalActions[0] == 0) && 
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
-            std::vector<int> actions{0, 1, 8};
+    {
+        actions = std::vector<int>{0, 1, 8};
+    }
     else
     {
     	const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
@@ -478,16 +482,16 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
         if (legalActions[0] == 0)
         {
             if (maxRaiseInPctPot > 1.)
-                std::vector<int> actions{ 0, 1, 5, 8 };
+                actions = std::vector<int>{ 0, 1, 5, 8 };
             else
-                std::vector<int> actions{ 0, 1, 8 };
+                actions = std::vector<int>{ 0, 1, 8 };
         }
         else
         {
             if (maxRaiseInPctPot > 1.)
-                std::vector<int> actions{ 1, 5, 8 };
+                actions = std::vector<int>{ 1, 5, 8 };
             else 
-                std::vector<int> actions{ 1, 8 };
+                actions = std::vector<int>{ 1, 8 };
         }
     }
     return actions;

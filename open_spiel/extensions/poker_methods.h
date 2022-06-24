@@ -244,7 +244,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 {
-    //std::cout << "actiontoabsolute" << actionIndex << " - " << biggestBet << " - " << totalPot;
+    //std::cout << "actiontoabsolute " << actionIndex << " - " << biggestBet << " - " << totalPot;
 	if (actionIndex == 0)
 	{
 		return 0; // fold

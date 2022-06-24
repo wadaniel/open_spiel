@@ -51,33 +51,28 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 // Calculate hash of a vector of ints (TODO (DW): verify if this is clas hfree)
 size_t vecHash(const std::vector<int>& vec) {
   	std::size_t seed = vec.size();
-	for(auto& element : vec) seed ^= element + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	for(const int element : vec) seed ^= element + 0x9e3779b9 + (seed << 6) + (seed >> 2);
  	return seed;
 }
 
 // Randomly sample one element from options according to the probability weights
-template<typename Iterator, typename Iterator2>
-typename std::iterator_traits<Iterator>::value_type 
-randomChoice(Iterator options_iterator_start, Iterator2 begin, Iterator2 end)
+template<typename Iterator>
+typename std::iterator_traits<Iterator>::value_type
+randomChoice(Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
-    using value_type2 = typename std::iterator_traits<Iterator2>::value_type;
-	value_type choice = value_type();
-    value_type2 sumWeight = value_type2();
+    value_type sumWeight = value_type();
     const float unif = (float)rand()/(float)RAND_MAX;
 	
-    for(size_t idx=0; begin != end; ++begin)
+    size_t idx = 0;
+    while(begin != end && sumWeight < unif)
     {
         sumWeight += *begin;
-        if (sumWeight >= unif)
-        {
-            choice = *(options_iterator_start+idx);
-			break;
-        }
 		idx++;
+        begin++;
     }
 	assert(sumWeight >= unif);
-    return choice;
+    return idx-1;
 }
 
 

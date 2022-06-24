@@ -50,28 +50,27 @@ void calculateProbabilities(const std::array<int, 9>& regret, const std::vector<
 {
     float sumValue = 0.f;
     
-    for(size_t idx = 0; idx < legalActions.size(); ++idx)
+    for(const int action : legalActions)
     {
-        const int action = legalActions[idx];
         const float floored = regret[action] > 0.f ? regret[action] : 0.f;   
-        probabilities[idx] = floored;
+        probabilities[action] = floored;
         sumValue += floored;
     }
 
     if( sumValue > 1e-12 )
     {
         const float invSum = 1./sumValue;
-        for(size_t idx = 0; idx < legalActions.size(); ++idx)
+        for(const int action : legalActions)
         {
-            probabilities[idx] *= invSum;
+            probabilities[action] *= invSum;
         }
     }
     else
     {
         const float unif = 1./(float)legalActions.size();
-        for(size_t idx = 0; idx < legalActions.size(); ++idx)
+        for(const int action : legalActions)
         {
-            probabilities[idx] = unif; //TODO(DW): balanced version
+            probabilities[action] = unif; //TODO(DW): balanced version
         }
     }
 }
@@ -258,18 +257,15 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot)
 	}
     else if (actionIndex < 6)
 	{
-		// const std::vector<int> factors = {0, 0, .25, 0.5, .75, 1., 2., 3.};
+		// const std::vector<int> factors = { NA, NA, .25, 0.5, .75, 1., 2., 3.};
 		const float factor = 0.25 * (actionIndex-1.);
 		const int betSize = totalPot * factor;
-		return std::max(biggestBet + betSize, TOTALSTACK);
+		return std::min(biggestBet + betSize, TOTALSTACK);
 	}
-	else if (actionIndex == 6)
+	else 
 	{
-		return std::max(biggestBet + totalPot * 2, TOTALSTACK); // factor == 2
-	}
-	else
-	{
-		return std::max(biggestBet + totalPot * 3, TOTALSTACK); // factor == 3
+        const int multiplier = actionIndex - 4; // 2 or 3
+		return std::min(biggestBet + totalPot * multiplier, TOTALSTACK); // factor == 2
 	}
 }
 

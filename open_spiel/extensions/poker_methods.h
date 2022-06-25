@@ -212,7 +212,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		if (bettingStage == 0)
 		{
 			char str[20];
-			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+			//sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
 			bucket = preflopBucket.at(str);
 		}
 		else
@@ -233,8 +233,8 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 	{
 		printf("Key not found in buckets!");
 		printf("Betting stage %zu\n", bettingStage);
-		printVec("privateCards", privateCards.begin(), privateCards.end());
-		printVec("publicCards", publicCards.begin(), publicCards.end());
+		//printVec("privateCards", privateCards.begin(), privateCards.end());
+		//printVec("publicCards", publicCards.begin(), publicCards.end());
 		exit(2);
 	}
 
@@ -458,6 +458,11 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
 	}
 
     actions[totalActions-1] = 8; // always allow all-in
+
+    //printf("legal actions turnriver \n");
+    //for(const int action : actions){
+        //std::cout << action << std::endl;
+    //}
     return actions;
 
 
@@ -466,9 +471,13 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
 std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet, bool isReraise, const std::vector<long int>& legalActions)
 {   
     std::vector<int> actions;
-    if (numActions == 2)
+    if ( (numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1) )
     {
-        actions = std::vector<int>{0, 1};
+        actions = std::vector<int> {0, 1};
+    }
+    else if  ( (numActions == 2) && (legalActions[0] == 1) && (legalActions[1] == TOTALSTACK) )
+    {
+        actions = std::vector<int> {1, 8};
     }
     else if ( (numActions == 3) && (legalActions[0] == 0) && 
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
@@ -501,7 +510,7 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
 std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet, int currentBet, bool isReraise, const std::vector<long int>& legalActions)
 {
     const size_t numActions = legalActions.size();
-    
+    //std::cout << " get legal actions " << currentStage << " - " << totalPot << " - " << maxBet << " - " << currentBet << " - " << isReraise << std::endl;
     // Actions in case of reraise
     if (isReraise)
     {

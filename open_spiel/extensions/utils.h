@@ -62,7 +62,7 @@ randomChoice(Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     value_type sumWeight = value_type();
-    const float unif = (float)rand()/(float)RAND_MAX;
+    const float unif = (float)rand()/(float)(RAND_MAX+1.f);
 	
     size_t idx = 0;
     while((begin != end) && (sumWeight < unif))

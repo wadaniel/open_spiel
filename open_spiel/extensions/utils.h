@@ -78,6 +78,7 @@ int randomChoice(Iterator begin, Iterator end)
         isRngInitialized = true;
     }
 
+    // Get random number in [0,1)
     const double unif = distribution(generator);
 	
     size_t idx = 0;
@@ -94,7 +95,7 @@ int randomChoice(Iterator begin, Iterator end)
         idx = 0;
         while(begin+idx != end)
         {
-            printf("p[%d] %;f\n", idx, *(begin+idx));
+            printf("p[%d] %lf\n", idx, *(begin+idx));
 			idx++;
         }
         abort();

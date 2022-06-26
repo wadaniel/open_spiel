@@ -5,11 +5,18 @@
 #include <stdlib.h> // rand
 #include "nlohmann/json.hpp"
 
+#include <random> // for mt19937
 #include <sys/types.h>
 #include <unistd.h>
 
 namespace extensions
 {
+
+// Check if we need to set the seed
+bool isRngInitialized = false;
+std::default_random_engine generator;
+std::uniform_real_distribution<double> distribution(0.0,1.0);
+
 
 void readDictionaryFromJson(const std::string filename, std::map<std::string, size_t>& dict)
 {
@@ -61,8 +68,17 @@ size_t vecHash(const std::vector<int>& vec) {
 template<typename Iterator>
 int randomChoice(Iterator begin, Iterator end)
 {
-    using value_type = typename std::iterator_traits<Iterator>::value_type;
-    const double unif = (double)rand()/(double)(RAND_MAX+1.f);
+
+    // Set seed
+    if (isRngInitialized == false)
+    {
+        int pid = getpid();
+        printf("Initializing random seed (%d) ..\n", pid);
+        generator.seed(pid);
+        isRngInitialized = true;
+    }
+
+    const double unif = distribution(generator);
 	
     size_t idx = 0;
     double sumWeight = 0.;

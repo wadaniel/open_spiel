@@ -81,23 +81,23 @@ randomChoice(Iterator begin, Iterator end)
 {
 
 	// Set seed
-    /*if (isRngInitialized == false)
+    if (isRngInitialized == false)
     {
         int pid = getpid();
         printf("Initializing random seed (%d) ..\n", pid);
 		std::srand(pid);
         isRngInitialized = true;
-    }*/
+    }
 
 	
     using value_type = typename std::iterator_traits<Iterator>::value_type;
-    value_type sumWeight = value_type();
+    double sumWeight = 0;
     const double unif = (double)std::rand()/(double)(RAND_MAX); // + 1 RAND_MAX seems to overflow
 	
     size_t idx = 0;
     while((begin != end) && (sumWeight < unif))
     {
-        sumWeight += *begin;
+        sumWeight += (double)*begin;
         //printf("randomchoice %f %f %f %zu\n", sumWeight, *begin, unif, idx);
 		idx++;
         begin++;

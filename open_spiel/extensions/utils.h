@@ -73,7 +73,12 @@ int randomChoice(Iterator begin, Iterator end)
         begin++;
 
     }
-	assert(sumWeight >= unif);
+	//assert(sumWeight >= unif);
+	if(sumWeight < unif){      
+		std::cerr << "randomchoice " << sumWeight << " - " << *begin << " - " << unif << " - " << idx << std::endl;
+		return 0;
+	}
+
     return idx-1;
 }
 

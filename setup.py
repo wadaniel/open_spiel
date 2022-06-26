@@ -136,7 +136,7 @@ else:
 
 setuptools.setup(
     name="open_spiel_custom",
-    version="1.1.12",
+    version="2.0.0",
     license="Apache 2.0",
     author="The OpenSpiel authors",
     author_email="open_spiel@google.com",

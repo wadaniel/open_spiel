@@ -66,12 +66,19 @@ int randomChoice(Iterator begin, Iterator end)
     const float unif = (float)rand()/(float)(RAND_MAX+1.f);
 	
     size_t idx = 0;
-    while((begin != end) && (sumWeight < unif))
+    while((begin+idx != end) && (sumWeight < unif))
     {
-        sumWeight += *begin;
+        sumWeight += *(begin+idx);
 		idx++;
-        begin++;
-
+    }
+    if(sumWeight < unif)
+    {
+        printf("Error in randomChoice\n");
+        printf("sumWeight %f unif %f\n", sumWeight, unif);
+        idx = 0;
+        while(begin+idx != end)
+            printf("p[%d] %f\n", idx, *(begin+idx));
+        abort();
     }
 	assert(sumWeight >= unif);
     return idx-1;

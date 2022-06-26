@@ -7,6 +7,7 @@
 
 namespace extensions
 {
+bool isRngInitialized = false;
 
 void readDictionaryFromJson(const std::string filename, std::map<std::string, size_t>& dict)
 {
@@ -78,6 +79,17 @@ typename std::iterator_traits<Iterator>::value_type
 
 randomChoice(Iterator begin, Iterator end)
 {
+
+	// Set seed
+    if (isRngInitialized == false)
+    {
+        int pid = getpid();
+        printf("Initializing random seed (%d) ..\n", pid);
+		std::srand(pid);
+        isRngInitialized = true;
+    }
+
+	
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     value_type sumWeight = value_type();
     const float unif = (float)rand()/(float)RAND_MAX;
@@ -91,7 +103,9 @@ randomChoice(Iterator begin, Iterator end)
         begin++;
 
     }
-	assert(sumWeight >= unif);
+	if(sumWeight >= unif){
+		std::cerr << "sumWeight >= unif" << std::endl;
+	}
     return idx-1;
 }
 

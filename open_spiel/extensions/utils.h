@@ -78,6 +78,7 @@ int randomChoice(Iterator begin, Iterator end)
         idx = 0;
         while(begin+idx != end)
             printf("p[%d] %f\n", idx, *(begin+idx));
+			idx++;
         abort();
     }
 	assert(sumWeight >= unif);

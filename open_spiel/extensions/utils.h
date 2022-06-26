@@ -51,7 +51,7 @@ std::vector<std::string> split(const std::string& text, const std::string& delim
 	return res;
 }
 
-// Calculate hash of a vector of ints (TODO (DW): verify if this is clas hfree)
+// Calculate hash of a vector of ints
 size_t vecHash(const std::vector<int>& vec) {
   	std::size_t seed = vec.size();
 	for(const int element : vec) seed ^= element + 0x9e3779b9 + (seed << 6) + (seed >> 2);
@@ -62,10 +62,10 @@ template<typename Iterator>
 int randomChoice(Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
-    value_type sumWeight = value_type();
-    const float unif = (float)rand()/(float)(RAND_MAX+1.f);
+    const double unif = (double)rand()/(double)(RAND_MAX+1.f);
 	
     size_t idx = 0;
+    double sumWeight = 0.;
     while((begin+idx != end) && (sumWeight < unif))
     {
         sumWeight += *(begin+idx);
@@ -74,11 +74,11 @@ int randomChoice(Iterator begin, Iterator end)
     if(sumWeight < unif)
     {
         printf("Error in randomChoice\n");
-        printf("sumWeight %f unif %f\n", sumWeight, unif);
+        printf("sumWeight %lf unif %lf\n", sumWeight, unif);
         idx = 0;
         while(begin+idx != end)
         {
-            printf("p[%d] %f\n", idx, *(begin+idx));
+            printf("p[%d] %;f\n", idx, *(begin+idx));
 			idx++;
         }
         abort();

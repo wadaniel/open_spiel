@@ -104,7 +104,11 @@ randomChoice(Iterator begin, Iterator end)
 
     }
 	if(sumWeight < unif){
-		std::cerr << "sumWeight >= unif" << std::endl;
+		std::cerr << "sumWeight < unif" << std::endl;
+	}
+	if(idx == 0){
+		std::cerr << "idx is 0" << std::endl;
+		idx = 1;
 	}
     return idx-1;
 }

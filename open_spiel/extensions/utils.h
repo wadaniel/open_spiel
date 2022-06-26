@@ -80,12 +80,7 @@ int randomChoice(Iterator begin, Iterator end)
             printf("p[%d] %f\n", idx, *(begin+idx));
         abort();
     }
-	//assert(sumWeight >= unif);
-	if(sumWeight < unif){      
-		std::cerr << "randomchoice " << sumWeight << " - " << *begin << " - " << unif << " - " << idx << std::endl;
-		return 0;
-	}
-
+	assert(sumWeight >= unif);
     return idx-1;
 }
 

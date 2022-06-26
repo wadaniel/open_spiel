@@ -13,7 +13,7 @@
 namespace extensions
 {
 
-bool applyPruning = true;
+const bool applyPruning = true;
 
 
 std::map<std::string, size_t> preflopBucket;

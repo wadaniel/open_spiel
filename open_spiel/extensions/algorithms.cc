@@ -32,9 +32,9 @@ float multi_cfr(int numIter,
         const size_t handIdsSize, 
         const open_spiel::State& state, 
         const int currentStage, 
-        int* sharedRegret, size_t nSharedRegret, 
-        float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
+        int* sharedRegret, const size_t nSharedRegret, 
+        float* sharedStrategy,const size_t nSharedStrat, 
+        const float* sharedStrategyFrozen, const size_t nSharedFrozenStrat)
 {
     float cumValue = 0;
     for (int iter = 0; iter < numIter; iter++) {
@@ -52,11 +52,10 @@ float cfr(int updatePlayerIdx,
             const size_t handIdsSize, 
             const open_spiel::State& state, 
             const int currentStage, 
-            int* sharedRegret, size_t nSharedRegret, 
-            float* sharedStrategy, size_t nSharedStrat, 
-            float* sharedStrategyFrozen, size_t nSharedFrozenStrat)
-{ 
-    //printf("A\n");
+            int* sharedRegret, const size_t nSharedRegret, 
+            float* sharedStrategy, const size_t nSharedStrat, 
+            const float* sharedStrategyFrozen, const size_t nSharedFrozenStrat)
+{
     const bool isTerminal = state.IsTerminal();
 	// If terminal, return players reward
     if (isTerminal) {
@@ -76,7 +75,6 @@ float cfr(int updatePlayerIdx,
         return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 	}
 
-    //printf("B\n");
 	// Define work variables
 	std::array<int, 2> privateCards{-1, -1};
 	std::array<int, 5> publicCards{-1, -1, -1, -1, -1};
@@ -149,16 +147,8 @@ float cfr(int updatePlayerIdx,
     // Calculate our legal actions based on abstraction
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
-    for(int action : ourLegalActions) assert(action < 9);
-    //printf("a\n");
     assert(ourLegalActions.size() > 0);
-    //printf("b\n");
-    ////printf("legal actions cfr \n");
-    auto gameLegalActionsTest = state.LegalActions();
-    for(const int action : gameLegalActionsTest){
-        //std::cout << action << std::endl;
-    }
-
+    for(int action : ourLegalActions) assert(action < 9);
 
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
     
@@ -171,13 +161,10 @@ float cfr(int updatePlayerIdx,
     // Init array index
     size_t arrayIndex = 0;
     
-    ////printf("C\n");
+    // printf("C\n");
     // Jonathan IMPORTANT for debugging DO NOT remove
-    ////printf("betting state %d \n", bettingStage);
-    ////printf("legal actions a \n");
-    for(const int action : ourLegalActions){
-        //std::cout << action << std::endl;
-    }
+    // printf("betting state %d \n", bettingStage);
+    // printVec("ourLegalActions", ourLegalActions)
 
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
@@ -191,11 +178,9 @@ float cfr(int updatePlayerIdx,
         assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedFrozenStrat);
         // Jonathan IMPORTANT for debugging DO NOT remove
-        ////printf("betting state %d \n", bettingStage);
-        ////printf("legal actions ab \n");
-        for(const int action : ourLegalActions){
-            //std::cout << action << std::endl;
-        }
+        //printf("betting state %d \n", bettingStage);
+        //printf("legal actions ab \n");
+        //printVec("ourLegalActions", ourLegalActions);
     }
     else
     {
@@ -253,10 +238,7 @@ float cfr(int updatePlayerIdx,
 
         // Jonathan IMPORTANT for debugging DO NOT remove
         ////printf("betting state %d \n", bettingStage);
-        ////printf("legal actions b \n");
-        for(const int action : ourLegalActions){
-            //std::cout << action << std::endl;
-        }
+        //printVec("ourLegalActions", ourLegalActions);
 
         if(useRealTimeSearch)
         {
@@ -271,8 +253,6 @@ float cfr(int updatePlayerIdx,
             }
             else
             {
-                //assert(false); // Jonathan: for testing we do not set the frozen regrets so it should not be called
-
                 float expectedValue = 0.;
                 for(const int action : ourLegalActions)
                 {
@@ -292,21 +272,12 @@ float cfr(int updatePlayerIdx,
         }
         
         // Jonathan IMPORTANT for debugging DO NOT remove
-        ////printf("betting state %d \n", bettingStage);
-        ////printf("legal actions c \n");
-        for(const int action : ourLegalActions){
-            //std::cout << action << std::endl;
-        }
+        //printf("betting state %d \n", bettingStage);
+        //printf("legal actions c \n");
+        //printVec("ourLegalActions", ourLegalActions);
 
         ////printf("E\n");
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
-
-        // Jonathan IMPORTANT for debugging DO NOT remove
-        //printf("betting state %d \n", bettingStage);
-        //printf("legal actions d \n");
-        for(const int action : ourLegalActions){
-            //std::cout << action << std::endl;
-        }
 
         // Find actions to prune
         if(applyPruning == true && bettingStage < 3){
@@ -321,18 +292,6 @@ float cfr(int updatePlayerIdx,
         float expectedValue = 0.;
 	    std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
         
-        // Jonathan IMPORTANT for debugging DO NOT remove
-        //printf("betting state %d \n", bettingStage);
-        //printf("legal actions e \n");
-        for(const int action : ourLegalActions){
-            //std::cout << action << std::endl;
-        }
-        //printf("legal actions game \n");
-        auto gameLegalActionsTest = state.LegalActions();
-        for(const int action : gameLegalActionsTest){
-            //std::cout << action << std::endl;
-        }
-
         // Iterate only over explored actions
         for(const int action : ourLegalActions) if (explored[action])
         {

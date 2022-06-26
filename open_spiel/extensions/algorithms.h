@@ -47,9 +47,9 @@ float cfr(int updatePlayerIdx,
         const size_t handIdsSize, 
         const open_spiel::State& state, 
         const int currentStage, 
-        int* sharedRegret, size_t nSharedRegret, 
-        float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
+        int* sharedRegret, const size_t nSharedRegret, 
+        float* sharedStrategy, const size_t nSharedStrat, 
+        const float* sharedStrategyFrozen, const size_t nSharedFrozenStrat);
 
 float multi_cfr(int numIter, 
         const int updatePlayerIdx, 
@@ -60,9 +60,9 @@ float multi_cfr(int numIter,
         const size_t handIdsSize, 
         const open_spiel::State& state, 
         const int currentStage, 
-        int* sharedRegret, size_t nSharedRegret, 
-        float* sharedStrategy, size_t nSharedStrat, 
-        float* sharedStrategyFrozen, size_t nSharedFrozenStrat);
+        int* sharedRegret, const size_t nSharedRegret, 
+        float* sharedStrategy, const size_t nSharedStrat, 
+        const float* sharedStrategyFrozen, const size_t nSharedFrozenStrat);
 
 void loadBuckets();
 

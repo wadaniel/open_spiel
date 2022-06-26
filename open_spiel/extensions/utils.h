@@ -5,6 +5,9 @@
 #include <stdlib.h> // rand
 #include "nlohmann/json.hpp"
 
+#include <sys/types.h>
+#include <unistd.h>
+
 namespace extensions
 {
 
@@ -55,27 +58,8 @@ size_t vecHash(const std::vector<int>& vec) {
  	return seed;
 }
 
-// Randomly sample one element from options according to the probability weights
 template<typename Iterator>
-typename std::iterator_traits<Iterator>::value_type
-
-// https://www.tutorialspoint.com/random-pick-with-weight-in-cplusplus
-/*int randomChoice(Iterator begin, Iterator end){
-	float sum = 0;
-	vector<float> presums;
-	for(auto it = begin; it != end; ++it)
-	{
-		float num = *it;
-		printf("randomchoice new %f %f \n", sum, num);
-		sum += num;
-		presums.push_back(sum);
-	}
-	const float unif = (float)rand()/(float)RAND_MAX;
-
-
-}*/
-
-randomChoice(Iterator begin, Iterator end)
+int randomChoice(Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     value_type sumWeight = value_type();
@@ -85,7 +69,6 @@ randomChoice(Iterator begin, Iterator end)
     while((begin != end) && (sumWeight < unif))
     {
         sumWeight += *begin;
-        //printf("randomchoice %f %f %f %zu\n", sumWeight, *begin, unif, idx);
 		idx++;
         begin++;
 

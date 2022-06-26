@@ -212,7 +212,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		if (bettingStage == 0)
 		{
 			char str[20];
-			//sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+			sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
 			bucket = preflopBucket.at(str);
 		}
 		else
@@ -233,8 +233,8 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 	{
 		printf("Key not found in buckets!");
 		printf("Betting stage %zu\n", bettingStage);
-		//printVec("privateCards", privateCards.begin(), privateCards.end());
-		//printVec("publicCards", publicCards.begin(), publicCards.end());
+		printVec("privateCards", privateCards.begin(), privateCards.end());
+		printVec("publicCards", publicCards.begin(), publicCards.end());
 		exit(2);
 	}
 

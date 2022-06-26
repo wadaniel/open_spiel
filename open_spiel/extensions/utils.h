@@ -98,7 +98,7 @@ randomChoice(Iterator begin, Iterator end)
     while((begin != end) && (sumWeight < unif))
     {
         sumWeight += *begin;
-        printf("randomchoice %f %f %f %zu\n", sumWeight, *begin, unif, idx);
+        //printf("randomchoice %f %f %f %zu\n", sumWeight, *begin, unif, idx);
 		idx++;
         begin++;
 

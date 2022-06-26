@@ -17,14 +17,15 @@ void readDictionaryFromJson(const std::string filename, std::map<std::string, si
 }
 template<typename Iterator>
 
+// Jonathan disabled due to mysterious prints
 void printVec(const std::string& name, Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
 	
-	printf("%s\n", name.c_str());
+	//printf("%s\n", name.c_str());
 	while(begin != end)
 	{
-		printf("%s\n",std::to_string(*begin).c_str());
+		//printf("%s\n",std::to_string(*begin).c_str());
 		begin++;
 	}
 }

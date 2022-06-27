@@ -334,6 +334,8 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
         return std::vector<int> {0, 1, 8};
     
+    assert(numActions > 2);
+    
     size_t numPreActions = 0;
     int minBet = 0;
     if(legalActions[0] == 0)
@@ -401,6 +403,8 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
     else if ( (numActions == 3) && (legalActions[0] == 0) && 
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
         return std::vector<int> {0, 1, 8};
+    
+    assert(numActions > 2);
     
     size_t numPreActions = 0;
     int minBet = 0;
@@ -477,6 +481,8 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
     }
     else
     {
+    
+        assert(numActions > 2);
     	const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
     
         if (legalActions[0] == 0)
@@ -501,7 +507,6 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
 std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet, int currentBet, bool isReraise, const std::vector<long int>& legalActions)
 {
     const size_t numActions = legalActions.size();
-    //std::cout << " get legal actions " << currentStage << " - " << totalPot << " - " << maxBet << " - " << currentBet << " - " << isReraise << std::endl;
     // Actions in case of reraise
     if (isReraise)
     {

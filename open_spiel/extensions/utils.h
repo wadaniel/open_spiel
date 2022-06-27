@@ -14,10 +14,13 @@ namespace extensions
 
 // Check if we need to set the seed
 bool isRngInitialized = false;
+// Rng generator
 std::default_random_engine generator;
+// Uniform distribution
 std::uniform_real_distribution<double> distribution(0.0,1.0);
 
 
+// Transform json file to a cpp map
 void readDictionaryFromJson(const std::string filename, std::map<std::string, size_t>& dict)
 {
 	std::ifstream ifs(filename);
@@ -25,8 +28,9 @@ void readDictionaryFromJson(const std::string filename, std::map<std::string, si
 	dict = jobj.get<std::map<std::string, size_t>>();
 
 }
-template<typename Iterator>
 
+// Helper to print all elements of a container
+template<typename Iterator>
 void printVec(const std::string& name, Iterator begin, Iterator end)
 {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
@@ -65,6 +69,7 @@ size_t vecHash(const std::vector<int>& vec) {
  	return seed;
 }
 
+// Sample an index given some probability weights
 template<typename Iterator>
 int randomChoice(Iterator begin, Iterator end)
 {
@@ -88,6 +93,8 @@ int randomChoice(Iterator begin, Iterator end)
         sumWeight += *(begin+idx);
 		idx++;
     }
+
+    // Verify smpling worked correctly
     if(sumWeight < unif)
     {
         printf("Error in randomChoice\n");
@@ -100,7 +107,7 @@ int randomChoice(Iterator begin, Iterator end)
         }
         abort();
     }
-	assert(sumWeight >= unif);
+	assert(sumWeight >= unif); //Note: if we remove this, we cannot take the last idx, it may be a 0 probability action, maybe search for the max p?
     return idx-1;
 }
 

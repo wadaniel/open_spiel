@@ -323,6 +323,7 @@ float cfr(int updatePlayerIdx,
 }
 
 
+// Multiply array elements by factor
 void discount(const float factor, float* sharedRegret, float* sharedStrategy, const size_t N)
 {
 
@@ -333,6 +334,7 @@ void discount(const float factor, float* sharedRegret, float* sharedStrategy, co
         sharedStrategy[idx] *= factor;
 }
 
+// Load all json files to a cpp map
 void loadBuckets()
 {
 	printf("loading preflop buckets..\t"); fflush(stdout);

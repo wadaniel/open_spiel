@@ -275,7 +275,8 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
   else if ((numActions == 3) && (legalActions[0] == 0) &&
            (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK))
     return std::vector<int>{0, 1, 8};
-
+  
+  assert(numActions > 2);
 
   int minBet = 0;
   size_t numPreActions = 0;
@@ -411,7 +412,8 @@ getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
   else if ((numActions == 3) && (legalActions[0] == 0) &&
            (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK))
     return std::vector<int>{0, 1, 8};
-
+  
+  assert(numActions > 2);
 
   size_t numPreActions = 0;
   int minBet = 0;

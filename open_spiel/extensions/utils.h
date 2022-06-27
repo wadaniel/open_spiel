@@ -75,15 +75,20 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
     isRngInitialized = true;
   }
 
-  // Get random number in [0,1)
-  const double unif = distribution(generator);
-
   size_t idx = 0;
-  double sumWeight = 0.;
-  while ((begin + idx != end) && (sumWeight < unif)) {
-    sumWeight += *(begin + idx);
-    idx++;
-  }
+  double unif, sumWeight;
+  do
+  {
+    idx = 0;
+    sumWeight = 0.;
+    // Get random number in [0,1)
+    unif = distribution(generator);
+
+    while ((begin + idx != end) && (sumWeight < unif)) {
+      sumWeight += *(begin + idx);
+      idx++;
+    }
+  } while(unif < sumWeight); // Save sampling
 
   // Verify smpling worked correctly
   if (sumWeight < unif) {

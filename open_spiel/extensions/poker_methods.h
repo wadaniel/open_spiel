@@ -78,8 +78,6 @@ void calculateProbabilities(const std::array<int, 9> &regret,
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):
 // arrayPos = get_array_pos(info_set, handIDs[player])
-// #print("CFR handID "+str(handIDs[player])+" - stage "+str(stage)+" -
-// arrayposcfr "+str(arrayPos))
 size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
                      int chipsToCallFrac, int betSizeFrac, int currentPlayer,
                      int legalActionsCode, int isReraise,

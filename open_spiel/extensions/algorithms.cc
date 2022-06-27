@@ -275,9 +275,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                 nSharedRegret, sharedStrategy, nSharedStrat,
                 sharedStrategyFrozen, nSharedFrozenStrat);
         actionValues[action] = actionValue;
-        expectedValue += probabilities[action] *
-                         actionValue; // shall we renormalize prob? TODO(DW):
-                                      // verify with Jonathan
+        expectedValue += probabilities[action] * actionValue; 
       }
 
     // Multiplier for linear regret

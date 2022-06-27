@@ -310,12 +310,28 @@ PYBIND11_MODULE(pyspiel, m) {
               {
                 extensions::loadBuckets();
               }, py::call_guard<py::gil_scoped_release>() )
+  
+        .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
+              {
+                py::buffer_info regretBuf = sharedRegret.request();
+                const size_t N1 = regretBuf.ndim;
+                float *regretPtr = static_cast<float *>(regretBuf.ptr);
+ 
+                py::buffer_info stratBuf = sharedStrategy.request();
+                const size_t N2 = stratBuf.ndim;
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+
+                assert(N1 == N2);
+                
+                return extensions::discount(factor, regretPtr, stratPtr, N1); 
+
+              }, py::call_guard<py::gil_scoped_release>() )
  
       .def("test_sum", &extensions::test_sum)
-      .def("test_cfr", [](int idx, float val, py::array_t<float>& sharedStrategy, const py::dict& buckets)
+      .def("test_cfr", [](const int idx, const float val, py::array_t<float>& sharedStrategy, const py::dict& buckets)
               {
                 py::buffer_info stratBuf = sharedStrategy.request();
-                size_t N = stratBuf.ndim;
+                const size_t N = stratBuf.ndim;
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                 
                 // cast dict to cpp map

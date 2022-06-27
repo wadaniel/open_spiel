@@ -382,7 +382,17 @@ float cfr(int updatePlayerIdx,
     }
 }
 
-//void loadBuckets(std::map<std::string, size_t>& preflopBuckets)
+
+void discount(const float factor, float* sharedRegret, float* sharedStrategy, const size_t N)
+{
+
+    for(size_t idx = 0; idx < N; ++idx)
+        sharedRegret[idx] *= factor;
+ 
+    for(size_t idx = 0; idx < N; ++idx)
+        sharedStrategy[idx] *= factor;
+}
+
 void loadBuckets()
 {
 	printf("loading preflop buckets..\t"); fflush(stdout);

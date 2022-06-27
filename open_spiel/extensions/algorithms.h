@@ -64,6 +64,8 @@ float multi_cfr(int numIter,
         float* sharedStrategy, const size_t nSharedStrat, 
         const float* sharedStrategyFrozen, const size_t nSharedFrozenStrat);
 
+void discount(const float factor, float* sharedRegret, float* sharedStrategy, const size_t N);
+
 void loadBuckets();
 
 } // namespace extensions

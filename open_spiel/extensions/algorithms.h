@@ -7,24 +7,6 @@ namespace extensions
 {
 
 /**
-* @brief Calculates the sum of two numbers.
-* @param a The first summand
-* @param b The second summand
-* @return The sum
-*/
-int test_sum(int a, int b);
-
-/**
-* @brief Randomly modifies the values in sharedStrategy.
-* @param idx The highes index to modify
-* @param idx The vale we set
-* @param shardStrategy The array to modify
-* @param buckets A dictionary to read
-* @return The val
-*/
-int test_cfr(int idx, float val, float* sharedStrategy, const std::map<std::string, int>& buckets);
-
-/**
 * @brief CFR calculation and updated of shared strategy
 * @param updatePlayerIdx Index of the player to update
 * @param time The training iteration

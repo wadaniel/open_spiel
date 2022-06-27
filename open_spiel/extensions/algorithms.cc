@@ -7,22 +7,6 @@
 namespace extensions
 {
 
-int test_sum(int a, int b) { return a + b; } 
-
-int test_cfr(int idx, float val, float* sharedStrategy, const std::map<std::string, int>& buckets) 
-{
-        
-        if ( idx < 0 ) return val;
-        sharedStrategy[idx] = val;
-        idx -= rand()%10;
-        
-        for (const auto& [key, value] : buckets) {
-            printf("[%s] %d\n", key.c_str(), value);
-        }
-
-        return test_cfr(idx, val, sharedStrategy, buckets);
-}
-
 float multi_cfr(int numIter, 
         const int updatePlayerIdx, 
         const int startTime, 
@@ -139,15 +123,12 @@ float cfr(int updatePlayerIdx,
     // Get legal actions provided by the game
     auto gameLegalActions = state.LegalActions();
     std::sort(gameLegalActions.begin(), gameLegalActions.end());
-    //printf("legal actions sorted \n");
-    for(const int action : gameLegalActions){
-        //std::cout << action << std::endl;
-    }
 
     // Calculate our legal actions based on abstraction
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
     assert(ourLegalActions.size() > 0);
+    // printVec("ourLegalActions", ourLegalActions)
     for(int action : ourLegalActions) assert(action < 9);
 
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
@@ -161,10 +142,6 @@ float cfr(int updatePlayerIdx,
     // Init array index
     size_t arrayIndex = 0;
     
-    // printf("C\n");
-    // Jonathan IMPORTANT for debugging DO NOT remove
-    // printf("betting state %d \n", bettingStage);
-    // printVec("ourLegalActions", ourLegalActions)
 
     // Get index in strategy array
     // we only use lossless hand card abstraction in current betting round
@@ -177,10 +154,6 @@ float cfr(int updatePlayerIdx,
         arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, true);
         assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedFrozenStrat);
-        // Jonathan IMPORTANT for debugging DO NOT remove
-        //printf("betting state %d \n", bettingStage);
-        //printf("legal actions ab \n");
-        //printVec("ourLegalActions", ourLegalActions);
     }
     else
     {
@@ -227,18 +200,13 @@ float cfr(int updatePlayerIdx,
         const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
         arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac, currentPlayer, legalActionsCode, isReraise, false);
-        ////printf("D\n");
-		assert(arrayIndex < nSharedStrat); // this fails, don't put it
+		assert(arrayIndex < nSharedStrat);
 		assert(arrayIndex < nSharedFrozenStrat);
     }
 
     if(currentPlayer == updatePlayerIdx)
     {
 		std::copy(&sharedStrategyFrozen[arrayIndex], &sharedStrategyFrozen[arrayIndex+9], strategy.begin() );
-
-        // Jonathan IMPORTANT for debugging DO NOT remove
-        ////printf("betting state %d \n", bettingStage);
-        //printVec("ourLegalActions", ourLegalActions);
 
         if(useRealTimeSearch)
         {
@@ -259,9 +227,7 @@ float cfr(int updatePlayerIdx,
 					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
                     probabilities[action] = strategy[action];
     				auto new_state = state.Child(absoluteAction);
-                    ////printf("0\n");
                     const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
-                    ////printf("0\n");
                     expectedValue += actionValue * probabilities[action];
                 }
                 return expectedValue;
@@ -271,12 +237,6 @@ float cfr(int updatePlayerIdx,
             std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex+9], regrets.begin());
         }
         
-        // Jonathan IMPORTANT for debugging DO NOT remove
-        //printf("betting state %d \n", bettingStage);
-        //printf("legal actions c \n");
-        //printVec("ourLegalActions", ourLegalActions);
-
-        ////printf("E\n");
 		calculateProbabilities(regrets, ourLegalActions, probabilities);
 
         // Find actions to prune
@@ -287,7 +247,6 @@ float cfr(int updatePlayerIdx,
                 if ((action == 0) || (action == 8)) explored[action] = true;    // Always explore terminal actions
             }
         }
-        //printf("x\n");
         
         float expectedValue = 0.;
 	    std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
@@ -296,17 +255,11 @@ float cfr(int updatePlayerIdx,
         for(const int action : ourLegalActions) if (explored[action])
         {
 			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
-            //printf("xx %d\n", action);
     		auto new_state = state.Child(absoluteAction);
-            //printf("z %d\n", action);
-            //printf("1\n");
             const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
-            //printf("1\n");
-            //printf("zz %d\n", action);
             actionValues[action] = actionValue;
             expectedValue += probabilities[action] * actionValue; // shall we renormalize prob? TODO(DW): verify with Jonathan
         }
-        //printf("y\n");
 		
         // Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
@@ -320,7 +273,6 @@ float cfr(int updatePlayerIdx,
                 if(sharedRegret[arrayActionIndex] > std::numeric_limits<int>::max()) sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
                 if(sharedRegret[arrayActionIndex] < pruneThreshold*1.03) sharedRegret[arrayActionIndex] = pruneThreshold*1.03;
      	}
-        //printf("F\n");
         return expectedValue;
     }
     else
@@ -345,26 +297,15 @@ float cfr(int updatePlayerIdx,
 
         // Calculate probabilities from regrets
         calculateProbabilities(regrets, ourLegalActions, probabilities);
-        //printf("G\n");
         
-        //////printVec("gl", gameLegalActions.begin(), gameLegalActions.end());
-        ////////printVec("ola", ourLegalActions.begin(), ourLegalActions.end());
-        //printf("%d %d %d %d %d\n", bettingStage, totalPot, maxBet, currentBet, isReraise);
-        ////////printVec("r", regrets.begin(), regrets.end());
-        //////printVec("p", probabilities.begin(), probabilities.end());
-         
-        // Jonathan: ATTENTION: randomChoice returns a value of 0 to 8
+        // randomChoice returns a value of 0 to 8
     	const int sampledAction = randomChoice(probabilities.begin(), probabilities.end());
 
         const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
-        //printf("absact %zu (%zu) id: ((%zu)) \n", absoluteAction, sampledAction, sampledAction);
-       
         auto new_state = state.Child(absoluteAction);
-        //printf("2\n");
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
-        //printf("2\n");
-        
-		// TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
+		
+        // TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
     	// has to be in non active player
         // Multiplier for linear regret
         const float multiplier = 1.; //min(t, 2**10) # stop linear cfr at 32768, be careful about overflows
@@ -377,7 +318,6 @@ float cfr(int updatePlayerIdx,
             sharedStrategy[arrayActionIndex] += multiplier*probabilities[action];
      	}
 
-        //printf("H %f\n", expectedValue);
         return expectedValue;
     }
 }

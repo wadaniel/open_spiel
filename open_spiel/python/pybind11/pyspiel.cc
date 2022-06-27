@@ -327,19 +327,6 @@ PYBIND11_MODULE(pyspiel, m) {
 
               }, py::call_guard<py::gil_scoped_release>() )
  
-      .def("test_sum", &extensions::test_sum)
-      .def("test_cfr", [](const int idx, const float val, py::array_t<float>& sharedStrategy, const py::dict& buckets)
-              {
-                py::buffer_info stratBuf = sharedStrategy.request();
-                const size_t N = stratBuf.ndim;
-                float *stratPtr = static_cast<float *>(stratBuf.ptr);
-                
-                // cast dict to cpp map
-                auto cppdict = buckets.cast<std::map<std::string, int>>();
-                return extensions::test_cfr(idx, val, stratPtr, cppdict); 
-
-              }, py::call_guard<py::gil_scoped_release>() )
-      
       .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { 
                 py::buffer_info handIdsBuf = handIds.request();

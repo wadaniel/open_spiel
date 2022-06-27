@@ -81,9 +81,9 @@ float cfr(int updatePlayerIdx,
 	std::array<int, 3> bets{0, 0, 0};
 	
 	std::array<bool, 9> explored{true, true, true, true, true, true, true, true, true};
-	std::array<float, 9> probabilities{0., 0., 0., 0., 0., 0., 0., 0., 0.};
-	std::array<int, 9> regrets{0., 0., 0., 0., 0., 0., 0., 0., 0.};
+	std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
 	std::array<float, 9> strategy{0., 0., 0., 0., 0., 0., 0., 0., 0.};
+	std::array<float, 9> probabilities{0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
 	const int currentPlayer = state.CurrentPlayer();
 

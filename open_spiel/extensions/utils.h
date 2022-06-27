@@ -88,7 +88,7 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
       sumWeight += *(begin + idx);
       idx++;
     }
-  } while(unif < sumWeight); // Save sampling
+  } while(sumWeight < unif); // Save sampling
 
   // Verify smpling worked correctly
   if (sumWeight < unif) {

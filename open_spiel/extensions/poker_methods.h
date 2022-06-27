@@ -288,7 +288,7 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
         numPreActions = 1;
     }
 
-    const float betInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
     
     size_t maxAction = 1;
     if(betInPctPot > 3.)
@@ -349,7 +349,7 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
         numPreActions = 1;
     }
 
-    const float betInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
    
     int maxAction = 1;
     if(betInPctPot > 2.)
@@ -419,7 +419,7 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
         numPreActions = 1;
     }
 
-    const float betInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
    
     int maxAction = 1;
     if(betInPctPot > 1.)
@@ -483,7 +483,7 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
     {
     
         assert(numActions > 2);
-    	const float betInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    	const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
     
         if (legalActions[0] == 0)
         {

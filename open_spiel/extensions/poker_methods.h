@@ -212,6 +212,7 @@ size_t getCardBucket(const std::array<int, 2>& privateCards,
 		if (bettingStage == 0)
 		{
 			char str[20];
+            sprintf(str, "%d,%d", privateCards[0], privateCards[1]); 
 			bucket = preflopBucket.at(str);
 		}
 		else

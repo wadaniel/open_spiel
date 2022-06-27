@@ -95,7 +95,7 @@ int randomChoice(Iterator begin, Iterator end)
         idx = 0;
         while(begin+idx != end)
         {
-            printf("p[%d] %lf\n", idx, *(begin+idx));
+            printf("p[%zu] %lf\n", idx, *(begin+idx));
 			idx++;
         }
         abort();

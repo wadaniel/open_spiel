@@ -273,6 +273,7 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
               (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK) )
         return std::vector<int> {0, 1, 8};
     
+    assert(numActions > 2);
 
     size_t numPreActions = 0;
     int minBet = 0;
@@ -287,20 +288,20 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
     
     size_t maxAction = 1;
-    if(maxRaiseInPctPot > 3.)
+    if(betInPctPot > 3.)
         maxAction = 7;
-    else if(maxRaiseInPctPot > 2.)
+    else if(betInPctPot > 2.)
         maxAction = 6;
-    else if(maxRaiseInPctPot > 1.)
+    else if(betInPctPot > 1.)
         maxAction = 5;
-    else if(maxRaiseInPctPot > 0.75)
+    else if(betInPctPot > 0.75)
         maxAction = 4;
-    else if(maxRaiseInPctPot > 0.5)
+    else if(betInPctPot > 0.5)
         maxAction = 3;
-    else if (maxRaiseInPctPot > 0.25)
+    else if (betInPctPot > 0.25)
         maxAction = 2;
 
     // We need to raise at least 1 BB which is 20
@@ -311,18 +312,17 @@ std::vector<int> getLegalActionsPreflop(int numActions, int totalPot, int maxBet
         minAction = 2;
     else if (totalPot >= 2*minRaise)
         minAction = 3;
-    else if (totalPot >= int(minRaise/0.75))
+    else if (totalPot >= int(minRaise*1.33))
         minAction = 4;
 
-    assert(maxAction > minAction);
-    const size_t totalActions = numPreActions + maxAction - minAction + 2;
-    std::vector<int> actions(totalActions);
+    const size_t addonActions = maxAction >= minAction ? + maxAction - minAction + 1 : 0;
+    std::vector<int> actions(numPreActions+addonActions+1);
 	for(size_t idx = 0; idx < numPreActions; ++idx)
 		actions[idx] = legalActions[idx];
-    for(size_t idx = 0; idx < totalActions-1; ++idx)
+    for(size_t idx = 0; idx < addonActions; ++idx)
 		actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
 	
-    actions[totalActions-1] = 8; // always allow all-in
+    actions[numPreActions+addonActions] = 8; // always allow all-in
     return actions;
 }
 
@@ -347,14 +347,14 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
    
     int maxAction = 1;
-    if(maxRaiseInPctPot > 2.)
+    if(betInPctPot > 2.)
         maxAction = 6;
-    else if(maxRaiseInPctPot > 1.)
+    else if(betInPctPot > 1.)
         maxAction = 5;
-    else if(maxRaiseInPctPot > 0.5)
+    else if(betInPctPot > 0.5)
         maxAction = 3;
 
     // We need to raise at least 1 BB which is 20
@@ -362,18 +362,18 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
     
     const int minAction = (totalPot >= 2*minRaise) ? 3 : 5;
 
-    size_t totalActions = numPreActions + maxAction - minAction + 2;
+    size_t addonActions = maxAction >= minAction ? maxAction - minAction + 1 : 0;
 	const bool skipActionFour = (minAction < 4 && maxAction > 4);
-	if (skipActionFour) totalActions -= 1;
+	if (skipActionFour) addonActions -= 1;
 
-    std::vector<int> actions(totalActions);
+    std::vector<int> actions(numPreActions+addonActions+1);
 	for(size_t idx = 0; idx < numPreActions; ++idx)
 		actions[idx] = legalActions[idx];
 
 	if (skipActionFour)
 	{	
 		int skipIdx = 0;
-		for (size_t idx = 0; idx < totalActions-1; ++idx) 
+		for (size_t idx = 0; idx < addonActions; ++idx) 
 		{
 			int action = minAction + idx;
 			if (action != 4)
@@ -385,11 +385,11 @@ std::vector<int> getLegalActionsFlop(int numActions, int totalPot, int maxBet, i
 	}
 	else
 	{
-		for (size_t idx = 0; idx < totalActions-1; ++idx)
+		for (size_t idx = 0; idx < addonActions; ++idx)
 			actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
 	}
 
-    actions[totalActions-1] = 8; // always allow all-in
+    actions[numPreActions + addonActions] = 8; // always allow all-in
     return actions;
 
 }
@@ -415,57 +415,48 @@ std::vector<int> getLegalActionsTurnRiver(int numActions, int totalPot, int maxB
         numPreActions = 1;
     }
 
-    const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
    
     int maxAction = 1;
-    if(maxRaiseInPctPot > 1.)
+    if(betInPctPot > 1.)
         maxAction = 5;
-    else if(maxRaiseInPctPot > 0.5)
+    else if(betInPctPot > 0.5)
         maxAction = 3;
     
     // We need to raise at least 1 BB which is 20
     const int minRaise = (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
     
     const int minAction = (totalPot >= 2*minRaise) ? 3 : 5;
-
-    size_t totalActions = numPreActions + maxAction - minAction + 2;
+ 
+    size_t addonActions = maxAction >= minAction ? maxAction - minAction + 1 : 0;
 	const bool skipActionFour = (minAction < 4 && maxAction > 4);
-	if (skipActionFour) totalActions -= 1;
+	if (skipActionFour) addonActions -= 1;
 
-    std::vector<int> actions(totalActions);
+    std::vector<int> actions(numPreActions+addonActions+1);
 	for(size_t idx = 0; idx < numPreActions; ++idx)
 		actions[idx] = legalActions[idx];
 
 	if (skipActionFour)
 	{	
 		int skipIdx = 0;
-		for (size_t idx = 0; idx < totalActions-1; ++idx) 
+		for (size_t idx = 0; idx < addonActions; ++idx) 
 		{
-			const int action = minAction + idx;
+			int action = minAction + idx;
 			if (action != 4)
 			{
-				// actions between range minAction and (including) maxAction, excluding action == 4
-				actions[numPreActions+skipIdx] = minAction + idx; 
+				actions[numPreActions+skipIdx] = minAction + idx; // actions between range minAction and (including) maxAction
 				skipIdx++;
 			}
 		}
 	}
 	else
 	{
-		for (size_t idx = 0; idx < totalActions-1; ++idx)
-			// actions between range minAction and (including) maxAction, action == 4 not present
-			actions[numPreActions+idx] = minAction + idx; 
+		for (size_t idx = 0; idx < addonActions; ++idx)
+			actions[numPreActions+idx] = minAction + idx; // actions between range minAction and (including) maxAction
 	}
 
-    actions[totalActions-1] = 8; // always allow all-in
-
-    //printf("legal actions turnriver \n");
-    //for(const int action : actions){
-        //std::cout << action << std::endl;
-    //}
+    actions[numPreActions + addonActions] = 8; // always allow all-in
     return actions;
-
-
 }
 
 std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet, bool isReraise, const std::vector<long int>& legalActions)
@@ -486,18 +477,18 @@ std::vector<int> getLegalActionsReraise(int numActions, int totalPot, int maxBet
     }
     else
     {
-    	const float maxRaiseInPctPot = (float)(TOTALSTACK - prevBet)/(float)totalPot;
+    	const float betInPctPot = (float)(maxBet - prevBet)/(float)totalPot;
     
         if (legalActions[0] == 0)
         {
-            if (maxRaiseInPctPot > 1.)
+            if (betInPctPot > 1.)
                 actions = std::vector<int>{ 0, 1, 5, 8 };
             else
                 actions = std::vector<int>{ 0, 1, 8 };
         }
         else
         {
-            if (maxRaiseInPctPot > 1.)
+            if (betInPctPot > 1.)
                 actions = std::vector<int>{ 1, 5, 8 };
             else 
                 actions = std::vector<int>{ 1, 8 };

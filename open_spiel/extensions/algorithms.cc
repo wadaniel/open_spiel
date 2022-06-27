@@ -128,7 +128,7 @@ float cfr(int updatePlayerIdx,
     const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
     assert(ourLegalActions.size() > 0);
-    // printVec("ourLegalActions", ourLegalActions)
+    //printVec("ourLegalActions", ourLegalActions.begin(), ourLegalActions.end());
     for(int action : ourLegalActions) assert(action < 9);
 
     const int legalActionsCode = getLegalActionCode(isReraise, bettingStage, ourLegalActions);
@@ -224,7 +224,7 @@ float cfr(int updatePlayerIdx,
                 float expectedValue = 0.;
                 for(const int action : ourLegalActions)
                 {
-					const int absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+		            const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
                     probabilities[action] = strategy[action];
     				auto new_state = state.Child(absoluteAction);
                     const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
@@ -254,7 +254,7 @@ float cfr(int updatePlayerIdx,
         // Iterate only over explored actions
         for(const int action : ourLegalActions) if (explored[action])
         {
-			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot);
+			const size_t absoluteAction = actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
     		auto new_state = state.Child(absoluteAction);
             const float actionValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
             actionValues[action] = actionValue;
@@ -300,8 +300,7 @@ float cfr(int updatePlayerIdx,
         
         // randomChoice returns a value of 0 to 8
     	const int sampledAction = randomChoice(probabilities.begin(), probabilities.end());
-
-        const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot);
+		const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
         auto new_state = state.Child(absoluteAction);
         const float expectedValue = cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds, handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret, sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 		

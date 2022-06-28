@@ -1,7 +1,8 @@
 #include "open_spiel/extensions/algorithms.h"
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/poker_methods.h"
-#include "open_spiel/games/universal_poker/acpc_cpp/acpc_game.h"
+#include "open_spiel/extensions/belief.h"
+#include "open_spiel/games/universal_poker.h"
 
 #include <iostream>
 
@@ -350,83 +351,76 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   }
 }
 
-void cfr_realtime(const int time, const int evalPlayer, 
-        const open_spiel::State &state, float* handBeliefs, 
-        const size_t numPlayer, const size_t numHands, const size_t numIter)
+void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
+          const float pruneThreshold, const open_spiel::State &state,
+          float* handBeliefs, const size_t numPlayer, const size_t numHands,
+          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
+          float *sharedStrategy, const size_t nSharedStrat,
+          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat)
 {
-    // TODO
-    float newHandBeliefs[numPlayer][numHands];
-    std::memcpy (newHandBeliefs, handBeliefs, numPlayer*numHands*sizeof(float));
+	// Fill data
+    std::vector<std::vector<float>> newHandBeliefs;
+	for(size_t player = 0; player < numPlayer; ++player)
+		for(size_t idx = 0; idx < numPossibleHands; ++idx)
+			newHandBeliefs[player][numPossibleHands] = handBeliefs[player*numPossibleHands+idx];
 
-    const open_spiel::universal_poker::acpc_cpp::ACPCState& acpcState = dynamic_cast<const open_spiel::universal_poker::acpc_cpp::ACPCState&>(state) ;
-    uint8_t card = acpcState.board_cards(0);
-  
-    const open_spiel::universal_poker::acpc_cpp::RawACPCState& rawState = acpcState.raw_state();
+    const open_spiel::universal_poker::UniversalPokerState& pokerState = dynamic_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
+
+	// all cards in play
+    const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
     
-    /*
-    publicCards = state.community_cards(pyspiel_init)
-    seenCards = list(publicCards)
-    # avoid resampling same cards (THIS SHOULD NOT BE NEEDED ANYMORE?!)
-    # Jonathan moved this from the for loop below due to crashes
-    ownHand = state.private_hands(pyspiel_init)[evalPlayer,:]
-    # might be incorrect since the opponents could think they another opponent has those cards according to the normal beliefs
-    #tmpBelief = belief.updateHandProbabilitiesFromSeenCards(ownHand, tmpBelief)
-    stage = state.getBettingStage(pyspiel_init)
-    if(stage == 1):
-        beliefT = 0.0 # almost always assume opponent knows your hand in flop, but might mess up believes
-    elif(stage == 2):
-        beliefT = 0.0 # sometimes assume opponent knows your hand in turn
-    elif(stage == 3):
-        beliefT = 0.0 # never assume opponent knows your hand in river, since rand never < 0
+	const auto& publicCards = visibleCards[numPlayer];
+    const auto& evalPlayerHand = visibleCards[updatePlayerIdx];
+	
+	// update beliefs from public cards
+	const auto tmpBeliefConst = updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs);
+    
+	// container for sampled hands
+    int handIds[numPlayer];
+	std::vector<std::vector<uint8_t>> sampledPrivateHands(numPlayer, std::vector<uint8_t>(2));
+    
+	// update belief of all players
+    for(size_t iter = 0; iter < numIter; ++iter)
+    {
+        auto stateCopy = state.Clone();
 
-    for iter in range(0, numIter):
-        """Search over random game and calculate the strategy."""
-        pyspielCopy = copy.deepcopy(pyspiel_init)
+        // reinitialize beliefs after seeing public cards
+		std::vector<std::vector<float>> tmpBeliefInLoop = tmpBeliefConst;
+         
+		// sample hand for eval player first    
+        const int sampledEvalPlayerHandIdx = randomChoice(tmpBeliefInLoop[updatePlayerIdx].begin(), tmpBeliefInLoop[updatePlayerIdx].end());
+        const std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
+     			
+		// set hand id and privte hands
+      	handIds[updatePlayerIdx] = sampledEvalPlayerHandIdx;
+        sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
 
-        # has to be inside the loop (important!) since it is modified below for the drawn cards
-        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(seenCards, tmpBelief)
-
-        # prepare resampling
-        sampledPrivateHands = np.zeros((gv.numPlayers, 2),dtype=np.uint8)
-        #sampledPrivateHands[evalPlayer,:] = ownHand
-
-        sampledEvalPlayerIdx = np.random.choice(belief.numPossibleHands, p=tmpBeliefInLoop[evalPlayer,:])
-        sampledPlayerHand = belief.allPossibleHands[sampledEvalPlayerIdx,:]
-        # only sample our actual hand for evalPlayer
-        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(ownHand, tmpBeliefInLoop)
-        # in theory for your own evaluation i.e. of evalPlayer the opponents could have the sampled hand
-        # but it is unlikely to make a difference since it is randomly sampled
-        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(sampledPlayerHand, tmpBeliefInLoop)
-
-        handIDs = [0,0,0]
-        # get new private hands for players
-        for player in range(gv.numPlayers):
-            if (player != evalPlayer):
-                newHandIdx = np.random.choice(belief.numPossibleHands, p=tmpBeliefInLoop[player,:])
-                sampledPrivateHands[player,:] = belief.allPossibleHands[newHandIdx,:]
-                seenCardsAdd = list(seenCards) + list(sampledPrivateHands[player,:])
-                tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(seenCardsAdd, tmpBeliefInLoop)
-                handIDs[player] = newHandIdx
-            else:
-                handIDs[evalPlayer] = sampledEvalPlayerIdx
-                sampledPrivateHands[evalPlayer,:] = sampledPlayerHand
-
-        # do CFR with new hands for all players
-        for i in range(0, gv.numPlayers):
-            # note: for other players than evalPlayer it sets the same so it might be more efficient outside the loop
-            # put it like this for clarity
-            try:  
-                pyspielCopy.set_partial_game_state(sampledPrivateHands.tolist())
-            except Exception as e:
-                print("error in cfr_realtime")
-                print(e)
-
-            # has to be here inside the loop IMPORTANT, otherwise it won't train all players
-            value = pyspiel.State.cfr(i, iter, gv._prune_threshold, True, handIDs, pyspielCopy, stage, gv.shared_rts_regret, gv.shared_rts_strategy, gv.shared_rts_strategy_frozen)
-            #value = pyspiel.State.multi_cfr(10, i, iter, gv._prune_threshold, True, handIDs, pyspielCopy, stage, gv.shared_rts_regret, gv.shared_rts_strategy, gv.shared_rts_strategy_frozen)
-            #value = ai.cfr(pyspielCopy, t, i, True, gv._prune_threshold, runStats, usingRTS=True, handIDs=handIDs, currentStage=stage)
-            #stats.update(Counter(runStats))
-    */
+        tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, tmpBeliefInLoop);
+    	
+		// opponents should not sample our 'true' hand
+		tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(evalPlayerHand, tmpBeliefInLoop);
+ 
+        for(size_t player = 0; player < numPlayer; ++player) if(player != updatePlayerIdx)
+        {
+      		const int newHandIdx = randomChoice(tmpBeliefInLoop[player].begin(), tmpBeliefInLoop[player].end());
+                
+			// set hand id and privte hands
+			handIds[player] = newHandIdx;
+        	sampledPrivateHands[player] = allPossibleHands[newHandIdx];
+				
+			// update beliefs st we dont resamle the same cards for the other players
+          	tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], tmpBeliefInLoop);
+        }
+        
+        stateCopy->SetPartialGameState(sampledPrivateHands);
+        for(size_t player = 0; player < numPlayer; ++player)
+        {
+            cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
+                  *stateCopy, currentStage, sharedRegret,
+                  nSharedRegret, sharedStrategy, nSharedStrat,
+                  sharedStrategyFrozen, nSharedFrozenStrat);
+        }
+    }
 }
 
 

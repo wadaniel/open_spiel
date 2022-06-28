@@ -494,6 +494,27 @@ std::string UniversalPokerState::InformationStateString(Player player) const {
       HoleCards(player).ToString(), BoardCards().ToString(), sequences);
 }
 
+std::vector<std::vector<uint8_t>> UniversalPokerState::GetVisibleCards(size_t playerId) const
+{
+    auto boardCardSet = this->BoardCards();
+    const uint8_t nbBoardCards = boardCardSet.NumCards();
+    const int num_players = acpc_game_->GetNbPlayers();
+    
+    
+    // Private cards plus public board cards
+    std::vector<std::vector<uint8_t>> visibleCards;
+    
+    // First load private cards
+    for(size_t player = 0; player < num_players; ++player)
+    {
+        visibleCards.push_back(HoleCards(player).ToCardArray());
+    }
+
+    visibleCards.push_back(this->BoardCards().ToCardArray());
+
+    return visibleCards;
+}
+
 void UniversalPokerState::SetPartialGameState(std::vector<std::vector<uint8_t>> state) {
 
     // verify number of hands

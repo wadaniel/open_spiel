@@ -369,31 +369,36 @@ PYBIND11_MODULE(pyspiel, m) {
 
               }, py::call_guard<py::gil_scoped_release>() )
       
-      .def("cfr_with_rts", [](const int time, int updatePlayerIdx, std::shared_ptr<const open_spiel::State> state, py::array_t<float>& handBeliefs1D, const size_t numPlayer, const size_t numHands, const size_t numIter)
+      .def("cfr_with_rts", [](const int numIter, const int updatePlayerIdx, const int time, const float pruneThreshold, 
+                  std::shared_ptr<const open_spiel::State> state, const int currentStage,
+                  py::array_t<float>& handBeliefs1D, const int numPlayer, const int numHands,
+                  py::array_t<float>& sharedRegret, 
+                  py::array_t<float>& sharedStrategy, 
+                  py::array_t<float>& sharedFrozenStrategy)
               {
   
                 py::buffer_info handBeliefsBuf = handBeliefs1D.request();
                 const size_t numElements = handBeliefsBuf.shape[0];
                 float* handBeliefsPtr = static_cast<float *>(handBeliefsBuf.ptr);
 
-                /*
-                py::buffer_info handIdsBuf = handIds.request();
-                const size_t handIdsSize = handIdsBuf.shape[0];
-                int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
-
                 py::buffer_info regBuf = sharedRegret.request();
-                const  size_t nReg = regBuf.shape[0];
-                int *regPtr = static_cast<int *>(regBuf.ptr);
+                const  size_t nSharedRegret = regBuf.shape[0];
+                int *sharedRegretPtr = static_cast<int *>(regBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
-                const  size_t nStrat = stratBuf.shape[0];
-                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+                const  size_t nSharedStrat = stratBuf.shape[0];
+                float *sharedStrategyPtr = static_cast<float *>(stratBuf.ptr);
                  
-                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
-                const size_t nFrozenStrat = frozenStratBuf.shape[0];
-                const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); */
+                py::buffer_info frozenStratBuf = sharedFrozenStrategy.request();
+                const size_t nSharedFrozenStrat = frozenStratBuf.shape[0];
+                const float *sharedFrozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
 
-                return extensions::cfr_realtime(time, updatePlayerIdx, *state, handBeliefsPtr, numPlayer, numHands, numIter);
+                return extensions::cfr_realtime(numIter, updatePlayerIdx, time, 
+                            pruneThreshold, *state,
+                            handBeliefsPtr, numPlayer, numHands, currentStage, 
+                            sharedRegretPtr, nSharedRegret,
+                            sharedStrategyPtr, nSharedStrat,
+                            sharedFrozenStratPtr, nSharedFrozenStrat);
               }, py::call_guard<py::gil_scoped_release>() )
 
 

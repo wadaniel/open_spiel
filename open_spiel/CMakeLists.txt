@@ -25,6 +25,7 @@ if(NOT WIN32)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
+add_definitions(-Wfatal-errors)
 
 # Set default build type.
 set (BUILD_TYPE $ENV{BUILD_TYPE})

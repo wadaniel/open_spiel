@@ -76,6 +76,7 @@ class UniversalPokerState : public State {
   std::string ToString() const override;
   std::vector<double> Returns() const override;
   std::string InformationStateString(Player player) const override;
+  std::vector<std::vector<uint8_t>> GetVisibleCards(size_t playerId) const;
   void SetPartialGameState(std::vector<std::vector<uint8_t>> state) override;
 
 

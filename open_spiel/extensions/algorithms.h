@@ -55,6 +55,20 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const float *sharedStrategyFrozen,
                 const size_t nSharedFrozenStrat);
 
+/**
+ * @brief Multiple CFR runs with card sampling according to beliefs
+ * @param time The training iteration
+ * @param evalPlayer Index of the player to update
+ * @param state State of the pyspiel
+ * @param handBeliefs Arrays of hand beliefs,  for each player one array
+ * @param numPlayer Number of players
+ * @param numHands Length of inner dimension of handBeliefs
+ * @param numIter Number of CFR iterations
+ */
+void cfr_realtime(const int time, const int evalPlayer, 
+        const open_spiel::State &state, float** handBeliefs, 
+        const size_t numPlayer, const size_t numHands, const size_t numIter);
+
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,
               const size_t N);
 

@@ -101,9 +101,9 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
     }
     abort();
   }
-  assert(sumWeight >=
-         unif); // Note: if we remove this, we cannot take the last idx, it may
-                // be a 0 probability action, maybe search for the max p?
+  assert(sumWeight >= unif); 
+  // Note: if we remove this, we cannot take the last idx, it may
+  // be a 0 probability action, maybe search for the max p?
   return idx - 1;
 }
 

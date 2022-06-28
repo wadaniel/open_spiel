@@ -1,6 +1,7 @@
 #include "open_spiel/extensions/algorithms.h"
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/poker_methods.h"
+#include "open_spiel/games/universal_poker/acpc_cpp/acpc_game.h"
 
 #include <iostream>
 
@@ -348,6 +349,84 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     return expectedValue;
   }
 }
+
+void cfr_realtime(const int time, const int evalPlayer, 
+        const open_spiel::State &state, float** handBeliefs, 
+        const size_t numPlayer, const size_t numHands, const size_t numIter)
+{
+    // TODO
+    float newHandBeliefs[numPlayer][numHands];
+    std::memcpy (newHandBeliefs, handBeliefs, numPlayer*numHands*sizeof(float));
+
+    const open_spiel::universal_poker::acpc_cpp::ACPCState& acpcState = dynamic_cast<const open_spiel::universal_poker::acpc_cpp::ACPCState&>(state) ;
+    uint8_t card = acpcState.board_cards(0);
+    
+    /*
+    publicCards = state.community_cards(pyspiel_init)
+    seenCards = list(publicCards)
+    # avoid resampling same cards (THIS SHOULD NOT BE NEEDED ANYMORE?!)
+    # Jonathan moved this from the for loop below due to crashes
+    ownHand = state.private_hands(pyspiel_init)[evalPlayer,:]
+    # might be incorrect since the opponents could think they another opponent has those cards according to the normal beliefs
+    #tmpBelief = belief.updateHandProbabilitiesFromSeenCards(ownHand, tmpBelief)
+    stage = state.getBettingStage(pyspiel_init)
+    if(stage == 1):
+        beliefT = 0.0 # almost always assume opponent knows your hand in flop, but might mess up believes
+    elif(stage == 2):
+        beliefT = 0.0 # sometimes assume opponent knows your hand in turn
+    elif(stage == 3):
+        beliefT = 0.0 # never assume opponent knows your hand in river, since rand never < 0
+
+    for iter in range(0, numIter):
+        """Search over random game and calculate the strategy."""
+        pyspielCopy = copy.deepcopy(pyspiel_init)
+
+        # has to be inside the loop (important!) since it is modified below for the drawn cards
+        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(seenCards, tmpBelief)
+
+        # prepare resampling
+        sampledPrivateHands = np.zeros((gv.numPlayers, 2),dtype=np.uint8)
+        #sampledPrivateHands[evalPlayer,:] = ownHand
+
+        sampledEvalPlayerIdx = np.random.choice(belief.numPossibleHands, p=tmpBeliefInLoop[evalPlayer,:])
+        sampledPlayerHand = belief.allPossibleHands[sampledEvalPlayerIdx,:]
+        # only sample our actual hand for evalPlayer
+        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(ownHand, tmpBeliefInLoop)
+        # in theory for your own evaluation i.e. of evalPlayer the opponents could have the sampled hand
+        # but it is unlikely to make a difference since it is randomly sampled
+        tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(sampledPlayerHand, tmpBeliefInLoop)
+
+        handIDs = [0,0,0]
+        # get new private hands for players
+        for player in range(gv.numPlayers):
+            if (player != evalPlayer):
+                newHandIdx = np.random.choice(belief.numPossibleHands, p=tmpBeliefInLoop[player,:])
+                sampledPrivateHands[player,:] = belief.allPossibleHands[newHandIdx,:]
+                seenCardsAdd = list(seenCards) + list(sampledPrivateHands[player,:])
+                tmpBeliefInLoop = belief.updateHandProbabilitiesFromSeenCards(seenCardsAdd, tmpBeliefInLoop)
+                handIDs[player] = newHandIdx
+            else:
+                handIDs[evalPlayer] = sampledEvalPlayerIdx
+                sampledPrivateHands[evalPlayer,:] = sampledPlayerHand
+
+        # do CFR with new hands for all players
+        for i in range(0, gv.numPlayers):
+            # note: for other players than evalPlayer it sets the same so it might be more efficient outside the loop
+            # put it like this for clarity
+            try:  
+                pyspielCopy.set_partial_game_state(sampledPrivateHands.tolist())
+            except Exception as e:
+                print("error in cfr_realtime")
+                print(e)
+
+            # has to be here inside the loop IMPORTANT, otherwise it won't train all players
+            value = pyspiel.State.cfr(i, iter, gv._prune_threshold, True, handIDs, pyspielCopy, stage, gv.shared_rts_regret, gv.shared_rts_strategy, gv.shared_rts_strategy_frozen)
+            #value = pyspiel.State.multi_cfr(10, i, iter, gv._prune_threshold, True, handIDs, pyspielCopy, stage, gv.shared_rts_regret, gv.shared_rts_strategy, gv.shared_rts_strategy_frozen)
+            #value = ai.cfr(pyspielCopy, t, i, True, gv._prune_threshold, runStats, usingRTS=True, handIDs=handIDs, currentStage=stage)
+            #stats.update(Counter(runStats))
+    */
+}
+
 
 // Multiply array elements by factor
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,

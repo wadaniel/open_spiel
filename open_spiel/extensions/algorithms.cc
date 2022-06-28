@@ -351,7 +351,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 }
 
 void cfr_realtime(const int time, const int evalPlayer, 
-        const open_spiel::State &state, float** handBeliefs, 
+        const open_spiel::State &state, float* handBeliefs, 
         const size_t numPlayer, const size_t numHands, const size_t numIter)
 {
     // TODO
@@ -360,6 +360,8 @@ void cfr_realtime(const int time, const int evalPlayer,
 
     const open_spiel::universal_poker::acpc_cpp::ACPCState& acpcState = dynamic_cast<const open_spiel::universal_poker::acpc_cpp::ACPCState&>(state) ;
     uint8_t card = acpcState.board_cards(0);
+  
+    const open_spiel::universal_poker::acpc_cpp::RawACPCState& rawState = acpcState.raw_state();
     
     /*
     publicCards = state.community_cards(pyspiel_init)

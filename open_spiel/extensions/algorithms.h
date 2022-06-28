@@ -66,7 +66,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @param numIter Number of CFR iterations
  */
 void cfr_realtime(const int time, const int evalPlayer, 
-        const open_spiel::State &state, float** handBeliefs, 
+        const open_spiel::State &state, float* handBeliefs, 
         const size_t numPlayer, const size_t numHands, const size_t numIter);
 
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,

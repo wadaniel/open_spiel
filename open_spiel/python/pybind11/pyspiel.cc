@@ -311,17 +311,20 @@ PYBIND11_MODULE(pyspiel, m) {
                 extensions::loadBuckets();
               }, py::call_guard<py::gil_scoped_release>() )
   
-      .def("get_card_bucket", [](py::array_t<float>& privateCards, py::array_t<float>& publicCards, size_t bettingStage)
+      .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)
               {
                 py::buffer_info privatecBuf = privateCards.request();
-                const size_t N1 = privatecBuf.ndim;
-                std::array<int, 2> privatecPtr = reinterpret_cast<std::array<int, 2>&>(privatecBuf.ptr);
+                int* privatecPtr = static_cast<int *>(privatecBuf.ptr);
+                std::array<int, 2> privatecArr = { privatecPtr[0], privatecPtr[1] };
  
                 py::buffer_info publiccBuf = publicCards.request();
-                const size_t N2 = publiccBuf.ndim;
-                std::array<int, 5> publiccPtr = reinterpret_cast<std::array<int, 5>&>(privatecBuf.ptr); // dangerous but OK
+                int* publiccPtr = static_cast<int *>(publiccBuf.ptr);
+                std::array<int, 5> publicArr = { -1, -1, -1, -1, -1 };
+                
+                const size_t numCards = bettingStage > 0 ? bettingStage + 2 : 0;
+                for(size_t idx = 0; idx < numCards; ++idx) publicArr[idx] = publiccPtr[idx];
  
-                return extensions::getCardBucket(privatecPtr, publiccPtr, bettingStage);
+                return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
               }, py::call_guard<py::gil_scoped_release>() )
 
         .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)

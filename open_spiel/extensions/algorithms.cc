@@ -469,6 +469,9 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   assert(flopBucket.size() > 0);
   assert(turnBucket.size() > 0);
   assert(riverBucket.size() > 0);
+  assert(std::is_sorted(privateCards.begin(), privateCards.end()));
+  const size_t numCards = bettingStage > 0 ? bettingStage + 2 : 0;
+  assert(std::is_sorted(publicCards.begin(), publicCards.begin()+numCards));
 #endif
 
   size_t bucket = 0;

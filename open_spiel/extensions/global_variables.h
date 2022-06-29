@@ -142,7 +142,7 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
     return getLegalActionCodePreFlop(actions);
   else if (bettingStage == 1)
     return getLegalActionCodeFlop(actions);
-  else if (bettingStage == 2)
+  else /* (bettingStage == 2) */
     return getLegalActionCodeTurnRiver(actions);
 }
 

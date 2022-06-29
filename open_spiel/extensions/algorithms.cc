@@ -358,13 +358,15 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
           float *sharedStrategy, const size_t nSharedStrat,
           const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat)
 {
+	assert(currentStage > 0);
+
 	// Fill data
-    std::vector<std::vector<float>> newHandBeliefs;
+    std::vector<std::vector<float>> newHandBeliefs(numPlayer, std::vector<float>(numHands));
 	for(size_t player = 0; player < numPlayer; ++player)
 		for(size_t idx = 0; idx < numPossibleHands; ++idx)
-			newHandBeliefs[player][numPossibleHands] = handBeliefs[player*numPossibleHands+idx];
+			newHandBeliefs[player][idx] = handBeliefs[player*numPossibleHands+idx];
 
-    const open_spiel::universal_poker::UniversalPokerState& pokerState = dynamic_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
+    const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
 
 	// all cards in play
     const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
@@ -379,7 +381,7 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     int handIds[numPlayer];
 	std::vector<std::vector<uint8_t>> sampledPrivateHands(numPlayer, std::vector<uint8_t>(2));
     
-	// update belief of all players
+	// CFR iterations with hand resampling
     for(size_t iter = 0; iter < numIter; ++iter)
     {
         auto stateCopy = state.Clone();
@@ -389,16 +391,15 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
          
 		// sample hand for eval player first    
         const int sampledEvalPlayerHandIdx = randomChoice(tmpBeliefInLoop[updatePlayerIdx].begin(), tmpBeliefInLoop[updatePlayerIdx].end());
-        const std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
-     			
+        std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
+		
 		// set hand id and privte hands
       	handIds[updatePlayerIdx] = sampledEvalPlayerHandIdx;
         sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
 
-        tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, tmpBeliefInLoop);
-    	
 		// opponents should not sample our 'true' hand
-		tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(evalPlayerHand, tmpBeliefInLoop);
+		sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(), evalPlayerHand.begin(), evalPlayerHand.end());
+        tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, tmpBeliefInLoop);
  
         for(size_t player = 0; player < numPlayer; ++player) if(player != updatePlayerIdx)
         {

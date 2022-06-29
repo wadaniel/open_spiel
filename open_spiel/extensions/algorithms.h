@@ -67,19 +67,20 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @param numHands Length of inner dimension of handBeliefs
  * @param currentStage
  * @param sharedRegret State of the pyspiel
- * @param nSharedRegret 
+ * @param nSharedRegret
  * @param sharedStrategy The shared strategy
  * @param nSharedStrat
  * @param sharedStrategyFrozen The frozen constant backup strategy, only used
  * @param nSharedFrozenStrat
  */
-void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
-          const float pruneThreshold,
-          const open_spiel::State &state,
-          float* handBeliefs, const size_t numPlayer, const size_t numHands,
-          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
-          float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat);
+void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
+                  const float pruneThreshold, const open_spiel::State &state,
+                  float *handBeliefs, const size_t numPlayer,
+                  const size_t numHands, const int currentStage,
+                  int *sharedRegret, const size_t nSharedRegret,
+                  float *sharedStrategy, const size_t nSharedStrat,
+                  const float *sharedStrategyFrozen,
+                  const size_t nSharedFrozenStrat);
 
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,
               const size_t N);

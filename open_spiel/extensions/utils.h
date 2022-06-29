@@ -77,8 +77,7 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
 
   size_t idx = 0;
   double unif, sumWeight;
-  do
-  {
+  do {
     idx = 0;
     sumWeight = 0.;
     // Get random number in [0,1)
@@ -88,7 +87,7 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
       sumWeight += *(begin + idx);
       idx++;
     }
-  } while(sumWeight < unif); // Save sampling
+  } while (sumWeight < unif); // Save sampling
 
   // Verify smpling worked correctly
   if (sumWeight < unif) {
@@ -101,7 +100,7 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
     }
     abort();
   }
-  assert(sumWeight >= unif); 
+  assert(sumWeight >= unif);
   // Note: if we remove this, we cannot take the last idx, it may
   // be a 0 probability action, maybe search for the max p?
   return idx - 1;

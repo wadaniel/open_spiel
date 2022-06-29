@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <stdlib.h>
 
-#include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/utils.h"
+#include "open_spiel/extensions/global_variables.h"
 
 namespace extensions {
 
@@ -37,6 +37,7 @@ int getCardCode(char rank, char suit) {
 
   return num * 4 + suitCode;
 }
+
 
 void getBets(const std::string &info, std::array<int, 3> &bets) {
   auto money = split(info, ": ");
@@ -189,51 +190,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
             abstraction.end() - 4);
 
   return abstraction;
-}
-
-size_t getCardBucket(const std::array<int, 2> &privateCards,
-                     const std::array<int, 5> &publicCards,
-                     size_t bettingStage) {
-
-#ifdef FAKEDICT
-  return std::rand() % 150;
-#else
-  assert(preflopBucket.size() > 0);
-  assert(flopBucket.size() > 0);
-  assert(turnBucket.size() > 0);
-  assert(riverBucket.size() > 0);
-#endif
-
-  size_t bucket = 0;
-
-  try {
-    if (bettingStage == 0) {
-      char str[20];
-      sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
-      bucket = preflopBucket.at(str);
-    } else {
-      std::vector<int> abstraction =
-          getCardAbstraction(privateCards, publicCards, bettingStage);
-      std::stringstream abstractionStrStream;
-      std::copy(abstraction.begin(), abstraction.end(),
-                std::ostream_iterator<int>(abstractionStrStream, ""));
-
-      if (bettingStage == 1)
-        bucket = flopBucket.at(abstractionStrStream.str());
-      else if (bettingStage == 2)
-        bucket = turnBucket.at(abstractionStrStream.str());
-      else
-        bucket = riverBucket.at(abstractionStrStream.str());
-    }
-  } catch (const std::out_of_range &e) {
-    printf("Key not found in buckets!");
-    printf("Betting stage %zu\n", bettingStage);
-    printVec("privateCards", privateCards.begin(), privateCards.end());
-    printVec("publicCards", publicCards.begin(), publicCards.end());
-    exit(2);
-  }
-
-  return bucket;
 }
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,

@@ -485,4 +485,52 @@ void loadBuckets() {
   printf("DONE!\n");
 }
 
+size_t getCardBucket(const std::array<int, 2> &privateCards,
+                     const std::array<int, 5> &publicCards,
+                     size_t bettingStage) {
+
+#ifdef FAKEDICT
+  return std::rand() % 150;
+#else
+  assert(preflopBucket.size() > 0);
+  assert(flopBucket.size() > 0);
+  assert(turnBucket.size() > 0);
+  assert(riverBucket.size() > 0);
+  assert(std::is_sorted(privateCards.begin(), privateCards.end()));
+  const size_t numCards = bettingStage > 0 ? bettingStage + 2 : 0;
+  assert(std::is_sorted(publicCards.begin(), publicCards.begin()+numCards));
+#endif
+
+  size_t bucket = 0;
+
+  try {
+    if (bettingStage == 0) {
+      char str[20];
+      sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+      bucket = preflopBucket.at(str);
+    } else {
+      std::vector<int> abstraction =
+          getCardAbstraction(privateCards, publicCards, bettingStage);
+      std::stringstream abstractionStrStream;
+      std::copy(abstraction.begin(), abstraction.end(),
+                std::ostream_iterator<int>(abstractionStrStream, ""));
+
+      if (bettingStage == 1)
+        bucket = flopBucket.at(abstractionStrStream.str());
+      else if (bettingStage == 2)
+        bucket = turnBucket.at(abstractionStrStream.str());
+      else
+        bucket = riverBucket.at(abstractionStrStream.str());
+    }
+  } catch (const std::out_of_range &e) {
+    printf("Key not found in buckets!");
+    printf("Betting stage %zu\n", bettingStage);
+    printVec("privateCards", privateCards.begin(), privateCards.end());
+    printVec("publicCards", publicCards.begin(), publicCards.end());
+    exit(2);
+  }
+
+  return bucket;
+}
+
 } // namespace extensions

@@ -311,6 +311,22 @@ PYBIND11_MODULE(pyspiel, m) {
                 extensions::loadBuckets();
               }, py::call_guard<py::gil_scoped_release>() )
   
+      .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)
+              {
+                py::buffer_info privatecBuf = privateCards.request();
+                int* privatecPtr = static_cast<int *>(privatecBuf.ptr);
+                std::array<int, 2> privatecArr = { privatecPtr[0], privatecPtr[1] };
+ 
+                py::buffer_info publiccBuf = publicCards.request();
+                int* publiccPtr = static_cast<int *>(publiccBuf.ptr);
+                std::array<int, 5> publicArr = { -1, -1, -1, -1, -1 };
+                
+                const size_t numCards = bettingStage > 0 ? bettingStage + 2 : 0;
+                for(size_t idx = 0; idx < numCards; ++idx) publicArr[idx] = publiccPtr[idx];
+ 
+                return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
+              }, py::call_guard<py::gil_scoped_release>() )
+
         .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();

@@ -91,6 +91,11 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
  */
 void loadBuckets();
 
+size_t getCardBucket(const std::array<int, 2> &privateCards,
+                     const std::array<int, 5> &publicCards,
+                     size_t bettingStage);
+
+
 } // namespace extensions
 
 #endif // _ALGORITHMS_H_

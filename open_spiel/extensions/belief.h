@@ -10,7 +10,7 @@ std::vector<std::vector<uint8_t>> getAllHands() {
   std::vector<std::vector<uint8_t>> allHands;
   for (uint8_t i = 0; i < 52; ++i)
     for (uint8_t j = i + 1; j < 52; ++j)
-      allHands.push_back(std::vector<uint8_t>{j, i});
+      allHands.push_back(std::vector<uint8_t>{i, j});
 
   return allHands;
 }
@@ -33,9 +33,11 @@ std::vector<std::vector<float>> updateHandProbabilitiesFromSeenCards(
     for (uint8_t card : seenCards) {
       // Set hand belief 0 if card has been seen
       if ((allPossibleHands[idx][0] == card) ||
-          (allPossibleHands[idx][1] == card))
+          (allPossibleHands[idx][1] == card)) {
         for (size_t player = 0; player < numPlayer; player++)
           newHandBeliefs[player][idx] = 0.;
+		break;
+	  }
     }
 
     for (size_t player = 0; player < numPlayer; player++)

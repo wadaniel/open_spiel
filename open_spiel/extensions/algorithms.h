@@ -43,7 +43,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
  * @param sharedStrategy The shared strategy
  * @param sharedStrategyFrozen The frozen constant backup strategy, only used
  * for RTS
- * @return The expected value of the CFR
+ * @return Expected value of the CFR averaged over numIter
  */
 
 float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
@@ -72,8 +72,9 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @param nSharedStrat
  * @param sharedStrategyFrozen The frozen constant backup strategy, only used
  * @param nSharedFrozenStrat
+ * @return Expected value of the CFR averaged over numIter
  */
-void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
+float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                   const float pruneThreshold, const open_spiel::State &state,
                   float *handBeliefs, const size_t numPlayer,
                   const size_t numHands, const int currentStage,

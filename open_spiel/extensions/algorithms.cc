@@ -351,7 +351,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   }
 }
 
-void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
+float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
           const float pruneThreshold, const open_spiel::State &state,
           float* handBeliefs, const size_t numPlayer, const size_t numHands,
           const int currentStage, int *sharedRegret, const size_t nSharedRegret,
@@ -380,6 +380,9 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 	// container for sampled hands
     int handIds[numPlayer];
 	std::vector<std::vector<uint8_t>> sampledPrivateHands(numPlayer, std::vector<uint8_t>(2));
+
+	
+	float cumValue = 0.;
     
 	// CFR iterations with hand resampling
     for(size_t iter = 0; iter < numIter; ++iter)
@@ -408,7 +411,6 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 			// set hand id and privte hands
 			handIds[player] = newHandIdx;
         	sampledPrivateHands[player] = allPossibleHands[newHandIdx];
-				
 			// update beliefs st we dont resamle the same cards for the other players
           	tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], tmpBeliefInLoop);
         }
@@ -416,12 +418,15 @@ void cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
         stateCopy->SetPartialGameState(sampledPrivateHands);
         for(size_t player = 0; player < numPlayer; ++player)
         {
-            cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
+            cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
                   *stateCopy, currentStage, sharedRegret,
                   nSharedRegret, sharedStrategy, nSharedStrat,
                   sharedStrategyFrozen, nSharedFrozenStrat);
         }
     }
+
+	// return average value
+	return cumValue / (float) numIter;
 }
 
 

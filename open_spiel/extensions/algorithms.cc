@@ -36,11 +36,13 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // If terminal, return players reward
   if (isTerminal) {
     float playerReward = state.PlayerReward(updatePlayerIdx);
+    printf("terminal");
     return playerReward;
   }
 
   // If chance node, sample random outcome and reiterate cfr
   if (state.IsChanceNode()) {
+    printf("ischance");
     const auto chanceActions = state.ChanceOutcomes();
     const std::vector<float> weights(chanceActions.size(),
                                      1. / (float)chanceActions.size());
@@ -147,6 +149,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // we only use lossless hand card abstraction in current betting round
   // and only during realtime search
   // and RTS only starts after the preflop round
+  std::cout << " betting stage " << bettingStage << " - " << currentStage << std::endl;
   if (useRealTimeSearch && bettingStage == currentStage) {
     assert(bettingStage > 0);
     assert(handIdsSize == 3);
@@ -154,6 +157,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
+    std::cout << "arrayIndex " << arrayIndex << std::endl;
     assert(arrayIndex < nSharedStrat);
     assert(arrayIndex < nSharedFrozenStrat);
   } else {
@@ -359,26 +363,42 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
           const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat)
 {
 	assert(currentStage > 0);
+  assert(numPlayer > 1);
 
 	// Fill data
     std::vector<std::vector<float>> newHandBeliefs(numPlayer, std::vector<float>(numHands));
-	for(size_t player = 0; player < numPlayer; ++player)
-		for(size_t idx = 0; idx < numPossibleHands; ++idx)
+	for(size_t player = 0; player < numPlayer; ++player){
+		for(size_t idx = 0; idx < numPossibleHands; ++idx){
 			newHandBeliefs[player][idx] = handBeliefs[player*numPossibleHands+idx];
+    }
+  }
 
-    const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
+  const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
 
 	// all cards in play
-    const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
+  const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
     
 	const auto& publicCards = visibleCards[numPlayer];
-    const auto& evalPlayerHand = visibleCards[updatePlayerIdx];
-	
+    
+  std::cout << " -- publicCards: ";
+  printf(" %d", publicCards[0]);
+  std::cout << " -- ";
+  printf(" %d", publicCards[1]);
+  std::cout << " -- ";
+  printf(" %d", publicCards[2]);
+  std::cout << std::endl;
+  const auto& evalPlayerHand = visibleCards[updatePlayerIdx];
+	std::cout << " -- evalPlayerHand: ";
+  printf(" %d", evalPlayerHand[0]);
+  std::cout << " -- ";
+  printf(" %d", evalPlayerHand[1]);
+  std::cout << std::endl;
+
 	// update beliefs from public cards
 	const auto tmpBeliefConst = updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs);
     
 	// container for sampled hands
-    int handIds[numPlayer];
+  int handIds[numPlayer];
 	std::vector<std::vector<uint8_t>> sampledPrivateHands(numPlayer, std::vector<uint8_t>(2));
 
 	
@@ -390,34 +410,41 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
         auto stateCopy = state.Clone();
 
         // reinitialize beliefs after seeing public cards
-		std::vector<std::vector<float>> tmpBeliefInLoop = tmpBeliefConst;
+		    std::vector<std::vector<float>> tmpBeliefInLoop = tmpBeliefConst;
          
-		// sample hand for eval player first    
+		    // sample hand for eval player first    
         const int sampledEvalPlayerHandIdx = randomChoice(tmpBeliefInLoop[updatePlayerIdx].begin(), tmpBeliefInLoop[updatePlayerIdx].end());
         std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
+        std::cout << " -- handIdx: " << sampledEvalPlayerHandIdx << " -- hand cards: ";
+        printf(" %d", sampledEvalPlayerHand[0]);
+        std::cout << "/";
+        printf(" %d", sampledEvalPlayerHand[1]);
+        std::cout << std::endl;
 		
-		// set hand id and privte hands
+		    // set hand id and privte hands
       	handIds[updatePlayerIdx] = sampledEvalPlayerHandIdx;
         sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
 
-		// opponents should not sample our 'true' hand
-		sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(), evalPlayerHand.begin(), evalPlayerHand.end());
+        // opponents should not sample our 'true' hand
+        sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(), evalPlayerHand.begin(), evalPlayerHand.end());
         tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, tmpBeliefInLoop);
  
+        printf(" %d", numPlayer);
         for(size_t player = 0; player < numPlayer; ++player) if(player != updatePlayerIdx)
         {
       		const int newHandIdx = randomChoice(tmpBeliefInLoop[player].begin(), tmpBeliefInLoop[player].end());
                 
-			// set hand id and privte hands
-			handIds[player] = newHandIdx;
-        	sampledPrivateHands[player] = allPossibleHands[newHandIdx];
-			// update beliefs st we dont resamle the same cards for the other players
-          	tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], tmpBeliefInLoop);
+          // set hand id and privte hands
+          handIds[player] = newHandIdx;
+          sampledPrivateHands[player] = allPossibleHands[newHandIdx];
+          // update beliefs st we dont resamle the same cards for the other players
+          tmpBeliefInLoop = updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], tmpBeliefInLoop);
         }
         
         stateCopy->SetPartialGameState(sampledPrivateHands);
         for(size_t player = 0; player < numPlayer; ++player)
         {
+            printf("cfr with player %d", player);
             cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
                   *stateCopy, currentStage, sharedRegret,
                   nSharedRegret, sharedStrategy, nSharedStrat,

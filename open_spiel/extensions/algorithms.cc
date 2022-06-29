@@ -163,16 +163,12 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     assert(privateCardsStr.size() == 4);
 
     // Read private cards
-    privateCards[1] =
-        getCardCode(privateCardsStr[0], privateCardsStr[1]); // lo card
     privateCards[0] =
-        getCardCode(privateCardsStr[2], privateCardsStr[3]); // hi card
+        getCardCode(privateCardsStr[2], privateCardsStr[3]); // lo card
+    privateCards[1] =
+        getCardCode(privateCardsStr[0], privateCardsStr[1]); // hi card
 
     assert(privateCards[0] != privateCards[1]);
-
-    // Make sure they are sorted
-    // std::sort(privateCards.begin(), privateCards.end());
-    assert(std::is_sorted(privateCards.begin(), privateCards.end()));
 
     // Process public cards if flop or later
     if (bettingStage > 0) {
@@ -191,13 +187,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
             getCardCode(publicCardsStr[2 * idx], publicCardsStr[2 * idx + 1]);
       }
 
-      // Make sure they are sorted
-      std::sort(
-          publicCards.begin(),
-          publicCards.begin() +
-              numPublicCards); // TODO (DW) is this a requirement?? ask Jonathan
-      assert(std::is_sorted(publicCards.begin(),
-                            publicCards.begin() + numPublicCards)); // ascending
     }
 
     // Get card bucket based on abstraction
@@ -464,22 +453,25 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
 
 #ifdef FAKEDICT
   return std::rand() % 150;
-#else
+#endif
+  
   assert(preflopBucket.size() > 0);
   assert(flopBucket.size() > 0);
   assert(turnBucket.size() > 0);
   assert(riverBucket.size() > 0);
-  assert(std::is_sorted(privateCards.begin(), privateCards.end()));
-  const size_t numCards = bettingStage > 0 ? bettingStage + 2 : 0;
-  assert(std::is_sorted(publicCards.begin(), publicCards.begin()+numCards));
-#endif
+  const size_t numPublicCards = bettingStage > 0 ? bettingStage + 2 : 0;
+
 
   size_t bucket = 0;
 
   try {
     if (bettingStage == 0) {
       char str[20];
-      sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+      if (privateCards[0] < privateCards[1])
+        sprintf(str, "%d,%d", privateCards[0], privateCards[1]);
+      else
+        sprintf(str, "%d,%d", privateCards[1], privateCards[0]);
+
       bucket = preflopBucket.at(str);
     } else {
       std::vector<int> abstraction =

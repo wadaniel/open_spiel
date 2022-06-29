@@ -102,13 +102,18 @@ size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
 std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
                                     const std::array<int, 5> &publicCards,
                                     size_t bettingStage) {
+
   const size_t numPublicCards = bettingStage + 2;
   const size_t numCards = 4 + bettingStage;
-
+  
   std::vector<int> sortedCards(numCards);
   std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
   std::copy(publicCards.begin(), publicCards.begin() + numPublicCards,
             sortedCards.begin() + 2);
+
+  // sort cards descending
+  std::sort(sortedCards.begin(), sortedCards.begin()+2); // std::greater<int>());
+  std::sort(sortedCards.begin()+2, sortedCards.end()); //std::greater<int>());
 
   std::vector<int> cardRanks(numCards);
   std::vector<int> cardSuits(numCards);

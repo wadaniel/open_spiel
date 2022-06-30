@@ -36,13 +36,13 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // If terminal, return players reward
   if (isTerminal) {
     float playerReward = state.PlayerReward(updatePlayerIdx);
-    printf("terminal");
+    printf("terminal \n");
     return playerReward;
   }
 
   // If chance node, sample random outcome and reiterate cfr
   if (state.IsChanceNode()) {
-    printf("ischance");
+    printf("ischance \n");
     const auto chanceActions = state.ChanceOutcomes();
     const std::vector<float> weights(chanceActions.size(),
                                      1. / (float)chanceActions.size());
@@ -216,24 +216,26 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   }
 
   if (currentPlayer == updatePlayerIdx) {
-    std::copy(&sharedStrategyFrozen[arrayIndex],
+
+    printf(" current player turn \n");
+
+    /*std::copy(&sharedStrategyFrozen[arrayIndex],
               &sharedStrategyFrozen[arrayIndex + 9], strategy.begin());
 
     if (useRealTimeSearch) {
 
       bool allZero = true;
       for (float actionProb : strategy)
-        if (actionProb != 0.) {
+        if (actionProb > 1e-12) {
           allZero = false;
           break;
         }
 
       // if all entries zero, take regrets from passed trained strategy
-      if (allZero) {
-        std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                  regrets.begin());
-      } else {
+      if (allZero == false) {
         float expectedValue = 0.;
+        std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
+
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
               actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
@@ -244,14 +246,16 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                   handIds, handIdsSize, *new_state, currentStage, sharedRegret,
                   nSharedRegret, sharedStrategy, nSharedStrat,
                   sharedStrategyFrozen, nSharedFrozenStrat);
+          actionValues[action] = actionValue;
           expectedValue += actionValue * probabilities[action];
         }
         return expectedValue;
       }
-    } else {
-      std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
+    } */
+
+
+    std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                 regrets.begin());
-    }
 
     calculateProbabilities(regrets, ourLegalActions, probabilities);
 
@@ -292,6 +296,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions)
       if (explored[action]) {
         const size_t arrayActionIndex = arrayIndex + action;
+        std::cout << "arrayAction" << arrayActionIndex << " regret before action " << action << " was " << sharedRegret[arrayActionIndex] << std::endl;
         sharedRegret[arrayActionIndex] +=
             int(multiplier * (actionValues[action] - expectedValue));
         assert(arrayActionIndex < nSharedRegret);
@@ -299,9 +304,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
+        std::cout << "arrayAction" << arrayActionIndex << " regret after action " << action << " is " << sharedRegret[arrayActionIndex] << std::endl;
       }
     return expectedValue;
+    
+
   } else {
+
+    printf(" opponent player turn \n");
     //  Fill regrets
     if (useRealTimeSearch) {
       std::copy(&sharedStrategyFrozen[arrayIndex],
@@ -312,7 +322,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           allZero = false;
           break;
         }
-      if (allZero) {
+      if (allZero == false) {
         std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                   regrets.begin());
       } else {
@@ -356,7 +366,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 }
 
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
-          const float pruneThreshold, const open_spiel::State &state,
+          const float pruneThreshold, open_spiel::State &state,
           float* handBeliefs, const size_t numPlayer, const size_t numHands,
           const int currentStage, int *sharedRegret, const size_t nSharedRegret,
           float *sharedStrategy, const size_t nSharedStrat,
@@ -373,7 +383,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     }
   }
 
-  const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
+  open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<open_spiel::universal_poker::UniversalPokerState&>(state) ;
 
 	// all cards in play
   const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
@@ -407,7 +417,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 	// CFR iterations with hand resampling
     for(size_t iter = 0; iter < numIter; ++iter)
     {
-        auto stateCopy = state.Clone();
+        auto stateCopy = pokerState.Clone();
 
         // reinitialize beliefs after seeing public cards
 		    std::vector<std::vector<float>> tmpBeliefInLoop = tmpBeliefConst;
@@ -444,7 +454,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
         stateCopy->SetPartialGameState(sampledPrivateHands);
         for(size_t player = 0; player < numPlayer; ++player)
         {
-            printf("cfr with player %d", player);
+            printf("cfr with player %d realPlayer is %d", player, updatePlayerIdx);
             cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
                   *stateCopy, currentStage, sharedRegret,
                   nSharedRegret, sharedStrategy, nSharedStrat,

@@ -386,7 +386,7 @@ PYBIND11_MODULE(pyspiel, m) {
               }, py::call_guard<py::gil_scoped_release>() )
       
       .def("cfr_with_rts", [](const int numIter, const int updatePlayerIdx, const int time, const float pruneThreshold, 
-                  std::shared_ptr<const open_spiel::State> state, const int currentStage,
+                  std::shared_ptr<open_spiel::State> state, const int currentStage,
                   py::array_t<float>& handBeliefs1D, const int numPlayer, const int numHands,
                   py::array_t<float>& sharedRegret, 
                   py::array_t<float>& sharedStrategy, 

@@ -145,45 +145,50 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   for (size_t idx = 2; idx < numCards; ++idx)
     publicSuitsHist[cardSuits[idx]]++;
 
+  // Jonathan: above here is correct in C++
+
+
   // If second card clubs we swap (Note: we ignore the rank in flush)
-  if (cardSuits[0] != 0 && cardSuits[1] == 0) {
+  /*if (cardSuits[0] != 0 && cardSuits[1] == 0) {
     cardSuits[1] = cardSuits[0];
     cardSuits[0] = 0;
-  }
+  }*/
 
   const int origPrivateFirstSuit = cardSuits[0];
   const int origPrivateSecondSuit = cardSuits[1];
+  int updatedFirstSuit = cardSuits[0];
+  int updatedSecondSuit = cardSuits[1];
 
   // First private card is not clubs '0'
   if (origPrivateFirstSuit != 0) {
-    const int origPublicNumSameSuit = publicSuitsHist[origPrivateFirstSuit];
-    const int origPublicNumClubs = publicSuitsHist[0];
+    const int oldNumFirstSuit = publicSuitsHist[origPrivateFirstSuit];
+    const int oldNumClubs = publicSuitsHist[0];
 
-    publicSuitsHist[origPrivateFirstSuit] = origPublicNumClubs;
-    publicSuitsHist[0] = origPublicNumSameSuit;
+    publicSuitsHist[0] = oldNumFirstSuit;
+    publicSuitsHist[origPrivateFirstSuit] = oldNumClubs;
+    updatedFirstSuit = 0;
+    // if both cards same originally set both 0
+    if(origPrivateSecondSuit == origPrivateFirstSuit){ // should be equivalent to isSameSuits
+        updatedSecondSuit = 0;
+    }
+    // if second card clubs switch card suits
+    else if(origPrivateSecondSuit == 0){
+        updatedSecondSuit = origPrivateFirstSuit;
+    }
+
   }
 
-  // Second private card is not diamonds '1' and not of same suit as first
-  if (origPrivateSecondSuit != 1 && isSameSuits == false) {
-    const int origPublicNumSameSuit = publicSuitsHist[origPrivateSecondSuit];
-    const int origPublicNumDiamonds = publicSuitsHist[1];
-
-    publicSuitsHist[origPrivateSecondSuit] = origPublicNumDiamonds;
-    publicSuitsHist[1] = origPublicNumSameSuit;
+  // Second private card is not diamonds '1' and not clubs '0'
+  if (updatedSecondSuit != 0 && updatedSecondSuit != 1) {
+    const int oldNumSecondSuit = publicSuitsHist[updatedSecondSuit];
+    const int oldNumDiamonds = publicSuitsHist[1];
+    publicSuitsHist[1] = oldNumSecondSuit;
+    publicSuitsHist[updatedSecondSuit] = oldNumDiamonds;
   }
-
-  /*
-  // Both private cards same
-  if (cardSuitsOrig[1] == origPrivateSuit)
-      cardSuits[1] = 0;
-  // If seconds private card clubs switch card suits
-  else if (cardSuitsOrig[1] == 0)
-  {
-      cardSuits[1] == origPrivateSuit;
-  }*/
 
   // Sort histogram of diamond, spades and hearts
-  if (isSameSuits)
+  // Jonathan: below is correct in CPP
+  if (updatedFirstSuit == updatedSecondSuit)
     std::sort(publicSuitsHist.begin() + 1, publicSuitsHist.end(),
               std::greater<int>());
   // Sort histogram of spades and hearts

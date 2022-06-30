@@ -18,41 +18,36 @@ std::vector<std::vector<uint8_t>> getAllHands() {
 const auto allPossibleHands = getAllHands();
 const size_t numPossibleHands = allPossibleHands.size();
 
-std::vector<std::vector<float>> updateHandProbabilitiesFromSeenCards(
-    const std::vector<uint8_t> &seenCards,
-    const std::vector<std::vector<float>> &handBeliefs) {
-  // Copy old beliefs
-  std::vector<std::vector<float>> newHandBeliefs = handBeliefs;
-
+void updateHandProbabilitiesFromSeenCards(const std::vector<uint8_t> &seenCards,
+    std::vector<std::vector<float>> &handBeliefs)
+{
   // Init vars
-  size_t numPlayer = newHandBeliefs.size();
-  std::vector<float> cumBelief(numPlayer, 0.);
+  size_t numPlayer = handBeliefs.size();
 
-  // Search cards
-  for (size_t idx = 0; idx < numPossibleHands; ++idx) {
-    for (uint8_t card : seenCards) {
-      // Set hand belief 0 if card has been seen
-      if ((allPossibleHands[idx][0] == card) ||
-          (allPossibleHands[idx][1] == card)) {
-        for (size_t player = 0; player < numPlayer; player++)
-          newHandBeliefs[player][idx] = 0.;
-		break;
-	  }
+  for(size_t player = 0; player < numPlayer; ++player)
+  {
+    float cumBelief = 0.;
+    // Search cards
+    for (size_t idx = 0; idx < numPossibleHands; ++idx)
+    {
+      bool cardFound = false;
+      for (uint8_t card : seenCards) {
+        // Set hand belief 0 if card has been seen
+        if ((allPossibleHands[idx][0] == card) ||
+            (allPossibleHands[idx][1] == card)) {
+          handBeliefs[player][idx] = 0.;
+          cardFound = true;
+		  break;
+	    }
+      }
+      cumBelief += handBeliefs[player][idx];
     }
-
-    for (size_t player = 0; player < numPlayer; player++)
-      cumBelief[player] += newHandBeliefs[player][idx];
-  }
-
-  // Normalize beliefs
-  for (size_t player = 0; player < numPlayer; ++player) {
-    assert(cumBelief[player] > 1e-12);
+    assert(cumBelief > 1e-12);
+    // Normalize beliefs
     for (size_t idx = 0; idx < numPossibleHands; ++idx) {
-      newHandBeliefs[player][idx] /= cumBelief[player];
+      handBeliefs[player][idx] /= cumBelief;
     }
   }
-
-  return newHandBeliefs;
 }
 
 int getHandId(std::vector<uint8_t> hand) {

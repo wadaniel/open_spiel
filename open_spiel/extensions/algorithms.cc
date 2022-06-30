@@ -236,6 +236,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     } else {
       std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                 regrets.begin());
+    }
 
     calculateProbabilities(regrets, ourLegalActions, probabilities);
 
@@ -284,8 +285,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
       }
+
     return expectedValue;
-    }
   } else {
     //  Fill regrets
     if (useRealTimeSearch) {

@@ -477,8 +477,9 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
           getCardAbstraction(privateCards, publicCards, bettingStage);
       std::stringstream abstractionStrStream;
       std::copy(abstraction.begin(), abstraction.end(),
-                std::ostream_iterator<int>(abstractionStrStream, ""));
+                std::ostream_iterator<int>(abstractionStrStream, ","));
 
+      //std::cout << (abstractionStrStream.str()) << std::endl;
       if (bettingStage == 1)
         bucket = flopBucket.at(abstractionStrStream.str());
       else if (bettingStage == 2)

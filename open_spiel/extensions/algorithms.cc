@@ -236,7 +236,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     } else {
       std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                 regrets.begin());
-
+    }
     calculateProbabilities(regrets, ourLegalActions, probabilities);
 
     // Find actions to prune
@@ -285,7 +285,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
       }
     return expectedValue;
-    }
   } else {
     //  Fill regrets
     if (useRealTimeSearch) {
@@ -350,12 +349,9 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 	assert(currentStage > 0);
 
 	// Fill data
-    std::vector<std::vector<float>> newHandBeliefs(numPlayer, std::vector<float>(numHands));
-	for(size_t player = 0; player < numPlayer; ++player)
-		for(size_t idx = 0; idx < numPossibleHands; ++idx)
-			newHandBeliefs[player][idx] = handBeliefs[player*numPossibleHands+idx];
-
     const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
+    std::vector<float> newHandBeliefs = 
+        std::vector<float>(handBeliefs,  handBeliefs + numPlayer*numHands);
 
 	// all cards in play
     const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
@@ -364,7 +360,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     const auto& evalPlayerHand = visibleCards[updatePlayerIdx];
 	
 	// update beliefs from public cards
-	updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs);
+	updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs, numPlayer, numHands);
     
 	// container for sampled hands
     int handIds[numPlayer];
@@ -379,7 +375,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
         auto stateCopy = state.Clone();
 
 		// sample hand for eval player first    
-        const int sampledEvalPlayerHandIdx = randomChoice(newHandBeliefs[updatePlayerIdx].begin(), newHandBeliefs[updatePlayerIdx].end());
+        const int sampledEvalPlayerHandIdx = randomChoice(&newHandBeliefs[updatePlayerIdx*numHands], &newHandBeliefs[(updatePlayerIdx+1)*numHands]);
         std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
 		
 		// set hand id and privte hands
@@ -387,20 +383,20 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
         sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
 
 		// opponents should not sample our 'true' hand
-        auto handBeliefsInLoop = newHandBeliefs;
 		sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(), evalPlayerHand.begin(), evalPlayerHand.end());
         
-        updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, handBeliefsInLoop);
+        auto handBeliefsInLoop = newHandBeliefs;
+        updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, handBeliefsInLoop, numPlayer, numHands);
  
         for(size_t player = 0; player < numPlayer; ++player) if(player != updatePlayerIdx)
         {
-      		const int newHandIdx = randomChoice(handBeliefsInLoop[player].begin(), handBeliefsInLoop[player].end());
+      		const int newHandIdx = randomChoice(&handBeliefsInLoop[player*numHands], &handBeliefsInLoop[(player+1)*numHands]);
                 
 			// set hand id and privte hands
 			handIds[player] = newHandIdx;
         	sampledPrivateHands[player] = allPossibleHands[newHandIdx];
 			// update beliefs st we dont resamle the same cards for the other players
-          	updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], handBeliefsInLoop);
+          	updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], handBeliefsInLoop, numPlayer, numHands);
         }
         
         stateCopy->SetPartialGameState(sampledPrivateHands);
@@ -487,6 +483,7 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
         bucket = riverBucket.at(abstractionStrStream.str());
     }
   } catch (const std::out_of_range &e) {
+    printf("Cardbucket not found!");
     printf("Betting stage %zu\n", bettingStage);
     printVec("privateCards", privateCards.begin(), privateCards.end());
     printVec("publicCards", publicCards.begin(), publicCards.end());

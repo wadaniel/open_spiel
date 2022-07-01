@@ -19,33 +19,27 @@ const auto allPossibleHands = getAllHands();
 const size_t numPossibleHands = allPossibleHands.size();
 
 void updateHandProbabilitiesFromSeenCards(const std::vector<uint8_t> &seenCards,
-    std::vector<std::vector<float>> &handBeliefs)
+    std::vector<float> &handBeliefs, const size_t numPlayer, const size_t numHands)
 {
-  // Init vars
-  size_t numPlayer = handBeliefs.size();
-
   for(size_t player = 0; player < numPlayer; ++player)
   {
     float cumBelief = 0.;
     // Search cards
-    for (size_t idx = 0; idx < numPossibleHands; ++idx)
+    for (size_t idx = 0; idx < numHands; ++idx)
     {
-      bool cardFound = false;
       for (uint8_t card : seenCards) {
         // Set hand belief 0 if card has been seen
         if ((allPossibleHands[idx][0] == card) ||
             (allPossibleHands[idx][1] == card)) {
-          handBeliefs[player][idx] = 0.;
-          cardFound = true;
-		  break;
+          handBeliefs[player*numHands+idx] = 0.;
 	    }
       }
-      cumBelief += handBeliefs[player][idx];
+      cumBelief += handBeliefs[player*numHands+idx];
     }
     assert(cumBelief > 1e-12);
     // Normalize beliefs
-    for (size_t idx = 0; idx < numPossibleHands; ++idx) {
-      handBeliefs[player][idx] /= cumBelief;
+    for (size_t idx = 0; idx < numHands; ++idx) {
+      handBeliefs[player*numHands + idx] /= cumBelief;
     }
   }
 }

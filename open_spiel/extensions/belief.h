@@ -32,6 +32,7 @@ void updateHandProbabilitiesFromSeenCards(const std::vector<uint8_t> &seenCards,
         if ((allPossibleHands[idx][0] == card) ||
             (allPossibleHands[idx][1] == card)) {
           handBeliefs[player*numHands+idx] = 0.;
+          break;
 	    }
       }
       cumBelief += handBeliefs[player*numHands+idx];

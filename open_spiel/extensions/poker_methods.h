@@ -57,7 +57,7 @@ void calculateProbabilities(const std::array<int, 9> &regret,
   float sumValue = 0.f;
 
   for (const int action : legalActions) {
-    const float floored = regret[action]+5000 > 0.f ? regret[action]+5000 : 0.f;
+    const float floored = regret[action]+15000 > 0.f ? regret[action]+15000 : 0.f;
     probabilities[action] = floored;
     sumValue += floored;
   }

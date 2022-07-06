@@ -327,6 +327,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
               }, py::call_guard<py::gil_scoped_release>() )
 
+
         .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();

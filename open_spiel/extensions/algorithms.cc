@@ -132,9 +132,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac =
-      std::min(callSize / 50,
-               9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+  const int chipsToCallFrac = std::min(callSize / 50, 9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
 
   // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
   // suggest min(10*current_bet // total_chips_in_play, 9)
@@ -150,10 +148,10 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   if (useRealTimeSearch && bettingStage == currentStage) {
     assert(bettingStage > 0);
     assert(handIdsSize == 3);
-    arrayIndex =
-        getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
+    arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
+    //printf("arrayIndex is %d", arrayIndex);
     assert(arrayIndex < nSharedStrat);
     assert(arrayIndex < nSharedFrozenStrat);
   } else {
@@ -190,12 +188,12 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     }
 
     // Get card bucket based on abstraction
-    const size_t bucket =
-        getCardBucket(privateCards, publicCards, bettingStage);
+    const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
                                legalActionsCode, isReraise, false);
+
     assert(arrayIndex < nSharedStrat);
     assert(arrayIndex < nSharedFrozenStrat);
   }
@@ -252,7 +250,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
     float expectedValue = 0.;
     std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
-
+    assert(ourLegalActions.size() >= 1);
+    bool probGTE = false;
     // Iterate only over explored actions
     for (const int action : ourLegalActions)
       if (explored[action]) {
@@ -266,7 +265,11 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                 sharedStrategyFrozen, nSharedFrozenStrat);
         actionValues[action] = actionValue;
         expectedValue += probabilities[action] * actionValue; 
+        if(probabilities[action] > 0){
+          probGTE = true;
+        }
       }
+    assert(probGTE);
 
     // Multiplier for linear regret
     const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768, be

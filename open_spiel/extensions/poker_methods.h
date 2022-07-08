@@ -84,10 +84,10 @@ int getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
                      int chipsToCallFrac, int betSizeFrac, int currentPlayer,
                      int legalActionsCode, int isReraise,
                      bool useRealTimeSearch) {
-  int cumSumProd = 0.;
+  int cumSumProd = 0;
   const std::vector<int> values = {
       bucket,      bettingStage,  activePlayersCode, chipsToCallFrac,
-      betSizeFrac, currentPlayer, legalActionsCode,  isReraise};
+      betSizeFrac, currentPlayer, 0,  0};
   if (useRealTimeSearch)
     for (size_t idx = 0; idx < values.size(); ++idx)
       cumSumProd += values[idx] * maxValuesProdRTS[idx];

@@ -156,12 +156,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   if (useRealTimeSearch && (bettingStage == currentStage)) {
     assert(bettingStage > 0);
     assert(handIdsSize == 3);
-    /*arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
-                      chipsToCallFrac, betSizeFrac, currentPlayer,
-                      legalActionsCode, isReraise, true);*/
     arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
-                      0, isReraise, true);
+                      legalActionsCode, isReraise, true);
     // Jonathan: manually set the arrayindex of updateplayer in current round
     /*if(currentPlayer == updatePlayerIdx){
       //printf("arrayIndex is %d", arrayIndex);

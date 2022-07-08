@@ -79,7 +79,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
   assert(bettingStage < 4);
-  assert(bettingStage > 0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "]");
@@ -153,8 +153,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // we only use lossless hand card abstraction in current betting round
   // and only during realtime search
   // and RTS only starts after the preflop round
-  if (useRealTimeSearch && (bettingStage == currentStage)) {
-    assert(bettingStage > 0);
+  if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
+    assert(bettingStage >= 0);
     assert(handIdsSize == 3);
     arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,

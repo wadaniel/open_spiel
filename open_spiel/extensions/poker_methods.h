@@ -57,7 +57,7 @@ void calculateProbabilities(const std::array<int, 9> &regret,
   float sumValue = 0.f;
 
   for (const int action : legalActions) {
-    const float floored = regret[action]+15000 > 0.f ? regret[action]+15000 : 0.f;
+    const float floored = regret[action] > 0.f ? regret[action] : 0.f;
     probabilities[action] = floored;
     sumValue += floored;
   }
@@ -67,7 +67,7 @@ void calculateProbabilities(const std::array<int, 9> &regret,
     for (const int action : legalActions) {
       probabilities[action] *= invSum;
     }
-  } else if (version == 0) {
+  } else if (true || version == 0) {
     const float unif = 1. / (float)legalActions.size();
     for (const int action : legalActions) {
       probabilities[action] = unif; // Uniform distribution
@@ -80,11 +80,11 @@ void calculateProbabilities(const std::array<int, 9> &regret,
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):
 // arrayPos = get_array_pos(info_set, handIDs[player])
-size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
+int getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
                      int chipsToCallFrac, int betSizeFrac, int currentPlayer,
                      int legalActionsCode, int isReraise,
                      bool useRealTimeSearch) {
-  size_t cumSumProd = 0.;
+  int cumSumProd = 0.;
   const std::vector<int> values = {
       bucket,      bettingStage,  activePlayersCode, chipsToCallFrac,
       betSizeFrac, currentPlayer, legalActionsCode,  isReraise};

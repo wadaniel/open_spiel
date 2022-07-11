@@ -108,42 +108,31 @@ std::vector<int> codeToLegalAction(size_t code) {
   return allLegalActions[code];
 }
 
-// Gets legal preflop action code for legal action vector
-size_t getLegalActionCodePreFlop(const std::vector<int> &actions) {
-  int hashValue = vecHash(actions);
-  return globalLegalActionsToIndexMap[hashValue];
-}
-
-// Gets legal rereaise action code for legal action vector
-size_t getLegalActionCodeReraise(const std::vector<int> &actions) {
-  int hashValue = vecHash(actions);
-  return globalLegalReraiseActionsToIndexMap[hashValue];
-}
-
-// Gets legal turnriver action code for legal action vector
-size_t getLegalActionCodeTurnRiver(const std::vector<int> &actions) {
-  int hashValue = vecHash(actions);
-  return globalLegalTurnRiverActionsToIndexMap[hashValue];
-}
-
-// Gets legal flop action code for legal action vector
-size_t getLegalActionCodeFlop(const std::vector<int> &actions) {
-  int hashValue = vecHash(actions);
-  return globalLegalFlopActionsToIndexMap[hashValue];
-}
-
 // Gets legal action code for legal action vector for given betting stage and
 // reraise scenario
 size_t getLegalActionCode(bool isReraise, size_t bettingStage,
                           const std::vector<int> &actions) {
-  if (isReraise)
-    return getLegalActionCodeReraise(actions);
-  else if (bettingStage == 0)
-    return getLegalActionCodePreFlop(actions);
-  else if (bettingStage == 1)
-    return getLegalActionCodeFlop(actions);
-  else /* (bettingStage == 2) */
-    return getLegalActionCodeTurnRiver(actions);
+
+  const int hashValue = vecHash(actions);
+  
+  try
+  {
+    if (isReraise)
+      return globalLegalReraiseActionsToIndexMap.at(hashValue);
+    else if (bettingStage == 0)
+      return globalLegalActionsToIndexMap.at(hashValue);
+    else if (bettingStage == 1)
+      return globalLegalFlopActionsToIndexMap.at(hashValue);
+    else /* (bettingStage == 2) */
+      return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
+  } catch (const std::out_of_range &e) {
+    printf("Legal Action Code not found!\n");
+    printf("isReraise %b\n", isReraise);
+    printf("bettingStage %zu\n", bettingStage);
+    printVec("actions", actions.begin(), actions.end());
+    abort();
+  }
+
 }
 
 } // namespace extensions

@@ -67,7 +67,7 @@ void calculateProbabilities(const std::array<int, 9> &regret,
     for (const int action : legalActions) {
       probabilities[action] *= invSum;
     }
-  } else if (version == 0) {
+  } else if (true || version == 0) {
     const float unif = 1. / (float)legalActions.size();
     for (const int action : legalActions) {
       probabilities[action] = unif; // Uniform distribution

@@ -91,10 +91,14 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
  */
 void loadBuckets();
 
+size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
+                     int chipsToCallFrac, int betSizeFrac, int currentPlayer,
+                     int legalActionsCode, int isReraise,
+                     bool useRealTimeSearch);
+
 size_t getCardBucket(const std::array<int, 2> &privateCards,
                      const std::array<int, 5> &publicCards,
                      size_t bettingStage);
-
 
 } // namespace extensions
 

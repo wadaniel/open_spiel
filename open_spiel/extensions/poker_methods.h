@@ -77,28 +77,6 @@ void calculateProbabilities(const std::array<int, 9> &regret,
   }
 }
 
-//# use lossless abstraction for all states in current stage
-// if(len(handIDs) != 0 and stage == currentStage):
-// arrayPos = get_array_pos(info_set, handIDs[player])
-size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
-                     int chipsToCallFrac, int betSizeFrac, int currentPlayer,
-                     int legalActionsCode, int isReraise,
-                     bool useRealTimeSearch) {
-  size_t cumSumProd = 0.;
-  const std::vector<int> values = {
-      bucket,      bettingStage,  activePlayersCode, chipsToCallFrac,
-      betSizeFrac, currentPlayer, legalActionsCode,  isReraise};
-  if (useRealTimeSearch)
-    for (size_t idx = 0; idx < values.size(); ++idx)
-      cumSumProd += values[idx] * maxValuesProdRTS[idx];
-  else
-    for (size_t idx = 0; idx < values.size(); ++idx) {
-      cumSumProd += values[idx] * maxValuesProd[idx];
-    }
-  cumSumProd *= 9;
-  return cumSumProd; // TODO: check again this logic
-}
-
 std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
                                     const std::array<int, 5> &publicCards,
                                     size_t bettingStage) {

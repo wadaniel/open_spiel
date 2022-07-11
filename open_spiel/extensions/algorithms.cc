@@ -443,6 +443,28 @@ void loadBuckets() {
   printf("DONE!\n");
 }
 
+//# use lossless abstraction for all states in current stage
+// if(len(handIDs) != 0 and stage == currentStage):
+// arrayPos = get_array_pos(info_set, handIDs[player])
+size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
+                     int chipsToCallFrac, int betSizeFrac, int currentPlayer,
+                     int legalActionsCode, int isReraise,
+                     bool useRealTimeSearch) {
+  size_t cumSumProd = 0.;
+  const std::vector<int> values = {
+      bucket,      bettingStage,  activePlayersCode, chipsToCallFrac,
+      betSizeFrac, currentPlayer, legalActionsCode,  isReraise};
+  if (useRealTimeSearch)
+    for (size_t idx = 0; idx < values.size(); ++idx)
+      cumSumProd += values[idx] * maxValuesProdRTS[idx];
+  else
+    for (size_t idx = 0; idx < values.size(); ++idx) {
+      cumSumProd += values[idx] * maxValuesProd[idx];
+    }
+  cumSumProd *= 9;
+  return cumSumProd; // TODO: check again this logic
+}
+
 size_t getCardBucket(const std::array<int, 2> &privateCards,
                      const std::array<int, 5> &publicCards,
                      size_t bettingStage) {
@@ -475,8 +497,6 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
       std::stringstream abstractionStrStream;
       std::copy(abstraction.begin(), abstraction.end(),
                 std::ostream_iterator<int>(abstractionStrStream, ","));
-
-      //std::cout << (abstractionStrStream.str()) << std::endl;
       if (bettingStage == 1)
         bucket = flopBucket.at(abstractionStrStream.str());
       else if (bettingStage == 2)
@@ -485,11 +505,11 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
         bucket = riverBucket.at(abstractionStrStream.str());
     }
   } catch (const std::out_of_range &e) {
-    printf("Cardbucket not found!");
+    printf("Cardbucket not found!\n");
     printf("Betting stage %zu\n", bettingStage);
     printVec("privateCards", privateCards.begin(), privateCards.end());
     printVec("publicCards", publicCards.begin(), publicCards.end());
-    exit(2);
+    abort();
   }
 
   return bucket;

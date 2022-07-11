@@ -127,7 +127,7 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
       return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
   } catch (const std::out_of_range &e) {
     printf("Legal Action Code not found!\n");
-    printf("isReraise %b\n", isReraise);
+    printf("isReraise %d\n", isReraise);
     printf("bettingStage %zu\n", bettingStage);
     printVec("actions", actions.begin(), actions.end());
     abort();

@@ -235,7 +235,8 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;
   if (betInPctPot > 3.)
@@ -253,7 +254,8 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
 
   // We need to raise at least 1 BB which is 20
   const int minRaise =
-      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      //(maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
 
   size_t minAction = 5;
   if (totalPot >= 4 * minRaise)
@@ -302,7 +304,8 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;
   if (betInPctPot > 2.)
@@ -314,7 +317,8 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
 
   // We need to raise at least 1 BB which is 20
   const int minRaise =
-      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      //(maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
 
   const size_t minAction = (totalPot >= 2 * minRaise) ? 3 : 5;
 
@@ -374,7 +378,8 @@ getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;
   if (betInPctPot > 1.)
@@ -384,7 +389,8 @@ getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
 
   // We need to raise at least 1 BB which is 20
   const int minRaise =
-      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      //(maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - prevBet);
+      (maxBet == prevBet) ? BBSIZE : std::max(BBSIZE, minBet - maxBet);
 
   const size_t minAction = (totalPot >= 2 * minRaise) ? 3 : 5;
 

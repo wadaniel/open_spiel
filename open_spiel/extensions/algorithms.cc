@@ -534,8 +534,6 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                        const float *sharedStrategyFrozen,
                        const size_t nSharedFrozenStrat) {
 
-  printf("[algorithms] calling cfr_array_index\n");
-
   const bool isTerminal = state.IsTerminal();
 
   assert(isTerminal == false);
@@ -597,7 +595,6 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // Check if someone reraised
   const bool isReraise = std::count(currentRoundActions.begin(),
                                     currentRoundActions.end(), 'r') > 1;
-  printf("%s %d\n", currentRoundActions.c_str(), isReraise);
 
   // Get legal actions provided by the game
   auto gameLegalActions = state.LegalActions();

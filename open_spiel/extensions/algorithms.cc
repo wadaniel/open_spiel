@@ -632,11 +632,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
 
-    // printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir
-    // %d %d\n",
-    //    handIds[currentPlayer], bettingStage, activePlayersCode,
-    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
-    //    isReraise, true);
+    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n", 
+            handIds[currentPlayer], bettingStage, activePlayersCode,
+            chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
+            isReraise);
 
     arrayIndex =
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
@@ -680,11 +679,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
     const size_t bucket =
         getCardBucket(privateCards, publicCards, bettingStage);
 
-    // printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir
-    // %d %d\n",
-    //    bucket, bettingStage, activePlayersCode,
-    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
-    //    isReraise, true);
+    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
+        bucket, bettingStage, activePlayersCode,
+        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
+        isReraise);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,

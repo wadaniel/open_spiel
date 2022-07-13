@@ -37,19 +37,36 @@ const std::vector<std::vector<int>> allLegalActions = {
 
 // 5 legal actions
 const std::vector<std::vector<int>> allLegalReraiseActions = {
-    {0, 1}, {0, 1, 8}, {0, 1, 5, 8}, {1, 5, 8}, {1, 8}};
+    {0, 1}, 
+    {0, 1, 8}, 
+    {0, 1, 5, 8}, 
+    {1, 5, 8}, 
+    {1, 8}};
 
 // 9 legal actions
 const std::vector<std::vector<int>> allLegalTurnRiverActions = {
-    {0, 1},    {0, 1, 8},    {0, 1, 3, 8}, {0, 1, 3, 5, 8}, {0, 1, 5, 8},
-    {1, 3, 8}, {1, 3, 5, 8}, {1, 5, 8},    {1, 8}};
+    {0, 1},    
+    {0, 1, 8},    
+    {0, 1, 3, 8}, 
+    {0, 1, 3, 5, 8}, 
+    {0, 1, 5, 8},
+    {1, 3, 8}, 
+    {1, 3, 5, 8}, 
+    {1, 8}};
 
 // 11 legal actions
 const std::vector<std::vector<int>> allLegalFlopActions = {
-    {0, 1},          {0, 1, 8},      {0, 1, 3, 8},
-    {0, 1, 3, 5, 8}, {0, 1, 5, 8},   {1, 3, 8},
-    {1, 3, 5, 8},    {1, 8},         {0, 1, 3, 5, 6, 8},
-    {0, 1, 5, 6, 8}, {1, 3, 5, 6, 8}};
+    {0, 1},          
+    {0, 1, 8},      
+    {0, 1, 3, 8},
+    {0, 1, 3, 5, 8}, 
+    {0, 1, 5, 8},   
+    {1, 3, 8},
+    {1, 3, 5, 8},    
+    {1, 8},         
+    {0, 1, 3, 5, 6, 8},
+    {0, 1, 5, 6, 8}, 
+    {1, 3, 5, 6, 8}};
 
 // Create a map for hash to index of legal actions vector
 std::map<int, int>
@@ -126,10 +143,10 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
     else /* (bettingStage == 2) */
       return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
   } catch (const std::out_of_range &e) {
-    printf("Legal Action Code not found!\n");
-    printf("isReraise %d\n", isReraise);
-    printf("bettingStage %zu\n", bettingStage);
-    printVec("actions", actions.begin(), actions.end());
+    printf("[global_variables] Legal Action Code not found!\n");
+    printf("[global_variables] isReraise %d\n", isReraise);
+    printf("[global_variables] bettingStage %zu\n", bettingStage);
+    printVec("[global_variables] actions", actions.begin(), actions.end());
     abort();
   }
 

@@ -41,6 +41,11 @@ void printVec(const std::string &name, Iterator begin, Iterator end) {
 // Split the string in substrings given by delim, return substrings in vecetor
 std::vector<std::string> split(const std::string &text,
                                const std::string &delim) {
+  //std::regex re(delim);
+  //std::sregex_token_iterator first{text.begin(), text.end(), re, -1}, last;
+  //const std::vector<std::string> text{first, last};
+  //return text;
+
   auto start = 0U;
   auto end = text.find(delim);
   std::vector<std::string> res;
@@ -58,7 +63,7 @@ std::vector<std::string> split(const std::string &text,
 
 // Calculate hash of a vector of ints
 size_t vecHash(const std::vector<int> &vec) {
-  std::size_t seed = vec.size();
+  size_t seed = vec.size();
   for (const int element : vec)
     seed ^= element + 0x9e3779b9 + (seed << 6) + (seed >> 2);
   return seed;
@@ -70,7 +75,7 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
   // Set seed
   if (isRngInitialized == false) {
     int pid = getpid();
-    printf("Initializing random seed (%d) ..\n", pid);
+    printf("[utils] Initializing random seed (%d) ..\n", pid);
     generator.seed(pid);
     isRngInitialized = true;
   }
@@ -91,8 +96,8 @@ template <typename Iterator> int randomChoice(Iterator begin, Iterator end) {
 
   // Verify smpling worked correctly
   if (sumWeight < unif) {
-    printf("Error in randomChoice\n");
-    printf("sumWeight %lf unif %lf\n", sumWeight, unif);
+    printf("[utils] Error in randomChoice\n");
+    printf("[utils] sumWeight %lf unif %lf\n", sumWeight, unif);
     idx = 0;
     while (begin + idx != end) {
       printf("p[%zu] %lf\n", idx, *(begin + idx));

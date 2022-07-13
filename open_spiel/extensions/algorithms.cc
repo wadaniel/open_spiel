@@ -3,8 +3,8 @@
 #include "open_spiel/extensions/poker_methods.h"
 #include "open_spiel/extensions/belief.h"
 #include "open_spiel/games/universal_poker.h"
-
 #include <iostream>
+#include <regex>
 
 namespace extensions {
 
@@ -75,7 +75,11 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
-  const auto informationStateSplit = split(informationState, "]");
+  const auto informationStateSplit = split(informationState, "][");
+
+  //std::regex re("\\]\\[");
+  //std::sregex_token_iterator first{informationState.begin(), informationState.end(), re, -1}, last;
+  //const std::vector<std::string> informationStateSplit{first, last};
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -411,16 +415,16 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
 
 // Load all json files to a cpp map
 void loadBuckets() {
-  printf("loading preflop buckets..\t");
+  printf("[algorithms] loading preflop buckets..\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
-  printf("DONE!\nloading flop buckets..\t\t");
+  printf("DONE!\n[algorithms] loading flop buckets..\t\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
-  printf("DONE!\nloading turn buckets..\t\t");
+  printf("DONE!\n[algorithms] loading turn buckets..\t\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
-  printf("DONE!\nloading river buckets..\t\t");
+  printf("DONE!\n[algorithms] loading river buckets..\t\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/river.txt", riverBucket);
   printf("DONE!\n");
@@ -488,8 +492,8 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
         bucket = riverBucket.at(abstractionStrStream.str());
     }
   } catch (const std::out_of_range &e) {
-    printf("Cardbucket not found!\n");
-    printf("Betting stage %zu\n", bettingStage);
+    printf("[algorithms] Cardbucket not found!\n");
+    printf("[algorithms] Betting stage %zu\n", bettingStage);
     printVec("privateCards", privateCards.begin(), privateCards.end());
     printVec("publicCards", publicCards.begin(), publicCards.end());
     abort();
@@ -504,6 +508,8 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
           const int currentStage, int *sharedRegret, const size_t nSharedRegret,
           float *sharedStrategy, const size_t nSharedStrat,
           const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
+
+  printf("[algorithms] calling cfr_array_index\n");
 
   const bool isTerminal = state.IsTerminal();
   
@@ -526,7 +532,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
-  const auto informationStateSplit = split(informationState, "]");
+  const auto informationStateSplit = split(informationState, "][");
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -565,6 +571,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   // Check if someone reraised
   const bool isReraise = std::count(currentRoundActions.begin(),
                                     currentRoundActions.end(), 'r') > 1;
+  printf("%s %d\n", currentRoundActions.c_str(), isReraise);
 
   // Get legal actions provided by the game
   auto gameLegalActions = state.LegalActions();
@@ -598,6 +605,11 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
+    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+        handIds[currentPlayer], bettingStage, activePlayersCode,
+        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
+        isReraise, true);
+
     arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
@@ -638,6 +650,11 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
 
     // Get card bucket based on abstraction
     const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
+    
+    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+        bucket, bettingStage, activePlayersCode,
+        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer, 
+        isReraise, true);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,

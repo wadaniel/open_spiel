@@ -200,10 +200,10 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
   // Check if action is present
   if (std::find(legalActions.begin(), legalActions.end(),
                 (long int)absoluteAction) == legalActions.end()) {
-    printf("Error in actionToAbsolute\n");
-    printf("Action not found: %d (biggestBet %d totalPot %d)\n", absoluteAction,
+    printf("[poker_methods] Error in actionToAbsolute\n");
+    printf("[poker_methods] Action not found: %d (biggestBet %d totalPot %d)\n", absoluteAction,
            biggestBet, totalPot);
-    printVec("legalActions", legalActions.begin(), legalActions.end());
+    printVec("[poker_methods] legalActions", legalActions.begin(), legalActions.end());
     abort();
   }
   return absoluteAction;

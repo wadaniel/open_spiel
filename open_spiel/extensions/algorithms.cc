@@ -271,8 +271,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     }
 
     // Multiplier for linear regret
-    const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768, be
-                                 // careful about overflows
+    const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768
 
     // Update active player regrets
     for (const int action : ourLegalActions)

@@ -494,8 +494,8 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   } catch (const std::out_of_range &e) {
     printf("[algorithms] Cardbucket not found!\n");
     printf("[algorithms] Betting stage %zu\n", bettingStage);
-    printVec("privateCards", privateCards.begin(), privateCards.end());
-    printVec("publicCards", publicCards.begin(), publicCards.end());
+    printVec("[algorithms] privateCards", privateCards.begin(), privateCards.end());
+    printVec("[algorithms] publicCards", publicCards.begin(), publicCards.end());
     abort();
   }
 
@@ -605,10 +605,11 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
-    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
-        handIds[currentPlayer], bettingStage, activePlayersCode,
-        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
-        isReraise, true);
+    
+    //printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+    //    handIds[currentPlayer], bettingStage, activePlayersCode,
+    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
+    //    isReraise, true);
 
     arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
@@ -651,10 +652,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
     // Get card bucket based on abstraction
     const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
     
-    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
-        bucket, bettingStage, activePlayersCode,
-        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer, 
-        isReraise, true);
+    //printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+    //    bucket, bettingStage, activePlayersCode,
+    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer, 
+    //    isReraise, true);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,

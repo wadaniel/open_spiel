@@ -135,12 +135,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac =
-      std::min(callSize / 50,
-               9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+  const int chipsToCallFrac = std::min(callSize / 50, 9); 
 
-  // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
-  // suggest min(10*current_bet // total_chips_in_play, 9)
+  // Current bet in 10% of total stack size (values from 0 to 9) 
   const int betSizeFrac = std::min(currentBet / 50, 9);
 
   // Init array index
@@ -511,9 +508,9 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   } catch (const std::out_of_range &e) {
     printf("[algorithms] Cardbucket not found!\n");
     printf("[algorithms] Betting stage %zu\n", bettingStage);
-    printVec("[algorithms] privateCards", privateCards.begin(),
+    printVec("privateCards", privateCards.begin(),
              privateCards.end());
-    printVec("[algorithms] publicCards", publicCards.begin(),
+    printVec("publicCards", publicCards.begin(),
              publicCards.end());
     abort();
   }
@@ -596,25 +593,24 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // Get legal actions provided by the game
   auto gameLegalActions = state.LegalActions();
   std::sort(gameLegalActions.begin(), gameLegalActions.end());
-
+  //printVec("gameLegalActions", gameLegalActions.begin(), gameLegalActions.end());
+  //printf("totalPot %d maxBet %d currentBet %d\n", totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
       bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
-  // printVec("ourLegalActions", ourLegalActions.begin(),
-  // ourLegalActions.end());
+  //printVec("ourLegalActions", ourLegalActions.begin(), ourLegalActions.end());
 
   const int legalActionsCode =
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
+  //printf("ir %d bs %d lac %d\n", isReraise, bettingStage, legalActionsCode);
 
   // Call size in 10% of total stack size (values from 0 to 9)
   const int chipsToCallFrac =
-      std::min(callSize / 50,
-               9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+      std::min(callSize / 50,9); 
 
-  // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
-  // suggest min(10*current_bet // total_chips_in_play, 9)
+  // Current bet in 10% of total stack size (values from 0 to 9) 
   const int betSizeFrac = std::min(currentBet / 50, 9);
 
   // Init array index

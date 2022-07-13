@@ -435,7 +435,7 @@ getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet,
     assert(numActions > 2);
     const float maxLegalAction = legalActions.back();
     const float betInPctPot =
-        (float)(maxLegalAction - prevBet) / (float)totalPot;
+        (float)(maxLegalAction - maxBet) / (float)totalPot;
 
     if (legalActions[0] == 0) {
       if (betInPctPot > 1.)

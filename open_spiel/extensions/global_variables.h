@@ -58,11 +58,11 @@ createActionsToIndexMap(const std::vector<std::vector<int>> &actionsVector) {
   std::map<size_t, int> actionsMap;
   for (size_t i = 0; i < actionsVector.size(); ++i) {
     size_t hashValue = vecHash(actionsVector[i]);
-    if (actionsMap.find(hashValue) != actionsMap.end())
-    {
-        printf("[global_variables] bad hashing function, collision detected when populating map");
-        printf("[global_variables] exit..");
-        abort();
+    if (actionsMap.find(hashValue) != actionsMap.end()) {
+      printf("[global_variables] bad hashing function, collision detected when "
+             "populating map");
+      printf("[global_variables] exit..");
+      abort();
     }
     actionsMap.insert(std::make_pair(hashValue, i));
   }
@@ -132,7 +132,8 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
     else /* (bettingStage == 2 v 3) */
       return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
   } catch (const std::out_of_range &e) {
-    printf("[global_variables] Legal Action Code (%zu) not found!\n", hashValue);
+    printf("[global_variables] Legal Action Code (%zu) not found!\n",
+           hashValue);
     printf("[global_variables] isReraise %d\n", isReraise);
     printf("[global_variables] bettingStage %zu\n", bettingStage);
     printVec("actions", actions.begin(), actions.end());

@@ -76,7 +76,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
          0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
-  //const auto informationStateSplit = split(informationState, "\\]\\[");
+  // const auto informationStateSplit = split(informationState, "\\]\\[");
   const auto informationStateSplit = split(informationState, "][");
 
   // Bets of players
@@ -135,9 +135,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac = std::min(callSize / 50, 9); 
+  const int chipsToCallFrac = std::min(callSize / 50, 9);
 
-  // Current bet in 10% of total stack size (values from 0 to 9) 
+  // Current bet in 10% of total stack size (values from 0 to 9)
   const int betSizeFrac = std::min(currentBet / 50, 9);
 
   // Init array index
@@ -508,10 +508,8 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   } catch (const std::out_of_range &e) {
     printf("[algorithms] Cardbucket not found!\n");
     printf("[algorithms] Betting stage %zu\n", bettingStage);
-    printVec("privateCards", privateCards.begin(),
-             privateCards.end());
-    printVec("publicCards", publicCards.begin(),
-             publicCards.end());
+    printVec("privateCards", privateCards.begin(), privateCards.end());
+    printVec("publicCards", publicCards.begin(), publicCards.end());
     abort();
   }
 
@@ -550,7 +548,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");
-  //const auto informationStateSplit = split(informationState, "\\]\\[");
+  // const auto informationStateSplit = split(informationState, "\\]\\[");
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -593,24 +591,25 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // Get legal actions provided by the game
   auto gameLegalActions = state.LegalActions();
   std::sort(gameLegalActions.begin(), gameLegalActions.end());
-  //printVec("gameLegalActions", gameLegalActions.begin(), gameLegalActions.end());
-  //printf("totalPot %d maxBet %d currentBet %d\n", totalPot, maxBet, currentBet);
+  // printVec("gameLegalActions", gameLegalActions.begin(),
+  // gameLegalActions.end()); printf("totalPot %d maxBet %d currentBet %d\n",
+  // totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
       bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
-  //printVec("ourLegalActions", ourLegalActions.begin(), ourLegalActions.end());
+  // printVec("ourLegalActions", ourLegalActions.begin(),
+  // ourLegalActions.end());
 
   const int legalActionsCode =
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
-  //printf("ir %d bs %d lac %d\n", isReraise, bettingStage, legalActionsCode);
+  // printf("ir %d bs %d lac %d\n", isReraise, bettingStage, legalActionsCode);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac =
-      std::min(callSize / 50,9); 
+  const int chipsToCallFrac = std::min(callSize / 50, 9);
 
-  // Current bet in 10% of total stack size (values from 0 to 9) 
+  // Current bet in 10% of total stack size (values from 0 to 9)
   const int betSizeFrac = std::min(currentBet / 50, 9);
 
   // Init array index
@@ -625,10 +624,11 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
 
-    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n", 
-            handIds[currentPlayer], bettingStage, activePlayersCode,
-            chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
-            isReraise);
+    printf(
+        "[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
+        handIds[currentPlayer], bettingStage, activePlayersCode,
+        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
+        isReraise);
 
     arrayIndex =
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
@@ -672,10 +672,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
     const size_t bucket =
         getCardBucket(privateCards, publicCards, bettingStage);
 
-    printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
-        bucket, bettingStage, activePlayersCode,
-        chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
-        isReraise);
+    printf(
+        "[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
+        bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac,
+        legalActionsCode, currentPlayer, isReraise);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,

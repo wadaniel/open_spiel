@@ -5,8 +5,8 @@
 #include <fstream>
 #include <stdlib.h> // rand
 
-#include <regex>
 #include <random> // for mt19937
+#include <regex>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -41,7 +41,7 @@ void printVec(const std::string &name, Iterator begin, Iterator end) {
 
 // Split the string in substrings given by delim, return substrings in vecetor
 inline std::vector<std::string> split(const std::string &text,
-                               const std::string &delim) {
+                                      const std::string &delim) {
   /*
   const std::regex reg(delim);
   std::sregex_token_iterator first{text.begin(), text.end(), reg, -1}, last;
@@ -73,13 +73,13 @@ size_t vecHash(const std::vector<int> &vec) {
 }
 
 // Calculate hash of a vector of ints
-size_t vecHashAlt(const std::vector<int>  &vec) {
+size_t vecHashAlt(const std::vector<int> &vec) {
   size_t seed = vec.size();
-  for(auto x : vec) {
-        x = ((x >> 16) ^ x) * 0x45d9f3b;
-        x = ((x >> 16) ^ x) * 0x45d9f3b;
-        x = (x >> 16) ^ x;
-        seed ^= x + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+  for (auto x : vec) {
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = ((x >> 16) ^ x) * 0x45d9f3b;
+    x = (x >> 16) ^ x;
+    seed ^= x + 0x9e3779b9 + (seed << 6) + (seed >> 2);
   }
   return seed;
 }

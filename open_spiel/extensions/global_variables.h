@@ -2,6 +2,7 @@
 #define _GLOBAL_VARIABLES_H_
 
 #include "utils.h"
+#include <map>
 
 #define TOTALSTACK 500
 #define BBSIZE 20
@@ -52,11 +53,17 @@ const std::vector<std::vector<int>> allLegalFlopActions = {
     {0, 1, 5, 6, 8}, {1, 3, 5, 6, 8}};
 
 // Create a map for hash to index of legal actions vector
-std::map<int, int>
+std::map<size_t, int>
 createActionsToIndexMap(const std::vector<std::vector<int>> &actionsVector) {
-  std::map<int, int> actionsMap;
+  std::map<size_t, int> actionsMap;
   for (size_t i = 0; i < actionsVector.size(); ++i) {
-    int hashValue = vecHash(actionsVector[i]);
+    size_t hashValue = vecHash(actionsVector[i]);
+    if (actionsMap.find(hashValue) != actionsMap.end())
+    {
+        printf("[global_variables] bad hashing function, collision detected when populating map");
+        printf("[global_variables] exit..");
+        abort();
+    }
     actionsMap.insert(std::make_pair(hashValue, i));
   }
 
@@ -113,7 +120,7 @@ std::vector<int> codeToLegalAction(size_t code) {
 size_t getLegalActionCode(bool isReraise, size_t bettingStage,
                           const std::vector<int> &actions) {
 
-  const int hashValue = vecHash(actions);
+  const size_t hashValue = vecHash(actions);
 
   try {
     if (isReraise)
@@ -122,13 +129,13 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
       return globalLegalActionsToIndexMap.at(hashValue);
     else if (bettingStage == 1)
       return globalLegalFlopActionsToIndexMap.at(hashValue);
-    else /* (bettingStage == 2) */
+    else /* (bettingStage == 2 v 3) */
       return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
   } catch (const std::out_of_range &e) {
-    printf("[global_variables] Legal Action Code not found!\n");
+    printf("[global_variables] Legal Action Code (%zu) not found!\n", hashValue);
     printf("[global_variables] isReraise %d\n", isReraise);
     printf("[global_variables] bettingStage %zu\n", bettingStage);
-    printVec("[global_variables] actions", actions.begin(), actions.end());
+    printVec("actions", actions.begin(), actions.end());
     abort();
   }
 }

@@ -76,12 +76,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
          0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
+  //const auto informationStateSplit = split(informationState, "\\]\\[");
   const auto informationStateSplit = split(informationState, "][");
-
-  // std::regex re("\\]\\[");
-  // std::sregex_token_iterator first{informationState.begin(),
-  // informationState.end(), re, -1}, last; const std::vector<std::string>
-  // informationStateSplit{first, last};
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -557,6 +553,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");
+  //const auto informationStateSplit = split(informationState, "\\]\\[");
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);

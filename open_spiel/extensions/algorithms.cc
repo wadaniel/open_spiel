@@ -1,7 +1,7 @@
 #include "open_spiel/extensions/algorithms.h"
+#include "open_spiel/extensions/belief.h"
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/poker_methods.h"
-#include "open_spiel/extensions/belief.h"
 #include "open_spiel/games/universal_poker.h"
 #include <iostream>
 #include <regex>
@@ -72,14 +72,16 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
   assert(bettingStage < 4);
-  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >=
+         0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");
 
-  //std::regex re("\\]\\[");
-  //std::sregex_token_iterator first{informationState.begin(), informationState.end(), re, -1}, last;
-  //const std::vector<std::string> informationStateSplit{first, last};
+  // std::regex re("\\]\\[");
+  // std::sregex_token_iterator first{informationState.begin(),
+  // informationState.end(), re, -1}, last; const std::vector<std::string>
+  // informationStateSplit{first, last};
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -137,7 +139,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac = std::min(callSize / 50, 9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+  const int chipsToCallFrac =
+      std::min(callSize / 50,
+               9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
 
   // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
   // suggest min(10*current_bet // total_chips_in_play, 9)
@@ -150,10 +154,12 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // we only use lossless hand card abstraction in current betting round
   // and only during realtime search
   // and RTS only starts after the preflop round
-  if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
+  if (useRealTimeSearch && (bettingStage == currentStage) &&
+      bettingStage != 0) {
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
-    arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
+    arrayIndex =
+        getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
     assert(arrayIndex < nSharedStrat);
@@ -188,11 +194,11 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         publicCards[idx] =
             getCardCode(publicCardsStr[2 * idx], publicCardsStr[2 * idx + 1]);
       }
-
     }
 
     // Get card bucket based on abstraction
-    const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
+    const size_t bucket =
+        getCardBucket(privateCards, publicCards, bettingStage);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
@@ -246,7 +252,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     if (applyPruning == true && bettingStage < 3) {
       for (const int action : ourLegalActions) {
         if (regrets[action] < pruneThreshold)
-          explored[action] = false; // Do not explore actions below prune threshold
+          explored[action] =
+              false; // Do not explore actions below prune threshold
         if ((action == 0) || (action == 8))
           explored[action] = true; // Always explore terminal actions
       }
@@ -256,7 +263,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
     assert(ourLegalActions.size() >= 1);
     // Iterate only over explored actions
-    for (const int action : ourLegalActions){
+    for (const int action : ourLegalActions) {
       if (explored[action]) {
         const size_t absoluteAction =
             actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
@@ -268,8 +275,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                 sharedStrategyFrozen, nSharedFrozenStrat);
         actionValues[action] = actionValue;
 
-        assert(actionValue != 0); // can only have reward 0 when folding in preflop without betting or blinds
-        
+        assert(actionValue != 0); // can only have reward 0 when folding in
+                                  // preflop without betting or blinds
+
         expectedValue += probabilities[action] * actionValue;
       }
     }
@@ -281,8 +289,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions)
       if (explored[action]) {
         const size_t arrayActionIndex = arrayIndex + action;
-        sharedRegret[arrayActionIndex] += int(multiplier * (actionValues[action] - expectedValue));
-        
+        sharedRegret[arrayActionIndex] +=
+            int(multiplier * (actionValues[action] - expectedValue));
+
         assert(arrayActionIndex < nSharedRegret);
         if (sharedRegret[arrayActionIndex] > std::numeric_limits<int>::max())
           sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
@@ -291,19 +300,21 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
         assert(sharedRegret[arrayActionIndex] != 0);
       }
-    
+
     return expectedValue;
   } else {
     //  Only your own probabilities can be frozen, not the ones of other players
     std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                  regrets.begin());
+              regrets.begin());
 
     // Calculate probabilities from regrets
     calculateProbabilities(regrets, ourLegalActions, probabilities);
 
     // randomChoice returns a value of 0 to 8
-    const int sampledAction = randomChoice(probabilities.begin(), probabilities.end());
-    const size_t absoluteAction = actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
+    const int sampledAction =
+        randomChoice(probabilities.begin(), probabilities.end());
+    const size_t absoluteAction =
+        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
     float expectedValue = cfr(
         updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
@@ -327,80 +338,91 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   }
 }
 
-float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time, 
-          const float pruneThreshold, const open_spiel::State &state,
-          float* handBeliefs, const size_t numPlayer, const size_t numHands,
-          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
-          float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat)
-{
-	assert(currentStage > 0);
+float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
+                   const float pruneThreshold, const open_spiel::State &state,
+                   float *handBeliefs, const size_t numPlayer,
+                   const size_t numHands, const int currentStage,
+                   int *sharedRegret, const size_t nSharedRegret,
+                   float *sharedStrategy, const size_t nSharedStrat,
+                   const float *sharedStrategyFrozen,
+                   const size_t nSharedFrozenStrat) {
+  assert(currentStage > 0);
 
-	// Fill data
-    const open_spiel::universal_poker::UniversalPokerState& pokerState = static_cast<const open_spiel::universal_poker::UniversalPokerState&>(state) ;
-    std::vector<float> newHandBeliefs = 
-        std::vector<float>(handBeliefs,  handBeliefs + numPlayer*numHands);
+  // Fill data
+  const open_spiel::universal_poker::UniversalPokerState &pokerState =
+      static_cast<const open_spiel::universal_poker::UniversalPokerState &>(
+          state);
+  std::vector<float> newHandBeliefs =
+      std::vector<float>(handBeliefs, handBeliefs + numPlayer * numHands);
 
-	// all cards in play
-    const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
-    
-	const auto& publicCards = visibleCards[numPlayer];
-    const auto& evalPlayerHand = visibleCards[updatePlayerIdx];
-	
-	// update beliefs from public cards
-	updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs, numPlayer, numHands);
-    
-	// container for sampled hands
-    int handIds[numPlayer];
-	std::vector<std::vector<uint8_t>> sampledPrivateHands(numPlayer, std::vector<uint8_t>(2));
+  // all cards in play
+  const auto visibleCards = pokerState.GetVisibleCards(updatePlayerIdx);
 
-	
-	float cumValue = 0.;
-    
-	// CFR iterations with hand resampling
-    for(size_t iter = 0; iter < numIter; ++iter)
-    {
-        auto stateCopy = state.Clone();
+  const auto &publicCards = visibleCards[numPlayer];
+  const auto &evalPlayerHand = visibleCards[updatePlayerIdx];
 
-		// sample hand for eval player first    
-        const int sampledEvalPlayerHandIdx = randomChoice(&newHandBeliefs[updatePlayerIdx*numHands], &newHandBeliefs[(updatePlayerIdx+1)*numHands]);
-        std::vector<uint8_t> sampledEvalPlayerHand = allPossibleHands[sampledEvalPlayerHandIdx];
-		
-		// set hand id and privte hands
-      	handIds[updatePlayerIdx] = sampledEvalPlayerHandIdx;
-        sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
+  // update beliefs from public cards
+  updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs, numPlayer,
+                                       numHands);
 
-		// opponents should not sample our 'true' hand
-		sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(), evalPlayerHand.begin(), evalPlayerHand.end());
-        
-        auto handBeliefsInLoop = newHandBeliefs;
-        updateHandProbabilitiesFromSeenCards(sampledEvalPlayerHand, handBeliefsInLoop, numPlayer, numHands);
- 
-        for(size_t player = 0; player < numPlayer; ++player) if(player != updatePlayerIdx)
-        {
-      		const int newHandIdx = randomChoice(&handBeliefsInLoop[player*numHands], &handBeliefsInLoop[(player+1)*numHands]);
-                
-			// set hand id and privte hands
-			handIds[player] = newHandIdx;
-        	sampledPrivateHands[player] = allPossibleHands[newHandIdx];
-			// update beliefs st we dont resamle the same cards for the other players
-          	updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player], handBeliefsInLoop, numPlayer, numHands);
-        }
-        
-        stateCopy->SetPartialGameState(sampledPrivateHands);
-        for(size_t player = 0; player < numPlayer; ++player)
-        {
-            cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer, 
-                  *stateCopy, currentStage, sharedRegret,
-                  nSharedRegret, sharedStrategy, nSharedStrat,
-                  sharedStrategyFrozen, nSharedFrozenStrat);
-        }
+  // container for sampled hands
+  int handIds[numPlayer];
+  std::vector<std::vector<uint8_t>> sampledPrivateHands(
+      numPlayer, std::vector<uint8_t>(2));
+
+  float cumValue = 0.;
+
+  // CFR iterations with hand resampling
+  for (size_t iter = 0; iter < numIter; ++iter) {
+    auto stateCopy = state.Clone();
+
+    // sample hand for eval player first
+    const int sampledEvalPlayerHandIdx =
+        randomChoice(&newHandBeliefs[updatePlayerIdx * numHands],
+                     &newHandBeliefs[(updatePlayerIdx + 1) * numHands]);
+    std::vector<uint8_t> sampledEvalPlayerHand =
+        allPossibleHands[sampledEvalPlayerHandIdx];
+
+    // set hand id and privte hands
+    handIds[updatePlayerIdx] = sampledEvalPlayerHandIdx;
+    sampledPrivateHands[updatePlayerIdx] = sampledEvalPlayerHand;
+
+    // opponents should not sample our 'true' hand
+    sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(),
+                                 evalPlayerHand.begin(), evalPlayerHand.end());
+
+    auto handBeliefsInLoop = newHandBeliefs;
+    updateHandProbabilitiesFromSeenCards(
+        sampledEvalPlayerHand, handBeliefsInLoop, numPlayer, numHands);
+
+    for (size_t player = 0; player < numPlayer; ++player)
+      if (player != updatePlayerIdx) {
+        const int newHandIdx =
+            randomChoice(&handBeliefsInLoop[player * numHands],
+                         &handBeliefsInLoop[(player + 1) * numHands]);
+
+        // set hand id and privte hands
+        handIds[player] = newHandIdx;
+        sampledPrivateHands[player] = allPossibleHands[newHandIdx];
+        // update beliefs st we dont resamle the same cards for the other
+        // players
+        updateHandProbabilitiesFromSeenCards(sampledPrivateHands[player],
+                                             handBeliefsInLoop, numPlayer,
+                                             numHands);
+      }
+
+    stateCopy->SetPartialGameState(sampledPrivateHands);
+    for (size_t player = 0; player < numPlayer; ++player) {
+      cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer,
+                      *stateCopy, currentStage, sharedRegret, nSharedRegret,
+                      sharedStrategy, nSharedStrat, sharedStrategyFrozen,
+                      nSharedFrozenStrat);
     }
+  }
 
-	// return average value
-	return cumValue / (float) numIter;
+  // return average value
+  return cumValue / (float)numIter;
 }
-
 
 // Multiply array elements by factor
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,
@@ -459,13 +481,12 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
 #ifdef FAKEDICT
   return std::rand() % 150;
 #endif
-  
+
   assert(preflopBucket.size() > 0);
   assert(flopBucket.size() > 0);
   assert(turnBucket.size() > 0);
   assert(riverBucket.size() > 0);
   const size_t numPublicCards = bettingStage > 0 ? bettingStage + 2 : 0;
-
 
   size_t bucket = 0;
 
@@ -494,25 +515,29 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   } catch (const std::out_of_range &e) {
     printf("[algorithms] Cardbucket not found!\n");
     printf("[algorithms] Betting stage %zu\n", bettingStage);
-    printVec("[algorithms] privateCards", privateCards.begin(), privateCards.end());
-    printVec("[algorithms] publicCards", publicCards.begin(), publicCards.end());
+    printVec("[algorithms] privateCards", privateCards.begin(),
+             privateCards.end());
+    printVec("[algorithms] publicCards", publicCards.begin(),
+             publicCards.end());
     abort();
   }
 
   return bucket;
 }
 
-size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThreshold,
-          const bool useRealTimeSearch, const int *handIds,
-          const size_t handIdsSize, const open_spiel::State &state,
-          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
-          float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
+size_t cfr_array_index(int updatePlayerIdx, const int time,
+                       const float pruneThreshold, const bool useRealTimeSearch,
+                       const int *handIds, const size_t handIdsSize,
+                       const open_spiel::State &state, const int currentStage,
+                       int *sharedRegret, const size_t nSharedRegret,
+                       float *sharedStrategy, const size_t nSharedStrat,
+                       const float *sharedStrategyFrozen,
+                       const size_t nSharedFrozenStrat) {
 
   printf("[algorithms] calling cfr_array_index\n");
 
   const bool isTerminal = state.IsTerminal();
-  
+
   assert(isTerminal == false);
   assert(state.IsChanceNode() == false);
 
@@ -529,7 +554,8 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
   assert(bettingStage < 4);
-  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >=
+         0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");
@@ -589,7 +615,9 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
       getLegalActionCode(isReraise, bettingStage, ourLegalActions);
 
   // Call size in 10% of total stack size (values from 0 to 9)
-  const int chipsToCallFrac = std::min(callSize / 50, 9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+  const int chipsToCallFrac =
+      std::min(callSize / 50,
+               9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
 
   // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
   // suggest min(10*current_bet // total_chips_in_play, 9)
@@ -602,16 +630,19 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
   // we only use lossless hand card abstraction in current betting round
   // and only during realtime search
   // and RTS only starts after the preflop round
-  if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
+  if (useRealTimeSearch && (bettingStage == currentStage) &&
+      bettingStage != 0) {
     assert(bettingStage >= 0);
     assert(handIdsSize == 3);
-    
-    //printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+
+    // printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir
+    // %d %d\n",
     //    handIds[currentPlayer], bettingStage, activePlayersCode,
     //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
     //    isReraise, true);
 
-    arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
+    arrayIndex =
+        getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
     assert(arrayIndex < nSharedStrat);
@@ -646,15 +677,16 @@ size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThr
         publicCards[idx] =
             getCardCode(publicCardsStr[2 * idx], publicCardsStr[2 * idx + 1]);
       }
-
     }
 
     // Get card bucket based on abstraction
-    const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
-    
-    //printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d %d\n", 
+    const size_t bucket =
+        getCardBucket(privateCards, publicCards, bettingStage);
+
+    // printf("[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir
+    // %d %d\n",
     //    bucket, bettingStage, activePlayersCode,
-    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer, 
+    //    chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
     //    isReraise, true);
 
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,

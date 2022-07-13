@@ -37,36 +37,19 @@ const std::vector<std::vector<int>> allLegalActions = {
 
 // 5 legal actions
 const std::vector<std::vector<int>> allLegalReraiseActions = {
-    {0, 1}, 
-    {0, 1, 8}, 
-    {0, 1, 5, 8}, 
-    {1, 5, 8}, 
-    {1, 8}};
+    {0, 1}, {0, 1, 8}, {0, 1, 5, 8}, {1, 5, 8}, {1, 8}};
 
 // 9 legal actions
 const std::vector<std::vector<int>> allLegalTurnRiverActions = {
-    {0, 1},    
-    {0, 1, 8},    
-    {0, 1, 3, 8}, 
-    {0, 1, 3, 5, 8}, 
-    {0, 1, 5, 8},
-    {1, 3, 8}, 
-    {1, 3, 5, 8}, 
-    {1, 8}};
+    {0, 1},       {0, 1, 8}, {0, 1, 3, 8}, {0, 1, 3, 5, 8},
+    {0, 1, 5, 8}, {1, 3, 8}, {1, 3, 5, 8}, {1, 8}};
 
 // 11 legal actions
 const std::vector<std::vector<int>> allLegalFlopActions = {
-    {0, 1},          
-    {0, 1, 8},      
-    {0, 1, 3, 8},
-    {0, 1, 3, 5, 8}, 
-    {0, 1, 5, 8},   
-    {1, 3, 8},
-    {1, 3, 5, 8},    
-    {1, 8},         
-    {0, 1, 3, 5, 6, 8},
-    {0, 1, 5, 6, 8}, 
-    {1, 3, 5, 6, 8}};
+    {0, 1},          {0, 1, 8},      {0, 1, 3, 8},
+    {0, 1, 3, 5, 8}, {0, 1, 5, 8},   {1, 3, 8},
+    {1, 3, 5, 8},    {1, 8},         {0, 1, 3, 5, 6, 8},
+    {0, 1, 5, 6, 8}, {1, 3, 5, 6, 8}};
 
 // Create a map for hash to index of legal actions vector
 std::map<int, int>
@@ -131,9 +114,8 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
                           const std::vector<int> &actions) {
 
   const int hashValue = vecHash(actions);
-  
-  try
-  {
+
+  try {
     if (isReraise)
       return globalLegalReraiseActionsToIndexMap.at(hashValue);
     else if (bettingStage == 0)
@@ -149,7 +131,6 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
     printVec("[global_variables] actions", actions.begin(), actions.end());
     abort();
   }
-
 }
 
 } // namespace extensions

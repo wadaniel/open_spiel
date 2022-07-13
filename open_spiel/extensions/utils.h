@@ -41,10 +41,10 @@ void printVec(const std::string &name, Iterator begin, Iterator end) {
 // Split the string in substrings given by delim, return substrings in vecetor
 std::vector<std::string> split(const std::string &text,
                                const std::string &delim) {
-  //std::regex re(delim);
-  //std::sregex_token_iterator first{text.begin(), text.end(), re, -1}, last;
-  //const std::vector<std::string> text{first, last};
-  //return text;
+  // std::regex re(delim);
+  // std::sregex_token_iterator first{text.begin(), text.end(), re, -1}, last;
+  // const std::vector<std::string> text{first, last};
+  // return text;
 
   auto start = 0U;
   auto end = text.find(delim);

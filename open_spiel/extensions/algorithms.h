@@ -75,13 +75,13 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @return Expected value of the CFR averaged over numIter
  */
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
-                  const float pruneThreshold, const open_spiel::State &state,
-                  float *handBeliefs, const size_t numPlayer,
-                  const size_t numHands, const int currentStage,
-                  int *sharedRegret, const size_t nSharedRegret,
-                  float *sharedStrategy, const size_t nSharedStrat,
-                  const float *sharedStrategyFrozen,
-                  const size_t nSharedFrozenStrat);
+                   const float pruneThreshold, const open_spiel::State &state,
+                   float *handBeliefs, const size_t numPlayer,
+                   const size_t numHands, const int currentStage,
+                   int *sharedRegret, const size_t nSharedRegret,
+                   float *sharedStrategy, const size_t nSharedStrat,
+                   const float *sharedStrategyFrozen,
+                   const size_t nSharedFrozenStrat);
 
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,
               const size_t N);
@@ -116,13 +116,14 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
  * for RTS
  * @return The expected value of the CFR
  */
-size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThreshold,
-          const bool useRealTimeSearch, const int *handIds,
-          const size_t handIdsSize, const open_spiel::State &state,
-          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
-          float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat);
-
+size_t cfr_array_index(int updatePlayerIdx, const int time,
+                       const float pruneThreshold, const bool useRealTimeSearch,
+                       const int *handIds, const size_t handIdsSize,
+                       const open_spiel::State &state, const int currentStage,
+                       int *sharedRegret, const size_t nSharedRegret,
+                       float *sharedStrategy, const size_t nSharedStrat,
+                       const float *sharedStrategyFrozen,
+                       const size_t nSharedFrozenStrat);
 
 } // namespace extensions
 

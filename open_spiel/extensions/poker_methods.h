@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <stdlib.h>
 
-#include "open_spiel/extensions/utils.h"
 #include "open_spiel/extensions/global_variables.h"
+#include "open_spiel/extensions/utils.h"
 
 namespace extensions {
 
@@ -37,7 +37,6 @@ int getCardCode(char rank, char suit) {
 
   return num * 4 + suitCode;
 }
-
 
 void getBets(const std::string &info, std::array<int, 3> &bets) {
   auto money = split(info, ": ");
@@ -83,15 +82,17 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
 
   const size_t numPublicCards = bettingStage + 2;
   const size_t numCards = 4 + bettingStage;
-  
+
   std::vector<int> sortedCards(numCards);
   std::copy(privateCards.begin(), privateCards.end(), sortedCards.begin());
   std::copy(publicCards.begin(), publicCards.begin() + numPublicCards,
             sortedCards.begin() + 2);
 
   // sort cards descending
-  std::sort(sortedCards.begin(), sortedCards.begin()+2); // std::greater<int>());
-  std::sort(sortedCards.begin()+2, sortedCards.end()); //std::greater<int>());
+  std::sort(sortedCards.begin(),
+            sortedCards.begin() + 2); // std::greater<int>());
+  std::sort(sortedCards.begin() + 2,
+            sortedCards.end()); // std::greater<int>());
 
   std::vector<int> cardRanks(numCards);
   std::vector<int> cardSuits(numCards);
@@ -125,7 +126,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
 
   // Jonathan: above here is correct in C++
 
-
   // If second card clubs we swap (Note: we ignore the rank in flush)
   /*if (cardSuits[0] != 0 && cardSuits[1] == 0) {
     cardSuits[1] = cardSuits[0];
@@ -146,14 +146,14 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
     publicSuitsHist[origPrivateFirstSuit] = oldNumClubs;
     updatedFirstSuit = 0;
     // if both cards same originally set both 0
-    if(origPrivateSecondSuit == origPrivateFirstSuit){ // should be equivalent to isSameSuits
-        updatedSecondSuit = 0;
+    if (origPrivateSecondSuit ==
+        origPrivateFirstSuit) { // should be equivalent to isSameSuits
+      updatedSecondSuit = 0;
     }
     // if second card clubs switch card suits
-    else if(origPrivateSecondSuit == 0){
-        updatedSecondSuit = origPrivateFirstSuit;
+    else if (origPrivateSecondSuit == 0) {
+      updatedSecondSuit = origPrivateFirstSuit;
     }
-
   }
 
   // Second private card is not diamonds '1' and not clubs '0'
@@ -201,9 +201,10 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
   if (std::find(legalActions.begin(), legalActions.end(),
                 (long int)absoluteAction) == legalActions.end()) {
     printf("[poker_methods] Error in actionToAbsolute\n");
-    printf("[poker_methods] Action not found: %d (biggestBet %d totalPot %d)\n", absoluteAction,
-           biggestBet, totalPot);
-    printVec("[poker_methods] legalActions", legalActions.begin(), legalActions.end());
+    printf("[poker_methods] Action not found: %d (biggestBet %d totalPot %d)\n",
+           absoluteAction, biggestBet, totalPot);
+    printVec("[poker_methods] legalActions", legalActions.begin(),
+             legalActions.end());
     abort();
   }
   return absoluteAction;
@@ -235,7 +236,8 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  // const float betInPctPot = (float)(maxLegalAction - prevBet) /
+  // (float)totalPot;
   const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;
@@ -304,7 +306,8 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  // const float betInPctPot = (float)(maxLegalAction - prevBet) /
+  // (float)totalPot;
   const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;
@@ -335,7 +338,8 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
     for (size_t idx = 0; idx < addonActions; ++idx) {
       const int action = minAction + idx;
       if (action != 4) {
-        actions[numPreActions + skipIdx] = action; // actions between range minAction and (including) maxAction
+        actions[numPreActions + skipIdx] =
+            action; // actions between range minAction and (including) maxAction
         skipIdx++;
       }
     }
@@ -376,7 +380,8 @@ getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
   }
 
   const float maxLegalAction = legalActions.back();
-  //const float betInPctPot = (float)(maxLegalAction - prevBet) / (float)totalPot;
+  // const float betInPctPot = (float)(maxLegalAction - prevBet) /
+  // (float)totalPot;
   const float betInPctPot = (float)(maxLegalAction - maxBet) / (float)totalPot;
 
   size_t maxAction = 1;

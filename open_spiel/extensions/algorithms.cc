@@ -35,14 +35,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   const bool isTerminal = state.IsTerminal();
   // If terminal, return players reward
   if (isTerminal) {
-    float playerReward = state.PlayerReward(updatePlayerIdx);
-    //printf("player reward %f", playerReward);
-    // reward is only 0 when the same cards as others 
-    // we want to avoid 0s so manually adding 1 -- Jonathan
-    if(playerReward == 0){
-      playerReward += 1;
-    }
-    return playerReward;
+    return state.PlayerReward(updatePlayerIdx);
   }
 
   // If chance node, sample random outcome and reiterate cfr
@@ -159,11 +152,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
-    // Jonathan: manually set the arrayindex of updateplayer in current round
-    /*if(currentPlayer == updatePlayerIdx){
-      //printf("arrayIndex is %d", arrayIndex);
-      arrayIndex = 0;
-    }*/
     assert(arrayIndex < nSharedStrat);
     assert(arrayIndex < nSharedFrozenStrat);
   } else {
@@ -263,7 +251,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     float expectedValue = 0.;
     std::array<float, 9> actionValues{0., 0., 0., 0., 0., 0., 0., 0., 0.};
     assert(ourLegalActions.size() >= 1);
-    bool probGTE = false;
     // Iterate only over explored actions
     for (const int action : ourLegalActions){
       if (explored[action]) {
@@ -280,17 +267,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         assert(actionValue != 0); // can only have reward 0 when folding in preflop without betting or blinds
         
         expectedValue += probabilities[action] * actionValue;
-        if(probabilities[action] > 0){
-          probGTE = true;
-        }
       }
     }
-    // avoid returning 0 reward
-    if(expectedValue == 0){
-      expectedValue = 1.0;
-    }
-
-    assert(probGTE);
 
     // Multiplier for linear regret
     const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768, be
@@ -300,25 +278,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions)
       if (explored[action]) {
         const size_t arrayActionIndex = arrayIndex + action;
-        // Jonathan: added 1 to make sure we do not crash by accident
-        // there might be a remote possibility to have 0 regrets despite playing correctly
-        int addedRegret = int(multiplier * (actionValues[action] - expectedValue));
-        if(addedRegret == 0){
-          addedRegret += 1;
-        }
-        //std::cout << (addedRegret) << std::endl;
-        sharedRegret[arrayActionIndex] += addedRegret;
-        if(sharedRegret[arrayActionIndex] == 0){
-          sharedRegret[arrayActionIndex] += 1;
-        }
+        sharedRegret[arrayActionIndex] += int(multiplier * (actionValues[action] - expectedValue));
+        
         assert(arrayActionIndex < nSharedRegret);
         if (sharedRegret[arrayActionIndex] > std::numeric_limits<int>::max())
           sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
 
-        // Jonathan: added 1 to make sure we do not crash by accident
-        // there might be a remote possibility to have 0 regrets despite playing correctly
         assert(sharedRegret[arrayActionIndex] != 0);
       }
 
@@ -353,10 +320,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
     }
 
-    // avoid zeros here, so manually add 1 - Jonathan
-    if(expectedValue == 0){
-      expectedValue += 1;
-    }
     return expectedValue;
   }
 }

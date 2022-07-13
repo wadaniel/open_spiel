@@ -333,11 +333,9 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
   if (skipActionFour) {
     int skipIdx = 0;
     for (size_t idx = 0; idx < addonActions; ++idx) {
-      int action = minAction + idx;
+      const int action = minAction + idx;
       if (action != 4) {
-        actions[numPreActions + skipIdx] =
-            minAction +
-            idx; // actions between range minAction and (including) maxAction
+        actions[numPreActions + skipIdx] = action; // actions between range minAction and (including) maxAction
         skipIdx++;
       }
     }

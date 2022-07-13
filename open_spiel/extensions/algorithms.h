@@ -100,6 +100,30 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
                      const std::array<int, 5> &publicCards,
                      size_t bettingStage);
 
+/**
+ * @brief Returns the array index as used in CFR
+ * @param updatePlayerIdx Index of the player to update
+ * @param time The training iteration
+ * @param pruneThreshold Threshold to skip cfr updates
+ * @param useRealTimeSearch Set true durin real time search
+ * @param handIds Pointer to hand IDs
+ * @param handIdsSize The length of the handIds vector
+ * @param state State of the pyspiel
+ * @param currentStage State of the pyspiel
+ * @param sharedRegret State of the pyspiel
+ * @param sharedStrategy The shared strategy
+ * @param sharedStrategyFrozen The frozen constant backup strategy, only used
+ * for RTS
+ * @return The expected value of the CFR
+ */
+size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThreshold,
+          const bool useRealTimeSearch, const int *handIds,
+          const size_t handIdsSize, const open_spiel::State &state,
+          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
+          float *sharedStrategy, const size_t nSharedStrat,
+          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat);
+
+
 } // namespace extensions
 
 #endif // _ALGORITHMS_H_

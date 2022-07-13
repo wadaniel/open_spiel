@@ -287,7 +287,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
         assert(sharedRegret[arrayActionIndex] != 0);
       }
-
+    
     return expectedValue;
   } else {
     //  Only your own probabilities can be frozen, not the ones of other players
@@ -496,6 +496,158 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   }
 
   return bucket;
+}
+
+size_t cfr_array_index(int updatePlayerIdx, const int time, const float pruneThreshold,
+          const bool useRealTimeSearch, const int *handIds,
+          const size_t handIdsSize, const open_spiel::State &state,
+          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
+          float *sharedStrategy, const size_t nSharedStrat,
+          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
+
+  const bool isTerminal = state.IsTerminal();
+  
+  assert(isTerminal == false);
+  assert(state.IsChanceNode() == false);
+
+  // Define work variables
+  std::array<int, 2> privateCards{-1, -1};
+  std::array<int, 5> publicCards{-1, -1, -1, -1, -1};
+  std::array<int, 3> bets{0, 0, 0};
+
+  const int currentPlayer = state.CurrentPlayer();
+
+  // Retrieve information state
+  std::string informationState = state.InformationStateString(currentPlayer);
+
+  // Read betting stage
+  const size_t bettingStage = informationState[7] - 48; // 0-4
+  assert(bettingStage < 4);
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
+
+  // Split of information state string
+  const auto informationStateSplit = split(informationState, "]");
+
+  // Bets of players
+  std::fill(bets.begin(), bets.end(), 0);
+  getBets(informationStateSplit[3], bets);
+
+  // Retrieve pot information
+  int maxBet = 0;
+  int minBet = TOTALSTACK;
+  int totalPot = 0;
+  for (int bet : bets) {
+    if (bet > maxBet)
+      maxBet = bet;
+    if (bet < minBet)
+      minBet = bet;
+    totalPot += bet;
+  }
+
+  const int currentBet = bets[currentPlayer];
+  const int callSize = maxBet - currentBet;
+
+  // Find active players code
+  int activePlayersCode = 0; // all active
+
+  // If someone folded find out which player
+  if (informationStateSplit[6].find("f") != std::string::npos) {
+    if (bets[(currentPlayer + 1) % 3] > bets[(currentPlayer + 2) % 3]) {
+      activePlayersCode = 1;
+    } else {
+      activePlayersCode = 2;
+    }
+  }
+
+  const auto roundActions = split(informationStateSplit[6], "|");
+  std::string currentRoundActions = roundActions[roundActions.size() - 1];
+
+  // Check if someone reraised
+  const bool isReraise = std::count(currentRoundActions.begin(),
+                                    currentRoundActions.end(), 'r') > 1;
+
+  // Get legal actions provided by the game
+  auto gameLegalActions = state.LegalActions();
+  std::sort(gameLegalActions.begin(), gameLegalActions.end());
+
+  // Calculate our legal actions based on abstraction
+  const auto ourLegalActions = getLegalActions(
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+
+  assert(ourLegalActions.size() > 0);
+  // printVec("ourLegalActions", ourLegalActions.begin(),
+  // ourLegalActions.end());
+
+  const int legalActionsCode =
+      getLegalActionCode(isReraise, bettingStage, ourLegalActions);
+
+  // Call size in 10% of total stack size (values from 0 to 9)
+  const int chipsToCallFrac = std::min(callSize / 50, 9); // TODO (DW): I suggest min(10*n_chips_to_call // my_stack,9)
+
+  // Current bet in 10% of total stack size (values from 0 to 9) //TODO (DW): I
+  // suggest min(10*current_bet // total_chips_in_play, 9)
+  const int betSizeFrac = std::min(currentBet / 50, 9);
+
+  // Init array index
+  size_t arrayIndex = 0;
+
+  // Get index in strategy array
+  // we only use lossless hand card abstraction in current betting round
+  // and only during realtime search
+  // and RTS only starts after the preflop round
+  if (useRealTimeSearch && (bettingStage == currentStage) && bettingStage != 0) {
+    assert(bettingStage >= 0);
+    assert(handIdsSize == 3);
+    arrayIndex = getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
+                      chipsToCallFrac, betSizeFrac, currentPlayer,
+                      legalActionsCode, isReraise, true);
+    assert(arrayIndex < nSharedStrat);
+    assert(arrayIndex < nSharedFrozenStrat);
+  } else {
+    // Prepare private cards string
+    const auto privateCardsSplit = split(informationStateSplit[4], ": ");
+    const auto privateCardsStr = privateCardsSplit[1];
+    assert(privateCardsStr.size() == 4);
+
+    // Read private cards
+    privateCards[0] =
+        getCardCode(privateCardsStr[2], privateCardsStr[3]); // lo card
+    privateCards[1] =
+        getCardCode(privateCardsStr[0], privateCardsStr[1]); // hi card
+
+    assert(privateCards[0] != privateCards[1]);
+
+    // Process public cards if flop or later
+    if (bettingStage > 0) {
+      // Prepare public cards string
+      const auto publicCardSplit = split(informationStateSplit[5], ": ");
+      const auto publicCardsStr = publicCardSplit[1];
+      assert(publicCardsStr.size() % 2 == 0);
+      assert(publicCardsStr.size() == (2 + bettingStage) * 2);
+
+      // Read public cards
+      const size_t numPublicCards = bettingStage + 2;
+      assert(numPublicCards == publicCardsStr.size() / 2);
+
+      for (size_t idx = 0; idx < numPublicCards; ++idx) {
+        publicCards[idx] =
+            getCardCode(publicCardsStr[2 * idx], publicCardsStr[2 * idx + 1]);
+      }
+
+    }
+
+    // Get card bucket based on abstraction
+    const size_t bucket = getCardBucket(privateCards, publicCards, bettingStage);
+
+    arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
+                               chipsToCallFrac, betSizeFrac, currentPlayer,
+                               legalActionsCode, isReraise, false);
+
+    assert(arrayIndex < nSharedStrat);
+    assert(arrayIndex < nSharedFrozenStrat);
+  }
+
+  return arrayIndex;
 }
 
 } // namespace extensions

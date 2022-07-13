@@ -340,7 +340,6 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
               }, py::call_guard<py::gil_scoped_release>() )
 
-
         .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
@@ -430,6 +429,27 @@ PYBIND11_MODULE(pyspiel, m) {
                             sharedRegretPtr, nSharedRegret,
                             sharedStrategyPtr, nSharedStrat,
                             sharedFrozenStratPtr, nSharedFrozenStrat);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("cfr_array_index", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+              { 
+                py::buffer_info handIdsBuf = handIds.request();
+                const size_t handIdsSize = handIdsBuf.shape[0];
+                int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
+
+                py::buffer_info regBuf = sharedRegret.request();
+                const  size_t nReg = regBuf.shape[0];
+                int *regPtr = static_cast<int *>(regBuf.ptr);
+
+                py::buffer_info stratBuf = sharedStrategy.request();
+                const  size_t nStrat = stratBuf.shape[0];
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+                 
+                py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
+                const size_t nFrozenStrat = frozenStratBuf.shape[0];
+                
+                const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
+                return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
               }, py::call_guard<py::gil_scoped_release>() )
 
 

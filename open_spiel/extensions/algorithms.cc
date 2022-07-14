@@ -291,7 +291,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
 
-        assert(sharedRegret[arrayActionIndex] != 0);
+        //assert(sharedRegret[arrayActionIndex] != 0);
       }
 
     return expectedValue;

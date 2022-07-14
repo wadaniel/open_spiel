@@ -290,8 +290,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
-
-        assert(sharedRegret[arrayActionIndex] != 0);
       }
 
     return expectedValue;
@@ -433,13 +431,13 @@ void loadBuckets() {
   printf("[algorithms] loading preflop buckets..\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
-  printf("DONE!\n[algorithms] loading flop buckets..\t\t");
+  printf("DONE!\n[algorithms] loading flop buckets..\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
-  printf("DONE!\n[algorithms] loading turn buckets..\t\t");
+  printf("DONE!\n[algorithms] loading turn buckets..\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
-  printf("DONE!\n[algorithms] loading river buckets..\t\t");
+  printf("DONE!\n[algorithms] loading river buckets..\t");
   fflush(stdout);
   readDictionaryFromJson("./lut_200/river.txt", riverBucket);
   printf("DONE!\n");

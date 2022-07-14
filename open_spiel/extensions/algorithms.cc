@@ -268,9 +268,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                 sharedStrategyFrozen, nSharedFrozenStrat);
         actionValues[action] = actionValue;
 
-        assert(actionValue != 0); // can only have reward 0 when folding in
-                                  // preflop without betting or blinds
-
         expectedValue += probabilities[action] * actionValue;
       }
     }

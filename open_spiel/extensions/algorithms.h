@@ -8,7 +8,7 @@ namespace extensions {
 /**
  * @brief CFR calculation and updated of shared strategy
  * @param updatePlayerIdx Index of the player to update
- * @param time The training iteration
+ * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param useRealTimeSearch Set true durin real time search
  * @param handIds Pointer to hand IDs
@@ -59,7 +59,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @brief Multiple CFR runs with card sampling according to beliefs
  * @param numIter Number of CFR iterations
  * @param updatePlayerIdx Index of the player to update
- * @param time The training iteration
+ * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param state State of the pyspiel
  * @param handBeliefs Arrays of hand beliefs,  for each player one array
@@ -82,7 +82,13 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    float *sharedStrategy, const size_t nSharedStrat,
                    const float *sharedStrategyFrozen,
                    const size_t nSharedFrozenStrat);
-
+/**
+ * @brief Discounts the regret and strategy array
+ * @param factor Multiplier (<1) for sharedRegret and sharedStrategy
+ * @param sharedRegret regret array
+ * @param sharedStrategy strategy array
+ * @param N length of the two arrays
+*/
 void discount(const float factor, float *sharedRegret, float *sharedStrategy,
               const size_t N);
 

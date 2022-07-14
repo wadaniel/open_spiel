@@ -32,6 +32,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           const int currentStage, int *sharedRegret, const size_t nSharedRegret,
           float *sharedStrategy, const size_t nSharedStrat,
           const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
+
+  assert(t > 0);
   const bool isTerminal = state.IsTerminal();
   // If terminal, return players reward
   if (isTerminal) {
@@ -273,7 +275,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     }
 
     // Multiplier for linear regret
-    const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768
+    const float multiplier = std::min(time, 32768); 
 
     // Update active player regrets
     for (const int action : ourLegalActions)
@@ -283,10 +285,10 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
             int(multiplier * (actionValues[action] - expectedValue));
 
         assert(arrayActionIndex < nSharedRegret);
-        if (sharedRegret[arrayActionIndex] > std::numeric_limits<int>::max())
-          sharedRegret[arrayActionIndex] = std::numeric_limits<int>::max();
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
+        if (sharedRegret[arrayActionIndex] > (int) (std::numeric_limits<int>::max() * 0.95))
+          sharedRegret[arrayActionIndex] = (int) (std::numeric_limits<int>::max() * 0.95);
       }
 
     return expectedValue;
@@ -310,10 +312,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
 
     // TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
-    // has to be in non active player
-    // Multiplier for linear regret
-    const float multiplier = 1.; // min(t, 2**10) # stop linear cfr at 32768, be
-                                 // careful about overflows
+    const float multiplier = std::min(time, 32768);
 
     // Update shared strategy
     for (const int action : ourLegalActions) {

@@ -33,7 +33,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           float *sharedStrategy, const size_t nSharedStrat,
           const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
 
-  assert(time > 0);
+  assert(time >= 0);
   const bool isTerminal = state.IsTerminal();
   // If terminal, return players reward
   if (isTerminal) {

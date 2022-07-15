@@ -18,7 +18,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const size_t nSharedFrozenStrat) {
   float cumValue = 0;
   for (int iter = 0; iter < numIter; iter++) {
-    cumValue += cfr(updatePlayerIdx, iter, pruneThreshold, useRealTimeSearch,
+    cumValue += cfr(updatePlayerIdx, startTime+iter, pruneThreshold, useRealTimeSearch,
                     handIds, handIdsSize, state, currentStage, sharedRegret,
                     nSharedRegret, sharedStrategy, nSharedStrat,
                     sharedStrategyFrozen, nSharedFrozenStrat);

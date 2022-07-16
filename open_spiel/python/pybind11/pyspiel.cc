@@ -47,6 +47,7 @@
 #include "open_spiel/spiel_utils.h"
 #include "open_spiel/extensions/algorithms.h"
 #include "open_spiel/tests/basic_tests.h"
+PYBIND11_MAKE_OPAQUE(std::unordered_map<size_t, int> &);
 
 // List of optional python submodules.
 #if OPEN_SPIEL_BUILD_WITH_GAMUT
@@ -451,7 +452,14 @@ PYBIND11_MODULE(pyspiel, m) {
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
               }, py::call_guard<py::gil_scoped_release>() )
-
+       .def("test_dict", [](std::unordered_map<size_t, int> &dict)
+       //.def("test_dict", [](py::dict& d)
+              {
+                //auto dict = d.cast<std::unordered_map<size_t, int>>();
+                //for(auto it = dict.cbegin(); it != dict.cend(); ++it)
+                //    std::cout << it->first << " " << it->second << std::endl;
+                printf("[algorithms] Dict Size %zu\n", dict.size());
+              }, py::call_guard<py::gil_scoped_release>() )
 
       .def("undo_action", &State::UndoAction)
       .def("apply_actions", &State::ApplyActions)

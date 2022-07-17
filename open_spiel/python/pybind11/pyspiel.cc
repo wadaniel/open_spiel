@@ -356,6 +356,22 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::discount(factor, regretPtr, stratPtr, N1); 
 
               }, py::call_guard<py::gil_scoped_release>() )
+         
+	.def("update_strategy", [](py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
+              {
+                py::buffer_info regretBuf = sharedRegret.request();
+                const size_t N1 = regretBuf.ndim;
+                float *regretPtr = static_cast<float *>(regretBuf.ptr);
+ 
+                py::buffer_info stratBuf = sharedStrategy.request();
+                const size_t N2 = stratBuf.ndim;
+                float *stratPtr = static_cast<float *>(stratBuf.ptr);
+
+                assert(N1 == N2);
+                
+                return extensions::update_strategy(regretPtr, stratPtr, N1); 
+
+              }, py::call_guard<py::gil_scoped_release>() )
  
       .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { 

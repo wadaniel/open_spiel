@@ -93,6 +93,14 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
               const size_t N);
 
 /**
+ * @brief Update the average strategy based on regret
+ * @param sharedRegret regret array
+ * @param sharedStrategy strategy array
+ * @param N length of the two arrays
+*/
+void update_strategy(float *sharedRegret, float *sharedStrategy, const size_t N);
+
+/**
  * @brief Load all buckets and store them in global dictionary
  */
 void loadBuckets();

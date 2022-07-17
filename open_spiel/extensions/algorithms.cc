@@ -306,12 +306,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const size_t absoluteAction =
         actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
-    float expectedValue = cfr(
-        updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
-        handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,
-        sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
-
-    // TODO(DW): update strategy mode 'opponent' (Jonathan: necessary)
     const float multiplier = std::min(time, 32768);
 
     // Update shared strategy
@@ -321,7 +315,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
     }
 
-    return expectedValue;
+    return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
+        handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,
+        sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
   }
 }
 
@@ -421,6 +417,32 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
   for (size_t idx = 0; idx < N; ++idx)
     sharedStrategy[idx] *= factor;
 }
+
+// Multiply array elements by factor
+void update_strategy(float *sharedRegret, float *sharedStrategy, const size_t N) {
+  std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::array<float, 9> probabilities{0, 0, 0, 0, 0, 0, 0, 0, 0};
+  
+  for  (size_t idx = 0; idx < N; idx+= 9)
+  {        
+     std::copy(&sharedRegret[idx], &sharedRegret[idx+ 9], regrets.begin());
+ 
+     // Find legal actions (non zeros)    
+     std::vector<int> legalActions;
+     legalActions.reserve(9);
+     for (size_t actionIdx = 0; actionIdx < 9; ++actionIdx)
+     {
+       if(regrets[actionIdx] != 0)
+         legalActions.push_back(actionIdx);
+     }
+     calculateProbabilities(regrets, legalActions, probabilities);
+     
+     // Udpate shared strategy
+     for (auto action : legalActions)
+        sharedStrategy[idx+action] += probabilities[action];
+  }
+}
+
 
 // Load all json files to a cpp map
 void loadBuckets() {

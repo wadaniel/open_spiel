@@ -306,14 +306,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const size_t absoluteAction =
         actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
-    const float multiplier = std::min(time, 32768);
 
-    // Update shared strategy
-    for (const int action : ourLegalActions) {
-      const size_t arrayActionIndex = arrayIndex + action;
-      assert(arrayActionIndex < nSharedStrat);
-      sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
-    }
+    //Update shared strategy
+    //const float multiplier = std::min(time, 32768);
+    //for (const int action : ourLegalActions) {
+    //  const size_t arrayActionIndex = arrayIndex + action;
+    //  assert(arrayActionIndex < nSharedStrat);
+    //  sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
+    //}
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
         handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,
@@ -423,6 +423,7 @@ void update_strategy(float *sharedRegret, float *sharedStrategy, const size_t N)
   std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<float, 9> probabilities{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
+  // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
   {        
      std::copy(&sharedRegret[idx], &sharedRegret[idx+ 9], regrets.begin());
@@ -641,7 +642,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
     assert(handIdsSize == 3);
 
     printf(
-        "[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
+        "[algorithms] hId %d bs %zu apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
         handIds[currentPlayer], bettingStage, activePlayersCode,
         chipsToCallFrac, betSizeFrac, legalActionsCode, currentPlayer,
         isReraise);
@@ -689,7 +690,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
         getCardBucket(privateCards, publicCards, bettingStage);
 
     printf(
-        "[algorithms] hId %d bs %d apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
+        "[algorithms] hId %zu bs %zu apc %d ctcf %d bsf %d lac %d cp %d ir %d\n",
         bucket, bettingStage, activePlayersCode, chipsToCallFrac, betSizeFrac,
         legalActionsCode, currentPlayer, isReraise);
 

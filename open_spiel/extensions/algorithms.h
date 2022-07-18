@@ -89,7 +89,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
  * @param sharedStrategy strategy array
  * @param N length of the two arrays
 */
-void discount(const float factor, float *sharedRegret, float *sharedStrategy,
+void discount(const float factor, int *sharedRegret, float *sharedStrategy,
               const size_t N);
 
 /**
@@ -98,7 +98,7 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
  * @param sharedStrategy strategy array
  * @param N length of the two arrays
 */
-void update_strategy(float *sharedRegret, float *sharedStrategy, const size_t N);
+void update_strategy(int *sharedRegret, float *sharedStrategy, const size_t N);
 
 /**
  * @brief Load all buckets and store them in global dictionary

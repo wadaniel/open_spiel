@@ -408,7 +408,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 }
 
 // Multiply array elements by factor
-void discount(const float factor, float *sharedRegret, float *sharedStrategy,
+void discount(const float factor, int *sharedRegret, float *sharedStrategy,
               const size_t N) {
 
   for (size_t idx = 0; idx < N; ++idx)
@@ -419,7 +419,7 @@ void discount(const float factor, float *sharedRegret, float *sharedStrategy,
 }
 
 // Multiply array elements by factor
-void update_strategy(float *sharedRegret, float *sharedStrategy, const size_t N) {
+void update_strategy(int *sharedRegret, float *sharedStrategy, const size_t N) {
   std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<float, 9> probabilities{0, 0, 0, 0, 0, 0, 0, 0, 0};
   

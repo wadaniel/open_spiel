@@ -341,11 +341,11 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
               }, py::call_guard<py::gil_scoped_release>() )
 
-        .def("discount", [](const float factor, py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
+        .def("discount", [](const float factor, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
                 const size_t N1 = regretBuf.ndim;
-                float *regretPtr = static_cast<float *>(regretBuf.ptr);
+                int *regretPtr = static_cast<int *>(regretBuf.ptr);
  
                 py::buffer_info stratBuf = sharedStrategy.request();
                 const size_t N2 = stratBuf.ndim;
@@ -357,11 +357,11 @@ PYBIND11_MODULE(pyspiel, m) {
 
               }, py::call_guard<py::gil_scoped_release>() )
          
-	.def("update_strategy", [](py::array_t<float>& sharedRegret, py::array_t<float>& sharedStrategy)
+	.def("update_strategy", [](py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
                 const size_t N1 = regretBuf.ndim;
-                float *regretPtr = static_cast<float *>(regretBuf.ptr);
+                int *regretPtr = static_cast<int *>(regretBuf.ptr);
  
                 py::buffer_info stratBuf = sharedStrategy.request();
                 const size_t N2 = stratBuf.ndim;

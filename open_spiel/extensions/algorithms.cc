@@ -308,12 +308,15 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     auto new_state = state.Child(absoluteAction);
 
     //Update shared strategy
-    //const float multiplier = std::min(time, 32768);
-    //for (const int action : ourLegalActions) {
-    //  const size_t arrayActionIndex = arrayIndex + action;
-    //  assert(arrayActionIndex < nSharedStrat);
-    //  sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
-    //}
+    if(useRealTimeSearch && (currentPlayer == (updatePlayerIdx + 1)%3))
+    {
+      const float multiplier = std::min(time, 32768);
+      for (const int action : ourLegalActions) {
+        const size_t arrayActionIndex = arrayIndex + action;
+        assert(arrayActionIndex < nSharedStrat);
+        sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
+      }
+    }
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
         handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,

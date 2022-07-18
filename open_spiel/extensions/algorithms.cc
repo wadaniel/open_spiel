@@ -221,7 +221,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       if (allZero) {
         std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                   regrets.begin());
-      } /*else {
+      } else {
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
@@ -236,7 +236,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           expectedValue += actionValue * probabilities[action];
         }
         return expectedValue;
-      }*/
+      }
     } else {
       std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                 regrets.begin());

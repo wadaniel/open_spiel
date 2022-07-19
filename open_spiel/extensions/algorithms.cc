@@ -425,19 +425,21 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy,
 
 // Multiply array elements by factor
 void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
-  std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
-  std::array<float, 9> probabilities{0, 0, 0, 0, 0, 0, 0, 0, 0};
+  std::array<int, 9> regrets;
+  std::array<float, 9> probabilities;
   
   printf("[update_strategy] call update_strategy %zu\n", N);
   // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
-  {        
+  {  
+     // Init arrays
+     std::fill(probabilities.begin(), probabilities.end(), 0);	  
      std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
  
      // Find legal actions (non zeros)    
      std::vector<int> legalActions;
      legalActions.reserve(9);
-     for (size_t actionIdx = 0; actionIdx < 9; ++actionIdx)
+     for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
      {
        if(regrets[actionIdx] != 0)
          legalActions.push_back(actionIdx);

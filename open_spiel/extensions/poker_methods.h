@@ -72,7 +72,11 @@ void calculateProbabilities(const std::array<int, 9> &regret,
       probabilities[action] = unif; // Uniform distribution
     }
   } else /* version == 1 */ {
-    probabilities[0] = 1.; // Choose minimal action (fold or check)
+    // Choose minimal action (fold or check)
+    if (legalActions[0] == 0)
+      probabilities[0] = 1.; 
+    else
+      probabilities[1] = 1.; 
   }
 }
 

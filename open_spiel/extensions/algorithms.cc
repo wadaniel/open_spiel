@@ -128,8 +128,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
-  // printVec("ourLegalActions", ourLegalActions.begin(),
-  // ourLegalActions.end());
   for (int action : ourLegalActions)
     assert(action < 9);
 
@@ -217,7 +215,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         }
 
       // if all entries zero, take regrets from passed trained strategy
-      assert(allZero);
       if (allZero) {
         std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                   regrets.begin());
@@ -428,7 +425,6 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
-  printf("[update_strategy] call update_strategy %zu\n", N);
   // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
@@ -444,14 +440,11 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
        if(regrets[actionIdx] != 0)
          legalActions.push_back(actionIdx);
      }
-     printVec("[update_strategy] legalActions", legalActions.begin(), legalActions.end());
      calculateProbabilities(regrets, legalActions, probabilities);
-     printVec("[update_strategy] probabilities", probabilities.begin(), probabilities.end());
      
      // Udpate shared strategy
      for (auto action : legalActions)
         sharedStrategy[idx+action] += probabilities[action];
-     printVec("[update_strategy] sharedStrategy", &sharedStrategy[idx], &sharedStrategy[idx+9]);
   }
 }
 

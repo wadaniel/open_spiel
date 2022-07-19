@@ -413,6 +413,8 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 // Multiply array elements by factor
 void discount(const float factor, int *sharedRegret, float *sharedStrategy,
               const size_t N) {
+  assert(factor > 0.);
+  assert(factor <= 1.);
 
   for (size_t idx = 0; idx < N; ++idx)
     sharedRegret[idx] *= factor;
@@ -422,14 +424,15 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy,
 }
 
 // Multiply array elements by factor
-void update_strategy(int *sharedRegret, float *sharedStrategy, const size_t N) {
+void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
   std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<float, 9> probabilities{0, 0, 0, 0, 0, 0, 0, 0, 0};
   
+  printf("[update_strategy] call update_strategy %zu\n", N);
   // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
   {        
-     std::copy(&sharedRegret[idx], &sharedRegret[idx+ 9], regrets.begin());
+     std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
  
      // Find legal actions (non zeros)    
      std::vector<int> legalActions;
@@ -439,11 +442,14 @@ void update_strategy(int *sharedRegret, float *sharedStrategy, const size_t N) {
        if(regrets[actionIdx] != 0)
          legalActions.push_back(actionIdx);
      }
+     printVec("[update_strategy] legalActions", legalActions.begin(), legalActions.end());
      calculateProbabilities(regrets, legalActions, probabilities);
+     printVec("[update_strategy] probabilities", probabilities.begin(), probabilities.end());
      
      // Udpate shared strategy
      for (auto action : legalActions)
         sharedStrategy[idx+action] += probabilities[action];
+     printVec("[update_strategy] sharedStrategy", &sharedStrategy[idx], &sharedStrategy[idx+9]);
   }
 }
 

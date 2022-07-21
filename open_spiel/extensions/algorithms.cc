@@ -290,7 +290,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
     return expectedValue;
   } else {
-    //  Only your own probabilities can be frozen, not the ones of other players
+    // Only your own probabilities can be frozen, not the ones of other players
     std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
               regrets.begin());
 
@@ -304,8 +304,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
 
-    //Update shared strategy
-    if(useRealTimeSearch && (currentPlayer == (updatePlayerIdx + 1)%3))
+    // Update shared strategy
+    if( (strategyUpdateType == 1) && (currentPlayer == (updatePlayerIdx + 1)%3))
     {
       const float multiplier = std::min(time, 32768);
       for (const int action : ourLegalActions) {

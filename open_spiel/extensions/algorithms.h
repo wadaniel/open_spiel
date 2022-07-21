@@ -11,7 +11,7 @@ namespace extensions {
  * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param useRealTimeSearch Set true durin real time search
- * @param strategyUpdateType Active different versions of strategy array
+ * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handIds Pointer to hand IDs
  * @param handIdsSize The length of the handIds vector
  * @param state State of the pyspiel
@@ -36,7 +36,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
  * @param time The training iteration
  * @param pruneThreshold Threshold to skip cfr updates
  * @param useRealTimeSearch Set true durin real time search
- * @param strategyUpdateType Active different versions of strategy array
+ * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handIds Pointer to hand IDs
  * @param handIdsSize The length of the handIds vector
  * @param state State of the pyspiel
@@ -64,7 +64,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param state State of the pyspiel
- * @param strategyUpdateType Active different versions of strategy array
+ * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handBeliefs Arrays of hand beliefs,  for each player one array
  * @param numPlayer Number of players
  * @param numHands Length of inner dimension of handBeliefs

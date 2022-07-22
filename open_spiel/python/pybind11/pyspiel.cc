@@ -344,11 +344,11 @@ PYBIND11_MODULE(pyspiel, m) {
         .def("discount", [](const float factor, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
-                const size_t N1 = regretBuf.ndim;
+                const size_t N1 = regretBuf.shape[0];
                 int *regretPtr = static_cast<int *>(regretBuf.ptr);
  
                 py::buffer_info stratBuf = sharedStrategy.request();
-                const size_t N2 = stratBuf.ndim;
+                const size_t N2 = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
 
                 assert(N1 == N2);
@@ -360,16 +360,16 @@ PYBIND11_MODULE(pyspiel, m) {
 	.def("update_strategy", [](py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
-                const size_t N1 = regretBuf.ndim;
+                const size_t N1 = regretBuf.shape[0];
                 int *regretPtr = static_cast<int *>(regretBuf.ptr);
  
                 py::buffer_info stratBuf = sharedStrategy.request();
-                const size_t N2 = stratBuf.ndim;
+                const size_t N2 = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
 
                 assert(N1 == N2);
                 
-                return extensions::update_strategy(regretPtr, stratPtr, N1); 
+		return extensions::update_strategy(regretPtr, stratPtr, N1); 
 
               }, py::call_guard<py::gil_scoped_release>() )
  
@@ -380,11 +380,11 @@ PYBIND11_MODULE(pyspiel, m) {
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
 
                 py::buffer_info regBuf = sharedRegret.request();
-                const  size_t nReg = regBuf.shape[0];
+                const size_t nReg = regBuf.shape[0];
                 int *regPtr = static_cast<int *>(regBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
-                const  size_t nStrat = stratBuf.shape[0];
+                const size_t nStrat = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();

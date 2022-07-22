@@ -428,23 +428,27 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
-     // Init arrays
-     std::fill(probabilities.begin(), probabilities.end(), 0);	  
-     std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
- 
-     // Find legal actions (non zeros)    
-     std::vector<int> legalActions;
-     legalActions.reserve(9);
-     for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
+     size_t segment = idx / NUM_BUCKETS;
+     if (segment % 4 == 0)
      {
-       if(regrets[actionIdx] != 0)
-         legalActions.push_back(actionIdx);
-     }
-     calculateProbabilities(regrets, legalActions, probabilities);
+       // Init arrays
+       std::fill(probabilities.begin(), probabilities.end(), 0);	  
+       std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
+ 
+       // Find legal actions (non zeros)    
+       std::vector<int> legalActions;
+       legalActions.reserve(9);
+       for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
+       {
+         if(regrets[actionIdx] != 0)
+           legalActions.push_back(actionIdx);
+       }
+       calculateProbabilities(regrets, legalActions, probabilities);
      
-     // Udpate shared strategy
-     for (auto action : legalActions)
-        sharedStrategy[idx+action] += probabilities[action];
+       // Udpate shared strategy
+       for (auto action : legalActions)
+         sharedStrategy[idx+action] += probabilities[action];
+     }
   }
 }
 

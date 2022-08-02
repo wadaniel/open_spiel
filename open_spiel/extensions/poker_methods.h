@@ -92,11 +92,11 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   std::copy(publicCards.begin(), publicCards.begin() + numPublicCards,
             sortedCards.begin() + 2);
 
-  // sort cards descending
+  // sort cards ascending
   std::sort(sortedCards.begin(),
-            sortedCards.begin() + 2); // std::greater<int>());
+            sortedCards.begin() + 2); 
   std::sort(sortedCards.begin() + 2,
-            sortedCards.end()); // std::greater<int>());
+            sortedCards.end()); 
 
   std::vector<int> cardRanks(numCards);
   std::vector<int> cardSuits(numCards);
@@ -128,58 +128,37 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   for (size_t idx = 2; idx < numCards; ++idx)
     publicSuitsHist[cardSuits[idx]]++;
 
-  // Jonathan: above here is correct in C++
+  // Fix the first suit and count how much there are in publics
+  const int privateFirstSuit = cardSuits[0];
 
-  // If second card clubs we swap (Note: we ignore the rank in flush)
-  /*if (cardSuits[0] != 0 && cardSuits[1] == 0) {
-    cardSuits[1] = cardSuits[0];
-    cardSuits[0] = 0;
-  }*/
+  const int oldNumClubs = publicSuitsHist[0];
+  publicSuitsHist[0] = publicSuitsHist[privateFirstSuit];
+  publicSuitsHist[privateFirstSuit] = oldNumClubs;
 
-  const int origPrivateFirstSuit = cardSuits[0];
-  const int origPrivateSecondSuit = cardSuits[1];
-  int updatedFirstSuit = cardSuits[0];
-  int updatedSecondSuit = cardSuits[1];
-
-  // First private card is not clubs '0'
-  if (origPrivateFirstSuit != 0) {
-    const int oldNumFirstSuit = publicSuitsHist[origPrivateFirstSuit];
-    const int oldNumClubs = publicSuitsHist[0];
-
-    publicSuitsHist[0] = oldNumFirstSuit;
-    publicSuitsHist[origPrivateFirstSuit] = oldNumClubs;
-    updatedFirstSuit = 0;
-    // if both cards same originally set both 0
-    if (origPrivateSecondSuit ==
-        origPrivateFirstSuit) { // should be equivalent to isSameSuits
-      updatedSecondSuit = 0;
-    }
-    // if second card clubs switch card suits
-    else if (origPrivateSecondSuit == 0) {
-      updatedSecondSuit = origPrivateFirstSuit;
-    }
-  }
-
-  // Second private card is not diamonds '1' and not clubs '0'
-  if (updatedSecondSuit != 0 && updatedSecondSuit != 1) {
-    const int oldNumSecondSuit = publicSuitsHist[updatedSecondSuit];
-    const int oldNumDiamonds = publicSuitsHist[1];
-    publicSuitsHist[1] = oldNumSecondSuit;
-    publicSuitsHist[updatedSecondSuit] = oldNumDiamonds;
-  }
-
-  // Sort histogram of diamond, spades and hearts
-  // Jonathan: below is correct in CPP
-  if (updatedFirstSuit == updatedSecondSuit)
+  abstraction[-4] = publicSuitsHist[0];
+  
+  if (isSameSuits)
+  {
+    // Sort the last three suits descending and add it to abstraction
     std::sort(publicSuitsHist.begin() + 1, publicSuitsHist.end(),
               std::greater<int>());
-  // Sort histogram of spades and hearts
+    std::copy(publicSuitsHist.begin() + 1, publicSuitsHist.end(),
+            abstraction.end() - 3);
+  }
   else
+  {
+    // Fix the second suit aswell and then sort the last two suits descending and add it to abstraction
+    const int privateSecondSuit = cardSuits[1];
+    const int oldNumDiamonds = publicSuitsHist[privateSecondSuit];
+    publicSuitsHist[1] = publicSuitsHist[privateSecondSuit];
+    publicSuitsHist[privateSecondSuit] = oldNumDiamonds;
+    abstraction[-3] = publicSuitsHist[1];
     std::sort(publicSuitsHist.begin() + 2, publicSuitsHist.end(),
               std::greater<int>());
-
-  std::copy(publicSuitsHist.begin(), publicSuitsHist.end(),
-            abstraction.end() - 4);
+    std::copy(publicSuitsHist.begin() + 2, publicSuitsHist.end(),
+            abstraction.end() - 2);
+  }
+ 
 
   return abstraction;
 }

@@ -507,6 +507,7 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   const size_t numPublicCards = bettingStage > 0 ? bettingStage + 2 : 0;
 
   size_t bucket = 0;
+  std::string abstractionString;
 
   try {
     if (bettingStage == 0) {
@@ -523,15 +524,19 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
       std::stringstream abstractionStrStream;
       std::copy(abstraction.begin(), abstraction.end(),
                 std::ostream_iterator<int>(abstractionStrStream, ","));
+      abstractionString = abstractionStrStream.str();
+      abstractionString.pop_back(); // remove trailing comma
+
       if (bettingStage == 1)
-        bucket = flopBucket.at(abstractionStrStream.str());
+        bucket = flopBucket.at(abstractionString);
       else if (bettingStage == 2)
-        bucket = turnBucket.at(abstractionStrStream.str());
+        bucket = turnBucket.at(abstractionString);
       else
-        bucket = riverBucket.at(abstractionStrStream.str());
+        bucket = riverBucket.at(abstractionString);
     }
   } catch (const std::out_of_range &e) {
     printf("[algorithms] Cardbucket not found!\n");
+    printf("[algorithms] Key %s\n", abstractionString.c_str());
     printf("[algorithms] Betting stage %zu\n", bettingStage);
     printVec("privateCards", privateCards.begin(), privateCards.end());
     printVec("publicCards", publicCards.begin(), publicCards.end());

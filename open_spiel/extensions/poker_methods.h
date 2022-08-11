@@ -158,7 +158,6 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
     std::copy(publicSuitsHist.begin() + 2, publicSuitsHist.end(),
             abstraction.end() - 2);
   }
- 
 
   return abstraction;
 }

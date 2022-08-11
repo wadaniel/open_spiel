@@ -135,7 +135,7 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   publicSuitsHist[0] = publicSuitsHist[privateFirstSuit];
   publicSuitsHist[privateFirstSuit] = oldNumClubs;
 
-  abstraction[-4] = publicSuitsHist[0];
+  abstraction[numCards+2] = publicSuitsHist[0];
   
   if (isSameSuits)
   {
@@ -149,10 +149,10 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   {
     // Fix the second suit aswell and then sort the last two suits descending and add it to abstraction
     const int privateSecondSuit = cardSuits[1];
-    const int oldNumDiamonds = publicSuitsHist[privateSecondSuit];
+    const int oldNumDiamonds = publicSuitsHist[1];
     publicSuitsHist[1] = publicSuitsHist[privateSecondSuit];
     publicSuitsHist[privateSecondSuit] = oldNumDiamonds;
-    abstraction[-3] = publicSuitsHist[1];
+    abstraction[numCards+3] = publicSuitsHist[1];
     std::sort(publicSuitsHist.begin() + 2, publicSuitsHist.end(),
               std::greater<int>());
     std::copy(publicSuitsHist.begin() + 2, publicSuitsHist.end(),

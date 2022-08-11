@@ -114,6 +114,7 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   std::copy(cardRanks.begin(), cardRanks.end(), abstraction.begin());
 
   const bool isSameSuits = (cardSuits[0] == cardSuits[1]);
+
   if (isSameSuits) {
     abstraction[numCards] = 2; // TODO (DW): why do we need '[2,0]' or '[1,1]'?
                                // one entry (0 or 1) is enough
@@ -129,7 +130,17 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
     publicSuitsHist[cardSuits[idx]]++;
 
   // Fix the first suit and count how much there are in publics
-  const int privateFirstSuit = cardSuits[0];
+  int privateFirstSuit = cardSuits[0];
+  int privateSecondSuit = cardSuits[1];
+
+  if (privateSecondSuit == 0)
+  {
+    privateFirstSuit = cardSuits[1];
+    privateSecondSuit = cardSuits[0];
+    const int firstPublicSuitsHist = publicSuitsHist[privateFirstSuit];
+    publicSuitsHist[privateFirstSuit] = publicSuitsHist[privateSecondSuit];
+    publicSuitsHist[privateSecondSuit] = firstPublicSuitsHist;
+  }
 
   const int oldNumClubs = publicSuitsHist[0];
   publicSuitsHist[0] = publicSuitsHist[privateFirstSuit];
@@ -148,10 +159,11 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
   else
   {
     // Fix the second suit aswell and then sort the last two suits descending and add it to abstraction
-    const int privateSecondSuit = cardSuits[1];
+
     const int oldNumDiamonds = publicSuitsHist[1];
     publicSuitsHist[1] = publicSuitsHist[privateSecondSuit];
     publicSuitsHist[privateSecondSuit] = oldNumDiamonds;
+
     abstraction[numCards+3] = publicSuitsHist[1];
     std::sort(publicSuitsHist.begin() + 2, publicSuitsHist.end(),
               std::greater<int>());

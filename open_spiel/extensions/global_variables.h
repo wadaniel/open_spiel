@@ -7,7 +7,7 @@
 #define TOTALSTACK 500
 #define BBSIZE 20
 
-#define NUM_BUCKETS 200
+#define NUM_BUCKETS 500 // DONT FORGET TO ADJUST LUT PATH (DW)
 #define NUM_RTS_BUCKETS 1326
 
 namespace extensions {

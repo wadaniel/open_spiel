@@ -457,16 +457,16 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
 void loadBuckets() {
   printf("[algorithms] loading preflop buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_200/pre_flop.txt", preflopBucket);
+  readDictionaryFromJson("./lut_500/pre_flop.txt", preflopBucket);
   printf("DONE!\n[algorithms] loading flop buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_200/flop.txt", flopBucket);
+  readDictionaryFromJson("./lut_500/flop.txt", flopBucket);
   printf("DONE!\n[algorithms] loading turn buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_200/turn.txt", turnBucket);
+  readDictionaryFromJson("./lut_500/turn.txt", turnBucket);
   printf("DONE!\n[algorithms] loading river buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_200/river.txt", riverBucket);
+  readDictionaryFromJson("./lut_500/river.txt", riverBucket);
   printf("DONE!\n");
 }
 

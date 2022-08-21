@@ -21,6 +21,7 @@
 #
 # Note that we do not change the value of the constants if they are already
 # defined by an enclosing scope (useful for command line overrides).
+export GLOBAL_NUM_BUCKETS=500
 
 # We add a single flag, to enable/disable all conditional dependencies, in
 # particular to be able to use that in the Travis CI test.

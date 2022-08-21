@@ -30,7 +30,7 @@ add_definitions(-Wfatal-errors)
 # Set default build type.
 set (BUILD_TYPE $ENV{BUILD_TYPE})
 if(NOT BUILD_TYPE)
-   set(BUILD_TYPE Testing
+	set(BUILD_TYPE Release
        CACHE STRING "Choose the type of build: Debug Release Testing."
        FORCE)
 endif()
@@ -101,6 +101,8 @@ macro(openspiel_optional_dependency DEP_NAME DEP_DEFAULT DEP_DESCRIPTION)
 endmacro()
 
 # List of all optional dependencies:
+openspiel_optional_dependency(GLOBAL_NUM_BUCKETS       		   200
+	"Number of buckets in CFR abstraction.")
 openspiel_optional_dependency(OPEN_SPIEL_BUILD_WITH_ACPC           ON
   "Build against the Universal Poker library.")
 openspiel_optional_dependency(OPEN_SPIEL_BUILD_WITH_EIGEN          OFF

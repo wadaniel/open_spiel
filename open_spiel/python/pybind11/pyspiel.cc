@@ -307,9 +307,9 @@ PYBIND11_MODULE(pyspiel, m) {
       .def("clone", &State::Clone)
       .def("child", &State::Child)
       .def("set_partial_game_state", &State::SetPartialGameState)
-      .def("load_all_buckets", []()
+      .def("load_all_buckets", [](const std::string& lutPath)
               {
-                extensions::loadBuckets();
+                extensions::loadBuckets(lutPath);
               }, py::call_guard<py::gil_scoped_release>() )
        
         .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,

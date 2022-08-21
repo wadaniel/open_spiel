@@ -106,7 +106,7 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
 /**
  * @brief Load all buckets and store them in global dictionary
  */
-void loadBuckets();
+void loadBuckets(const std::string& lutPath);
 
 size_t getArrayIndex(int bucket, int bettingStage, int activePlayersCode,
                      int chipsToCallFrac, int betSizeFrac, int currentPlayer,

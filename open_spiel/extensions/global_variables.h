@@ -4,11 +4,9 @@
 #include "utils.h"
 #include <map>
 
+#define NUM_RTS_BUCKETS 1326
 #define TOTALSTACK 500
 #define BBSIZE 20
-
-#define NUM_BUCKETS 500 // DONT FORGET TO ADJUST LUT PATH (DW)
-#define NUM_RTS_BUCKETS 1326
 
 namespace extensions {
 
@@ -86,7 +84,7 @@ const size_t globalNumLegalActions = allLegalActions.size();
 // Vector containing max values for each category
 // bucket, stage, active players code, pot pct, call pot pct, current player,
 // num legal actions, is reraise
-const std::vector<size_t> maxValues = {1, NUM_BUCKETS,           4, 3, 10, 10,
+const std::vector<size_t> maxValues = {1, GLOBAL_NUM_BUCKETS,           4, 3, 10, 10,
                                        3, globalNumLegalActions, 2};
 // Vector containing max values for each category (RTS)
 // total max hand, stage, active players code, pot pct, call pot pct, current

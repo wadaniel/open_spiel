@@ -428,7 +428,7 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   // TODO: can be optimized, we only need to search preflop indices (DW)
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
-     size_t segment = idx / NUM_BUCKETS;
+     size_t segment = idx / GLOBAL_NUM_BUCKETS;
      if (segment % 4 == 0)
      {
        // Init arrays
@@ -454,19 +454,19 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
 
 
 // Load all json files to a cpp map
-void loadBuckets() {
+void loadBuckets(const std::string& lutPath) {
   printf("[algorithms] loading preflop buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_500/pre_flop.txt", preflopBucket);
+  readDictionaryFromJson(lutPath + "/pre_flop.txt", preflopBucket);
   printf("DONE!\n[algorithms] loading flop buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_500/flop.txt", flopBucket);
+  readDictionaryFromJson(lutPath + "/flop.txt", flopBucket);
   printf("DONE!\n[algorithms] loading turn buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_500/turn.txt", turnBucket);
+  readDictionaryFromJson(lutPath + "/turn.txt", turnBucket);
   printf("DONE!\n[algorithms] loading river buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson("./lut_500/river.txt", riverBucket);
+  readDictionaryFromJson(lutPath + "/river.txt", riverBucket);
   printf("DONE!\n");
 }
 

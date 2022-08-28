@@ -33,7 +33,7 @@ void readDeepDictionaryFromJson(const std::string filename,
   std::ifstream ifs(filename);
   auto jobj = nlohmann::json::parse(ifs);
   // does not work so we do 2-stage parsing
-  dict = jobj.get<std::map<std::string, std::map<std::string, size_t>>();
+  dict = jobj.get<std::map<std::string, std::map<std::string, size_t>>>();
   
 }
 

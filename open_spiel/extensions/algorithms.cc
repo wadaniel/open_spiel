@@ -469,6 +469,14 @@ void loadBuckets(const std::string& lutPath) {
   readDictionaryFromJson(lutPath + "/river.txt", riverBucket);
   printf("DONE!\n");
 }
+  
+// Load all json files to a cpp map
+void loadFlopBuckets(const std::string& lutPath) {
+  printf("DONE!\n[algorithms] loading per-flop turn buckets..\t");
+  fflush(stdout);
+  readDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucket);
+  printf("DONE!\n");
+}
 
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):

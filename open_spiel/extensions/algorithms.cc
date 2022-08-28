@@ -470,13 +470,19 @@ void loadBuckets(const std::string& lutPath) {
   printf("DONE!\n");
 }
   
-// Load all json files to a cpp map
-void loadFlopBuckets(const std::string& lutPath) {
-  printf("DONE!\n[algorithms] loading per-flop turn buckets..\t");
+// Load file to a cpp map
+void loadTurnPerFlopBuckets(const std::string& lutPath) {
+  printf("\n[algorithms] loading per-flop turn buckets..\t");
   fflush(stdout);
-  readDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucket);
+  readDeepDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucketPerFlop);
   printf("DONE!\n");
 }
+
+void setTurnBuckets(const std::string& flopAbstraction) {
+  printf("\nSetting turn buckets");
+  turnBucket = turnBucketPerFlop[flopAbstraction];
+}
+
 
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):

@@ -15,6 +15,7 @@ const bool applyPruning = true;
 std::map<std::string, size_t> preflopBucket;
 std::map<std::string, size_t> flopBucket;
 std::map<std::string, size_t> turnBucket;
+std::map<std::string, std::map<std::string, size_t>> turnBucketPerFlop;
 std::map<std::string, size_t> riverBucket;
 
 // 14 legal actions

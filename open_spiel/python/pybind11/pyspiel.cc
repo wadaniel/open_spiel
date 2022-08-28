@@ -312,7 +312,17 @@ PYBIND11_MODULE(pyspiel, m) {
                 extensions::loadBuckets(lutPath);
               }, py::call_guard<py::gil_scoped_release>() )
        
-        .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
+      .def("load_turn_per_flop_buckets", [](const std::string& lutPath)
+              {
+                extensions::loadTurnPerFlopBuckets(lutPath);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("set_turn_buckets", [](const std::string& flopAbstraction)
+              {
+                extensions::setTurnBuckets(flopAbstraction);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
                     int chipsToCallFrac, int betSizeFrac, int currentPlayer, 
                     int legalActionsCode, int isReraise, bool useRealTimeSearch)
               {
@@ -323,7 +333,18 @@ PYBIND11_MODULE(pyspiel, m) {
                         useRealTimeSearch);
 
               }, py::call_guard<py::gil_scoped_release>() )
+       
+      .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
+                    int chipsToCallFrac, int betSizeFrac, int currentPlayer, 
+                    int legalActionsCode, int isReraise, bool useRealTimeSearch)
+              {
 
+                return extensions::getArrayIndex(bucket, bettingStage, 
+                        activePlayersCode, chipsToCallFrac, betSizeFrac, 
+                        currentPlayer, legalActionsCode, isReraise, 
+                        useRealTimeSearch);
+
+              }, py::call_guard<py::gil_scoped_release>() )
  
       .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)
               {

@@ -27,6 +27,14 @@ void readDictionaryFromJson(const std::string filename,
   dict = jobj.get<std::map<std::string, size_t>>();
 }
 
+// Transform json file to a cpp map
+void readDeepDictionaryFromJson(const std::string filename,
+                            std::map<std::string, size_t> &dict) {
+  std::ifstream ifs(filename);
+  auto jobj = nlohmann::json::parse(ifs);
+  dict = jobj.get<std::map<std::string, <std::map<std::string, size_t>>>();
+}
+
 // Helper to print all elements of a container
 template <typename Iterator>
 void printVec(const std::string &name, Iterator begin, Iterator end) {

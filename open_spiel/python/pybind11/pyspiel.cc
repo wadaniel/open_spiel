@@ -311,7 +311,12 @@ PYBIND11_MODULE(pyspiel, m) {
               {
                 extensions::loadBuckets(lutPath);
               }, py::call_guard<py::gil_scoped_release>() )
-       
+	  
+	.def("load_flop_buckets", [](const std::string& lutPath)
+	{
+	extensions::loadBuckets(lutPath);
+	}, py::call_guard<py::gil_scoped_release>() )
+	
         .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
                     int chipsToCallFrac, int betSizeFrac, int currentPlayer, 
                     int legalActionsCode, int isReraise, bool useRealTimeSearch)
@@ -323,7 +328,6 @@ PYBIND11_MODULE(pyspiel, m) {
                         useRealTimeSearch);
 
               }, py::call_guard<py::gil_scoped_release>() )
-
  
       .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)
               {

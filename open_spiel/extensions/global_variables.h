@@ -94,9 +94,9 @@ const std::vector<size_t> maxValuesRTS = {
 
 // Calculates the cumulative product and stores intermediate values in vector
 std::vector<size_t> getCumMaxValVector(const std::vector<size_t> &maxValVec) {
-  std::vector<size_t> cumMaxValVec(maxValVec.size() - 1);
+  std::vector<size_t> cumMaxValVec(maxValVec.size());
   size_t cumProd = 1;
-  for (size_t idx = 0; idx < maxValVec.size() - 1; ++idx) {
+  for (size_t idx = 0; idx < maxValVec.size(); ++idx) {
     cumProd *= maxValVec[idx];
     cumMaxValVec[idx] = cumProd;
   }

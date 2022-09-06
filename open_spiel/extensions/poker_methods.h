@@ -48,11 +48,13 @@ void getBets(const std::string &info, std::array<int, 3> &bets) {
 
 // Calculate action probabilities
 // Version 0: all uniform
-// Version 1: passive, i.e. check or fold if all regrets negative (for RTS) TODO
+// Version 1: passive, i.e. check or fold if all regrets negative (for RTS)
 void calculateProbabilities(const std::array<int, 9> &regret,
                             const std::vector<int> &legalActions,
                             std::array<float, 9> &probabilities,
                             int version = 0) {
+
+  assert( version == 0);
   float sumValue = 0.f;
 
   for (const int action : legalActions) {
@@ -66,7 +68,7 @@ void calculateProbabilities(const std::array<int, 9> &regret,
     for (const int action : legalActions) {
       probabilities[action] *= invSum;
     }
-  } else if (true || version == 0) {
+  } else if (version == 0) {
     const float unif = 1. / (float)legalActions.size();
     for (const int action : legalActions) {
       probabilities[action] = unif; // Uniform distribution

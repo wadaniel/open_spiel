@@ -425,14 +425,14 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
-  // TODO: can be optimized, we only need to search preflop indices (DW)
+  assert ( maxValuesProd.back()*9 == N );
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
      size_t segment = idx / GLOBAL_NUM_BUCKETS;
      if (segment % 4 == 0)
      {
        // Init arrays
-       std::fill(probabilities.begin(), probabilities.end(), 0);	  
+       std::fill(probabilities.begin(), probabilities.end(), 0.);	  
        std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
  
        // Find legal actions (non zeros)    

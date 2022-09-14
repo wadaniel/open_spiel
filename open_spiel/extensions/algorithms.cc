@@ -425,14 +425,14 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
-  // TODO: can be optimized, we only need to search preflop indices (DW)
+  assert ( maxValuesProd.back()*9 == N );
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
      size_t segment = idx / GLOBAL_NUM_BUCKETS;
      if (segment % 4 == 0)
      {
        // Init arrays
-       std::fill(probabilities.begin(), probabilities.end(), 0);	  
+       std::fill(probabilities.begin(), probabilities.end(), 0.);	  
        std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
  
        // Find legal actions (non zeros)    
@@ -469,6 +469,20 @@ void loadBuckets(const std::string& lutPath) {
   readDictionaryFromJson(lutPath + "/river.txt", riverBucket);
   printf("DONE!\n");
 }
+  
+// Load file to a cpp map
+void loadTurnPerFlopBuckets(const std::string& lutPath) {
+  printf("\n[algorithms] loading per-flop turn buckets..\t");
+  fflush(stdout);
+  readDeepDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucketPerFlop);
+  printf("DONE!\n");
+}
+
+void setTurnBuckets(const std::string& flopAbstraction) {
+  printf("\nSetting turn buckets");
+  turnBucket = turnBucketPerFlop[flopAbstraction];
+}
+
 
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):

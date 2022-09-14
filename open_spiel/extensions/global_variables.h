@@ -15,6 +15,7 @@ const bool applyPruning = true;
 std::map<std::string, size_t> preflopBucket;
 std::map<std::string, size_t> flopBucket;
 std::map<std::string, size_t> turnBucket;
+std::map<std::string, std::map<std::string, size_t>> turnBucketPerFlop;
 std::map<std::string, size_t> riverBucket;
 
 // 14 legal actions
@@ -94,9 +95,9 @@ const std::vector<size_t> maxValuesRTS = {
 
 // Calculates the cumulative product and stores intermediate values in vector
 std::vector<size_t> getCumMaxValVector(const std::vector<size_t> &maxValVec) {
-  std::vector<size_t> cumMaxValVec(maxValVec.size() - 1);
+  std::vector<size_t> cumMaxValVec(maxValVec.size());
   size_t cumProd = 1;
-  for (size_t idx = 0; idx < maxValVec.size() - 1; ++idx) {
+  for (size_t idx = 0; idx < maxValVec.size(); ++idx) {
     cumProd *= maxValVec[idx];
     cumMaxValVec[idx] = cumProd;
   }

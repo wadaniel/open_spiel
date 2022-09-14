@@ -175,20 +175,20 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
 }
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
-                     const std::vector<long int> &legalActions) {
+                     const std::vector<long int> &legalActions, int stack) {
   int absoluteAction = -1;
   if (actionIndex < 2) {
     absoluteAction = actionIndex; // call or fold
   } else if (actionIndex == 8) {
-    absoluteAction = TOTALSTACK; // all-in
+    absoluteAction = stack; // all-in
   } else if (actionIndex < 6) {
     // const std::vector<int> factors = { NA, NA, .25, 0.5, .75, 1., 2., 3.};
     const float factor = 0.25 * (actionIndex - 1.);
     const int betSize = totalPot * factor;
-    absoluteAction = std::min(biggestBet + betSize, TOTALSTACK);
+    absoluteAction = std::min(biggestBet + betSize, stack);
   } else {
     const int multiplier = actionIndex - 4; // 2 or 3
-    absoluteAction = std::min(biggestBet + totalPot * multiplier, TOTALSTACK);
+    absoluteAction = std::min(biggestBet + totalPot * multiplier, stack);
   }
 
   // Check if action is present

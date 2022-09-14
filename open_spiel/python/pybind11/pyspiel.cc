@@ -324,6 +324,14 @@ PYBIND11_MODULE(pyspiel, m) {
 
               }, py::call_guard<py::gil_scoped_release>() )
 
+      .def("set_stacks", [](py::array_t<int>& new_stacks)
+              {
+                py::buffer_info privatecBuf = new_stacks.request();
+                int* privatecPtr = static_cast<int *>(privatecBuf.ptr);
+                std::array<int, 3> stacks = { privatecPtr[0], privatecPtr[1], privatecPtr[2] };
+                return extensions::setStacks(stacks); 
+
+              }, py::call_guard<py::gil_scoped_release>() )
  
       .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)
               {

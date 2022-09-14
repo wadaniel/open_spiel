@@ -222,7 +222,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
-              actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
+              actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
           probabilities[action] = strategy[action];
           auto new_state = state.Child(absoluteAction);
           const float actionValue =
@@ -258,7 +258,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions) {
       if (explored[action]) {
         const size_t absoluteAction =
-            actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
+            actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
         auto new_state = state.Child(absoluteAction);
         const float actionValue =
             cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType,
@@ -301,7 +301,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const int sampledAction =
         randomChoice(probabilities.begin(), probabilities.end());
     const size_t absoluteAction =
-        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
+        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
     auto new_state = state.Child(absoluteAction);
 
     // Update shared strategy
@@ -544,6 +544,12 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   }
 
   return bucket;
+}
+
+void setStacks(const std::array<int, 3> &stacks){
+  TOTALSTACK[0] = stacks[0];
+  TOTALSTACK[1] = stacks[1];
+  TOTALSTACK[2] = stacks[2];
 }
 
 size_t cfr_array_index(int updatePlayerIdx, const int time,

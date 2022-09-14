@@ -117,6 +117,9 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
                      const std::array<int, 5> &publicCards,
                      size_t bettingStage);
 
+
+void setStacks(const std::array<int, 3> &stacks);
+
 /**
  * @brief Returns the array index as used in CFR
  * @param updatePlayerIdx Index of the player to update

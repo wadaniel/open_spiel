@@ -87,7 +87,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Retrieve pot information
   int maxBet = 0;
-  int minBet = TOTALSTACK;
+  int minBet = TOTALSTACK[currentPlayer];
   int totalPot = 0;
   for (int bet : bets) {
     if (bet > maxBet)
@@ -125,7 +125,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
 
   assert(ourLegalActions.size() > 0);
   for (int action : ourLegalActions)
@@ -606,7 +606,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Retrieve pot information
   int maxBet = 0;
-  int minBet = TOTALSTACK;
+  int minBet = TOTALSTACK[currentPlayer];
   int totalPot = 0;
   for (int bet : bets) {
     if (bet > maxBet)
@@ -646,7 +646,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
 
   assert(ourLegalActions.size() > 0);
   // printVec("ourLegalActions", ourLegalActions.begin(),

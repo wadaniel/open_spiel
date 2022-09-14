@@ -5,12 +5,12 @@
 #include <map>
 
 #define NUM_RTS_BUCKETS 1326
-#define TOTALSTACK [500, 500, 500]
 #define BBSIZE 20
 
 namespace extensions {
 
 const bool applyPruning = true;
+int TOTALSTACK[] = {500, 500, 500};
 
 std::map<std::string, size_t> preflopBucket;
 std::map<std::string, size_t> flopBucket;

@@ -197,10 +197,10 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
   if (std::find(legalActions.begin(), legalActions.end(),
                 (long int)absoluteAction) == legalActions.end()) {
     printf("[poker_methods] Error in actionToAbsolute\n");
-    printf("[poker_methods] Action not found: %d (biggestBet %d totalPot %d)\n",
-           absoluteAction, biggestBet, totalPot);
-    printVec("[poker_methods] legalActions", legalActions.begin(),
-             legalActions.end());
+    printf("[poker_methods] A2A Action not found: %d (biggestBet %d totalPot %d) with stack %d %d %d \n",
+           absoluteAction, biggestBet, totalPot, TOTALSTACK[0], TOTALSTACK[1], TOTALSTACK[2]);
+    /*printVec("[poker_methods] legalActions", legalActions.begin(),
+             legalActions.end());*/
     abort();
   }
   return absoluteAction;

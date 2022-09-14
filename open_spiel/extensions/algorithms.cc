@@ -47,6 +47,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                                      1. / (float)chanceActions.size());
     const int sampledIndex = randomChoice(weights.begin(), weights.end());
     const auto sampledAction = chanceActions[sampledIndex].first;
+    assert(sampledAction >= 0);
     const auto new_state = state.Child(sampledAction);
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType,
@@ -73,9 +74,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
+
   assert(bettingStage < 4);
-  assert(bettingStage >=
-         0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   // const auto informationStateSplit = split(informationState, "\\]\\[");
@@ -589,12 +590,12 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Retrieve information state
   std::string informationState = state.InformationStateString(currentPlayer);
+  std::cout << informationState << std::endl;
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
   assert(bettingStage < 4);
-  assert(bettingStage >=
-         0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");

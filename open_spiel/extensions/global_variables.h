@@ -4,9 +4,12 @@
 #include "utils.h"
 #include <map>
 
+#define GLOBAL_NUM_BUCKETS 200
 #define NUM_RTS_BUCKETS 1326
 #define TOTALSTACK 500
 #define BBSIZE 20
+
+#include <iostream>
 
 namespace extensions {
 

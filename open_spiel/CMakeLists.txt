@@ -25,7 +25,7 @@ if(NOT WIN32)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
-set(GLOBAL_NUM_BUCKETS 200)
+#set(GLOBAL_NUM_BUCKETS 200)
 message("${BoldRed}GLOBAL_NUM_BUCKETS: ${GLOBAL_NUM_BUCKETS}${ColourReset}")
 
 add_definitions(-Wfatal-errors)
@@ -104,8 +104,8 @@ macro(openspiel_optional_dependency DEP_NAME DEP_DEFAULT DEP_DESCRIPTION)
 endmacro()
 
 # Set number of buckets
-openspiel_optional_dependency(GLOBAL_NUM_BUCKETS 		  200
-  "Number of buckets for card abstraction.")
+#openspiel_optional_dependency(GLOBAL_NUM_BUCKETS 		  200
+#  "Number of buckets for card abstraction.")
 # List of all optional dependencies:
 openspiel_optional_dependency(OPEN_SPIEL_BUILD_WITH_ACPC           ON
   "Build against the Universal Poker library.")

@@ -9,7 +9,7 @@
 namespace extensions {
 
 float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
-                const float pruneThreshold, const bool useRealTimeSearch, const int strategyUpdateType,
+                const float pruneThreshold, const bool useRealTimeSearch,
                 const int *handIds, const size_t handIdsSize,
                 const open_spiel::State &state, const int currentStage,
                 int *sharedRegret, const size_t nSharedRegret,
@@ -18,7 +18,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const size_t nSharedFrozenStrat) {
   float cumValue = 0;
   for (int iter = 0; iter < numIter; iter++) {
-    cumValue += cfr(updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch, strategyUpdateType,
+    cumValue += cfr(updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch,
                     handIds, handIdsSize, state, currentStage, sharedRegret,
                     nSharedRegret, sharedStrategy, nSharedStrat,
                     sharedStrategyFrozen, nSharedFrozenStrat);
@@ -27,7 +27,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
 }
 
 float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
-          const bool useRealTimeSearch, const int strategyUpdateType, 
+          const bool useRealTimeSearch, 
           const int *handIds, const size_t handIdsSize, 
           const open_spiel::State &state, const int currentStage, 
           int *sharedRegret, const size_t nSharedRegret, float *sharedStrategy, const size_t nSharedStrat,
@@ -49,7 +49,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const auto sampledAction = chanceActions[sampledIndex].first;
     const auto new_state = state.Child(sampledAction);
 
-    return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType,
+    return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                handIds, handIdsSize, *new_state, currentStage, sharedRegret,
                nSharedRegret, sharedStrategy, nSharedStrat,
                sharedStrategyFrozen, nSharedFrozenStrat);
@@ -226,7 +226,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           probabilities[action] = strategy[action];
           auto new_state = state.Child(absoluteAction);
           const float actionValue =
-              cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType,
+              cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                   handIds, handIdsSize, *new_state, currentStage, sharedRegret,
                   nSharedRegret, sharedStrategy, nSharedStrat,
                   sharedStrategyFrozen, nSharedFrozenStrat);
@@ -261,7 +261,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
             actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
         auto new_state = state.Child(absoluteAction);
         const float actionValue =
-            cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType,
+            cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                 handIds, handIdsSize, *new_state, currentStage, sharedRegret,
                 nSharedRegret, sharedStrategy, nSharedStrat,
                 sharedStrategyFrozen, nSharedFrozenStrat);
@@ -305,7 +305,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     auto new_state = state.Child(absoluteAction);
 
     // Update shared strategy
-    if( (strategyUpdateType == 1) && (currentPlayer == (updatePlayerIdx + 1)%3))
+    if( currentPlayer == (updatePlayerIdx + 1)%3 )
     {
       const float multiplier = std::min(time, 32768);
       for (const int action : ourLegalActions) {
@@ -315,7 +315,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       }
     }
 
-    return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, strategyUpdateType, handIds,
+    return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
         handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,
         sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
   }
@@ -323,7 +323,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    const float pruneThreshold, const open_spiel::State &state, 
-                   const int strategyUpdateType, float *handBeliefs, const size_t numPlayer,
+                   float *handBeliefs, const size_t numPlayer,
                    const size_t numHands, const int currentStage,
                    int *sharedRegret, const size_t nSharedRegret,
                    float *sharedStrategy, const size_t nSharedStrat,
@@ -396,7 +396,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 
     stateCopy->SetPartialGameState(sampledPrivateHands);
     for (size_t player = 0; player < numPlayer; ++player) {
-      cumValue += cfr(player, time, pruneThreshold, true, strategyUpdateType, handIds, numPlayer,
+      cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer,
                       *stateCopy, currentStage, sharedRegret, nSharedRegret,
                       sharedStrategy, nSharedStrat, sharedStrategyFrozen,
                       nSharedFrozenStrat);

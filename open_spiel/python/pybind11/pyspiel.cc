@@ -373,7 +373,7 @@ PYBIND11_MODULE(pyspiel, m) {
 
               }, py::call_guard<py::gil_scoped_release>() )
  
-      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, int strategyUpdateType, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+      .def("cfr", [](int updatePlayerIdx, int time, float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
@@ -392,13 +392,13 @@ PYBIND11_MODULE(pyspiel, m) {
                 
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, 
-                        useRealTimeSearch, strategyUpdateType, handIdsPtr, 
+                        useRealTimeSearch, handIdsPtr, 
                         handIdsSize, *state, currentStage, regPtr, nReg, 
                         stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 
               }, py::call_guard<py::gil_scoped_release>() )
       .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, 
-                  float pruneThreshold, bool useRealTimeSearch, int strategyUpdateType, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+                  float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
@@ -416,14 +416,14 @@ PYBIND11_MODULE(pyspiel, m) {
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 
-                        pruneThreshold, useRealTimeSearch, strategyUpdateType, 
+                        pruneThreshold, useRealTimeSearch, 
                         handIdsPtr, handIdsSize, *state, currentStage, regPtr, 
                         nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
 
               }, py::call_guard<py::gil_scoped_release>() )
       
       .def("cfr_with_rts", [](const int numIter, const int updatePlayerIdx, const int time, const float pruneThreshold, 
-                  std::shared_ptr<const open_spiel::State> state, const int strategyUpdateType, const int currentStage,
+                  std::shared_ptr<const open_spiel::State> state, const int currentStage,
                   py::array_t<float>& handBeliefs1D, const int numPlayer, const int numHands,
                   py::array_t<float>& sharedRegret, 
                   py::array_t<float>& sharedStrategy, 
@@ -448,7 +448,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 const float *sharedFrozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
 
                 return extensions::cfr_realtime(numIter, updatePlayerIdx, time, 
-                            pruneThreshold, *state, strategyUpdateType,
+                            pruneThreshold, *state,
                             handBeliefsPtr, numPlayer, numHands, currentStage, 
                             sharedRegretPtr, nSharedRegret,
                             sharedStrategyPtr, nSharedStrat,

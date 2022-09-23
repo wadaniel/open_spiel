@@ -11,7 +11,6 @@ namespace extensions {
  * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param useRealTimeSearch Set true durin real time search
- * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handIds Pointer to hand IDs
  * @param handIdsSize The length of the handIds vector
  * @param state State of the pyspiel
@@ -23,7 +22,7 @@ namespace extensions {
  * @return The expected value of the CFR
  */
 float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
-          const bool useRealTimeSearch, const int strategyUpdateType, const int *handIds,
+          const bool useRealTimeSearch, const int *handIds,
           const size_t handIdsSize, const open_spiel::State &state,
           const int currentStage, int *sharedRegret, const size_t nSharedRegret,
           float *sharedStrategy, const size_t nSharedStrat,
@@ -36,7 +35,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
  * @param time The training iteration
  * @param pruneThreshold Threshold to skip cfr updates
  * @param useRealTimeSearch Set true durin real time search
- * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handIds Pointer to hand IDs
  * @param handIdsSize The length of the handIds vector
  * @param state State of the pyspiel
@@ -49,7 +47,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
  */
 
 float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
-                const float pruneThreshold, const bool useRealTimeSearch, const int strategyUpdateType,
+                const float pruneThreshold, const bool useRealTimeSearch,
                 const int *handIds, const size_t handIdsSize,
                 const open_spiel::State &state, const int currentStage,
                 int *sharedRegret, const size_t nSharedRegret,
@@ -64,7 +62,6 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @param time The training iteration, applied as multiplier in regret update
  * @param pruneThreshold Threshold to skip cfr updates
  * @param state State of the pyspiel
- * @param strategyUpdateType Available modes: (0) no update (1) update on next player
  * @param handBeliefs Arrays of hand beliefs,  for each player one array
  * @param numPlayer Number of players
  * @param numHands Length of inner dimension of handBeliefs
@@ -78,7 +75,7 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  * @return Expected value of the CFR averaged over numIter
  */
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
-                   const float pruneThreshold, const open_spiel::State &state, const int strategyUpdateType,
+                   const float pruneThreshold, const open_spiel::State &state,
                    float *handBeliefs, const size_t numPlayer,
                    const size_t numHands, const int currentStage,
                    int *sharedRegret, const size_t nSharedRegret,

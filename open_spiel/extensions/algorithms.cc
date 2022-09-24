@@ -408,16 +408,23 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
 }
 
 // Multiply array elements by factor
-void discount(const float factor, int *sharedRegret, float *sharedStrategy,
+void discount(const float factor, int *sharedRegret, float *sharedStrategy, float *sharedStrategyDiscrete,
               const size_t N) {
+  
   assert(factor > 0.);
   assert(factor <= 1.);
 
+  assert ( maxValuesProd.back()*9 == N );
+  
   for (size_t idx = 0; idx < N; ++idx)
     sharedRegret[idx] *= factor;
 
   for (size_t idx = 0; idx < N; ++idx)
     sharedStrategy[idx] *= factor;
+
+  for (size_t idx = 0; idx < N; ++idx)
+    sharedStrategyDiscrete[idx] *= factor;
+
 }
 
 // Multiply array elements by factor

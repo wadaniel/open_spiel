@@ -87,9 +87,10 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
  * @param factor Multiplier (<1) for sharedRegret and sharedStrategy
  * @param sharedRegret regret array
  * @param sharedStrategy strategy array
- * @param N length of the two arrays
+ * @param sharedStrategyDiscrete strategy discrete array
+ * @param N length of the three arrays
 */
-void discount(const float factor, int *sharedRegret, float *sharedStrategy,
+void discount(const float factor, int *sharedRegret, float *sharedStrategy, float  *sharedStrategyDiscrete,
               const size_t N);
 
 /**

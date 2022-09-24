@@ -341,7 +341,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 return extensions::getCardBucket(privatecArr, publicArr, bettingStage);
               }, py::call_guard<py::gil_scoped_release>() )
 
-        .def("discount", [](const float factor, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
+        .def("discount", [](const float factor, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& sharedStrategyDiscrete)
               {
                 py::buffer_info regretBuf = sharedRegret.request();
                 const size_t N1 = regretBuf.shape[0];
@@ -352,8 +352,14 @@ PYBIND11_MODULE(pyspiel, m) {
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
 
                 assert(N1 == N2);
+                 
+		py::buffer_info stratDisBuf = sharedStrategyDiscrete.request();
+                const size_t N3 = stratDisBuf.shape[0];
+                float *stratDisPtr = static_cast<float *>(stratDisBuf.ptr);
                 
-                return extensions::discount(factor, regretPtr, stratPtr, N1); 
+		assert(N1 == N3);
+               
+                return extensions::discount(factor, regretPtr, stratPtr, stratDisPtr, N1); 
 
               }, py::call_guard<py::gil_scoped_release>() )
          

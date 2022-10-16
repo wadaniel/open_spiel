@@ -42,7 +42,7 @@ void getBets(const std::string &info, std::array<int, 3> &bets) {
   auto money = split(info, ": ");
   const auto betStrings = split(money[1], " ");
   for (size_t idx = 0; idx < bets.size(); ++idx) {
-    bets[idx] = TOTALSTACK - std::stoi(betStrings[idx]);
+    bets[idx] = TOTALSTACK[idx] - std::stoi(betStrings[idx]);
   }
 }
 
@@ -177,30 +177,30 @@ std::vector<int> getCardAbstraction(const std::array<int, 2> &privateCards,
 }
 
 int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
-                     const std::vector<long int> &legalActions) {
+                     const std::vector<long int> &legalActions, int stack) {
   int absoluteAction = -1;
   if (actionIndex < 2) {
     absoluteAction = actionIndex; // call or fold
   } else if (actionIndex == 8) {
-    absoluteAction = TOTALSTACK; // all-in
+    absoluteAction = stack; // all-in
   } else if (actionIndex < 6) {
     // const std::vector<int> factors = { NA, NA, .25, 0.5, .75, 1., 2., 3.};
     const float factor = 0.25 * (actionIndex - 1.);
     const int betSize = totalPot * factor;
-    absoluteAction = std::min(biggestBet + betSize, TOTALSTACK);
+    absoluteAction = std::min(biggestBet + betSize, stack);
   } else {
     const int multiplier = actionIndex - 4; // 2 or 3
-    absoluteAction = std::min(biggestBet + totalPot * multiplier, TOTALSTACK);
+    absoluteAction = std::min(biggestBet + totalPot * multiplier, stack);
   }
 
   // Check if action is present
   if (std::find(legalActions.begin(), legalActions.end(),
                 (long int)absoluteAction) == legalActions.end()) {
     printf("[poker_methods] Error in actionToAbsolute\n");
-    printf("[poker_methods] Action not found: %d (biggestBet %d totalPot %d)\n",
-           absoluteAction, biggestBet, totalPot);
-    printVec("[poker_methods] legalActions", legalActions.begin(),
-             legalActions.end());
+    printf("[poker_methods] A2A Action not found: %d (biggestBet %d totalPot %d) with stack %d %d %d \n",
+           absoluteAction, biggestBet, totalPot, TOTALSTACK[0], TOTALSTACK[1], TOTALSTACK[2]);
+    /*printVec("[poker_methods] legalActions", legalActions.begin(),
+             legalActions.end());*/
     abort();
   }
   return absoluteAction;
@@ -209,14 +209,14 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
 std::vector<int>
 getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
                        bool isReraise,
-                       const std::vector<long int> &legalActions) {
+                       const std::vector<long int> &legalActions, int stack) {
   if ((numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1))
     return std::vector<int>{0, 1};
   else if ((numActions == 2) && (legalActions[0] == 1) &&
-           (legalActions[1] == TOTALSTACK))
+           (legalActions[1] == stack))
     return std::vector<int>{1, 8};
   else if ((numActions == 3) && (legalActions[0] == 0) &&
-           (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK))
+           (legalActions[1] == 1) && (legalActions[2] == stack))
     return std::vector<int>{0, 1, 8};
 
   assert(numActions > 2);
@@ -279,14 +279,14 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
 
 std::vector<int>
 getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
-                    bool isReraise, const std::vector<long int> &legalActions) {
+                    bool isReraise, const std::vector<long int> &legalActions, int stack) {
   if ((numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1))
     return std::vector<int>{0, 1};
   else if ((numActions == 2) && (legalActions[0] == 1) &&
-           (legalActions[1] == TOTALSTACK))
+           (legalActions[1] == stack))
     return std::vector<int>{1, 8};
   else if ((numActions == 3) && (legalActions[0] == 0) &&
-           (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK))
+           (legalActions[1] == 1) && (legalActions[2] == stack))
     return std::vector<int>{0, 1, 8};
 
   assert(numActions > 2);
@@ -353,14 +353,14 @@ getLegalActionsFlop(int numActions, int totalPot, int maxBet, int prevBet,
 std::vector<int>
 getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
                          bool isReraise,
-                         const std::vector<long int> &legalActions) {
+                         const std::vector<long int> &legalActions, int stack) {
   if ((numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1))
     return std::vector<int>{0, 1};
   else if ((numActions == 2) && (legalActions[0] == 1) &&
-           (legalActions[1] == TOTALSTACK))
+           (legalActions[1] == stack))
     return std::vector<int>{1, 8};
   else if ((numActions == 3) && (legalActions[0] == 0) &&
-           (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK))
+           (legalActions[1] == 1) && (legalActions[2] == stack))
     return std::vector<int>{0, 1, 8};
 
   assert(numActions > 2);
@@ -416,15 +416,15 @@ getLegalActionsTurnRiver(int numActions, int totalPot, int maxBet, int prevBet,
 std::vector<int>
 getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet,
                        bool isReraise,
-                       const std::vector<long int> &legalActions) {
+                       const std::vector<long int> &legalActions, int stack) {
   std::vector<int> actions;
   if ((numActions == 2) && (legalActions[0] == 0) && (legalActions[1] == 1)) {
     actions = std::vector<int>{0, 1};
   } else if ((numActions == 2) && (legalActions[0] == 1) &&
-             (legalActions[1] == TOTALSTACK)) {
+             (legalActions[1] == stack)) {
     actions = std::vector<int>{1, 8};
   } else if ((numActions == 3) && (legalActions[0] == 0) &&
-             (legalActions[1] == 1) && (legalActions[2] == TOTALSTACK)) {
+             (legalActions[1] == 1) && (legalActions[2] == stack)) {
     actions = std::vector<int>{0, 1, 8};
   } else {
 
@@ -450,27 +450,27 @@ getLegalActionsReraise(int numActions, int totalPot, int maxBet, int prevBet,
 
 std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet,
                                  int currentBet, bool isReraise,
-                                 const std::vector<long int> &legalActions) {
+                                 const std::vector<long int> &legalActions, int stack) {
   const size_t numActions = legalActions.size();
   // Actions in case of reraise
   if (isReraise) {
     return getLegalActionsReraise(numActions, totalPot, maxBet, currentBet,
-                                  isReraise, legalActions);
+                                  isReraise, legalActions, stack);
   }
   // Actions for pre-flop
   else if (currentStage == 0) {
     return getLegalActionsPreflop(numActions, totalPot, maxBet, currentBet,
-                                  isReraise, legalActions);
+                                  isReraise, legalActions, stack);
   }
   // Actions for flop
   else if (currentStage == 1) {
     return getLegalActionsFlop(numActions, totalPot, maxBet, currentBet,
-                               isReraise, legalActions);
+                               isReraise, legalActions, stack);
   }
   // Actions for turn and river
   else {
     return getLegalActionsTurnRiver(numActions, totalPot, maxBet, currentBet,
-                                    isReraise, legalActions);
+                                    isReraise, legalActions, stack);
   }
 }
 

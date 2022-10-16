@@ -6,7 +6,6 @@
 
 #define GLOBAL_NUM_BUCKETS 200
 #define NUM_RTS_BUCKETS 1326
-#define TOTALSTACK 500
 #define BBSIZE 20
 
 #include <iostream>
@@ -14,10 +13,12 @@
 namespace extensions {
 
 const bool applyPruning = true;
+int TOTALSTACK[] = {500, 500, 500};
 
 std::map<std::string, size_t> preflopBucket;
 std::map<std::string, size_t> flopBucket;
 std::map<std::string, size_t> turnBucket;
+std::map<std::string, std::map<std::string, size_t>> turnBucketPerFlop;
 std::map<std::string, size_t> riverBucket;
 
 // 14 legal actions

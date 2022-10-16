@@ -47,6 +47,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                                      1. / (float)chanceActions.size());
     const int sampledIndex = randomChoice(weights.begin(), weights.end());
     const auto sampledAction = chanceActions[sampledIndex].first;
+    assert(sampledAction >= 0);
     const auto new_state = state.Child(sampledAction);
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
@@ -73,9 +74,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
+
   assert(bettingStage < 4);
-  assert(bettingStage >=
-         0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   // const auto informationStateSplit = split(informationState, "\\]\\[");
@@ -87,7 +88,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Retrieve pot information
   int maxBet = 0;
-  int minBet = TOTALSTACK;
+  int minBet = TOTALSTACK[currentPlayer];
   int totalPot = 0;
   for (int bet : bets) {
     if (bet > maxBet)
@@ -125,7 +126,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
 
   assert(ourLegalActions.size() > 0);
   for (int action : ourLegalActions)
@@ -222,7 +223,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
-              actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
+              actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
           probabilities[action] = strategy[action];
           auto new_state = state.Child(absoluteAction);
           const float actionValue =
@@ -258,7 +259,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions) {
       if (explored[action]) {
         const size_t absoluteAction =
-            actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
+            actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
         auto new_state = state.Child(absoluteAction);
         const float actionValue =
             cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
@@ -301,7 +302,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const int sampledAction =
         randomChoice(probabilities.begin(), probabilities.end());
     const size_t absoluteAction =
-        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
+        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
     auto new_state = state.Child(absoluteAction);
 
     // Update shared strategy
@@ -476,6 +477,20 @@ void loadBuckets(const std::string& lutPath) {
   readDictionaryFromJson(lutPath + "/river.txt", riverBucket);
   printf("DONE!\n");
 }
+  
+// Load file to a cpp map
+void loadTurnPerFlopBuckets(const std::string& lutPath) {
+  printf("\n[algorithms] loading per-flop turn buckets..\t");
+  fflush(stdout);
+  readDeepDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucketPerFlop);
+  printf("DONE!\n");
+}
+
+void setTurnBuckets(const std::string& flopAbstraction) {
+  printf("\nSetting turn buckets");
+  turnBucket = turnBucketPerFlop[flopAbstraction];
+}
+
 
 //# use lossless abstraction for all states in current stage
 // if(len(handIDs) != 0 and stage == currentStage):
@@ -553,6 +568,12 @@ size_t getCardBucket(const std::array<int, 2> &privateCards,
   return bucket;
 }
 
+void setStacks(const std::array<int, 3> &stacks){
+  TOTALSTACK[0] = stacks[0];
+  TOTALSTACK[1] = stacks[1];
+  TOTALSTACK[2] = stacks[2];
+}
+
 size_t cfr_array_index(int updatePlayerIdx, const int time,
                        const float pruneThreshold, const bool useRealTimeSearch,
                        const int *handIds, const size_t handIdsSize,
@@ -576,12 +597,12 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Retrieve information state
   std::string informationState = state.InformationStateString(currentPlayer);
+  std::cout << informationState << std::endl;
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
   assert(bettingStage < 4);
-  assert(bettingStage >=
-         0); // Jonathan: at the moment we use RTS only from flop
+  assert(bettingStage >= 0); // Jonathan: at the moment we use RTS only from flop
 
   // Split of information state string
   const auto informationStateSplit = split(informationState, "][");
@@ -593,7 +614,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
 
   // Retrieve pot information
   int maxBet = 0;
-  int minBet = TOTALSTACK;
+  int minBet = TOTALSTACK[currentPlayer];
   int totalPot = 0;
   for (int bet : bets) {
     if (bet > maxBet)
@@ -633,7 +654,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
 
   assert(ourLegalActions.size() > 0);
   // printVec("ourLegalActions", ourLegalActions.begin(),

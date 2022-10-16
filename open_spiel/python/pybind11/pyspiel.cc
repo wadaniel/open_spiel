@@ -312,7 +312,17 @@ PYBIND11_MODULE(pyspiel, m) {
                 extensions::loadBuckets(lutPath);
               }, py::call_guard<py::gil_scoped_release>() )
        
-        .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
+      .def("load_turn_per_flop_buckets", [](const std::string& lutPath)
+              {
+                extensions::loadTurnPerFlopBuckets(lutPath);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("set_turn_buckets", [](const std::string& flopAbstraction)
+              {
+                extensions::setTurnBuckets(flopAbstraction);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
                     int chipsToCallFrac, int betSizeFrac, int currentPlayer, 
                     int legalActionsCode, int isReraise, bool useRealTimeSearch)
               {
@@ -323,6 +333,25 @@ PYBIND11_MODULE(pyspiel, m) {
                         useRealTimeSearch);
 
               }, py::call_guard<py::gil_scoped_release>() )
+       
+      .def("get_array_index", [](int bucket, int bettingStage, int activePlayersCode,
+                    int chipsToCallFrac, int betSizeFrac, int currentPlayer, 
+                    int legalActionsCode, int isReraise, bool useRealTimeSearch)
+              {
+
+                return extensions::getArrayIndex(bucket, bettingStage, 
+                        activePlayersCode, chipsToCallFrac, betSizeFrac, 
+                        currentPlayer, legalActionsCode, isReraise, 
+                        useRealTimeSearch);
+              }, py::call_guard<py::gil_scoped_release>() )
+
+      .def("set_stacks", [](py::array_t<int>& new_stacks)
+        {
+          py::buffer_info privatecBuf = new_stacks.request();
+          int* privatecPtr = static_cast<int *>(privatecBuf.ptr);
+          std::array<int, 3> stacks = { privatecPtr[0], privatecPtr[1], privatecPtr[2] };
+          return extensions::setStacks(stacks); 
+          }, py::call_guard<py::gil_scoped_release>() )
 
  
       .def("get_card_bucket", [](py::array_t<int>& privateCards, py::array_t<int>& publicCards, size_t bettingStage)

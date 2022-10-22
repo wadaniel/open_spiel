@@ -480,9 +480,10 @@ void loadBuckets(const std::string& lutPath) {
   
 // Load file to a cpp map
 void loadTurnPerFlopBuckets(const std::string& lutPath) {
-  printf("\n[algorithms] loading per-flop turn buckets..\t");
+  printf("\n[algorithms] loading per-flop turn buckets from ..\t");
+  printf(lutPath + "/turn_per_flop_emd.txt");
   fflush(stdout);
-  readDeepDictionaryFromJson(lutPath + "/turn_per_flop.txt", turnBucketPerFlop);
+  readDeepDictionaryFromJson(lutPath + "/turn_per_flop_emd.txt", turnBucketPerFlop);
   printf("DONE!\n");
 }
 

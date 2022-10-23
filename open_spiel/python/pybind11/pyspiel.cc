@@ -455,8 +455,11 @@ PYBIND11_MODULE(pyspiel, m) {
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
 		
 		if(nReg != nStrat)
-			fprintf(stderr, "%zu / %zu\n", nReg, nStrat);
+			fprintf(stderr, "[pyspiel] %zu / %zu\n", nReg, nStrat);
 		assert(nReg == nStrat);
+
+		if(nReg != nFrozenStrat)
+			fprintf(stderr, "[pyspiel] array mismatch %zu / %zu\n", nReg, nStrat);
 		assert(nReg == nFrozenStrat);
         
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 

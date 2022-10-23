@@ -495,7 +495,7 @@ PYBIND11_MODULE(pyspiel, m) {
 		// frozen strat is longer than
 
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 
-                        pruneThreshold, false
+                        pruneThreshold, false,
                         handIdsPtr, handIdsSize, *state, currentStage, regPtr, 
                         stratPtr, nullptr, nReg);
 

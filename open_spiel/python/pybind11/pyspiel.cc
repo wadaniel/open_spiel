@@ -473,7 +473,7 @@ PYBIND11_MODULE(pyspiel, m) {
 
 
       .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, 
-                  float pruneThreshold, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
+                  float pruneThreshold, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];

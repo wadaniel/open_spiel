@@ -433,7 +433,6 @@ PYBIND11_MODULE(pyspiel, m) {
 			assert(nReg == nStrat);
 		}
         
-                const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, 
                         false, handIdsPtr, 
                         handIdsSize, *state, currentStage, regPtr, 

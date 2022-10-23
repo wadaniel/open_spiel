@@ -488,12 +488,15 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info frozenStratBuf = sharedFrozenStrategy.request();
                 const size_t nSharedFrozenStrat = frozenStratBuf.shape[0];
                 const float *sharedFrozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
-
+		
+		assert(nSharedRegret == nSharedStrat);
+		assert(nSharedRegret == nSharedFrozenStrat);
+        
                 return extensions::cfr_realtime(numIter, updatePlayerIdx, time, 
                             pruneThreshold, *state,
                             handBeliefsPtr, numPlayer, numHands, currentStage, 
-                            sharedRegretPtr, nSharedRegret,
-                            sharedStrategyPtr, nSharedStrat,
+                            sharedRegretPtr,
+                            sharedStrategyPtr,
                             sharedFrozenStratPtr, nSharedFrozenStrat);
               }, py::call_guard<py::gil_scoped_release>() )
 
@@ -513,6 +516,9 @@ PYBIND11_MODULE(pyspiel, m) {
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
+        	
+		assert(nReg == nStrat);
+		assert(nReg == nFrozenStrat);
                 
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);

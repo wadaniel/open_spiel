@@ -159,7 +159,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
     assert(arrayIndex < N);
-    assert(arrayIndex < N);
   } else {
     // Prepare private cards string
     const auto privateCardsSplit = split(informationStateSplit[4], ": ");
@@ -205,10 +204,10 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   }
 
   if (currentPlayer == updatePlayerIdx) {
-    std::copy(&sharedStrategyFrozen[arrayIndex],
-              &sharedStrategyFrozen[arrayIndex + 9], strategy.begin());
-
     if (useRealTimeSearch) {
+      std::copy(&sharedStrategyFrozen[arrayIndex],
+      	&sharedStrategyFrozen[arrayIndex + 9], strategy.begin());
+
 
       bool allZero = true;
       for (float actionProb : strategy)

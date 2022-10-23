@@ -422,6 +422,10 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info regBuf = sharedRegret.request();
                 const size_t nReg = regBuf.shape[0];
                 int *regPtr = static_cast<int *>(regBuf.ptr);
+                
+		py::buffer_info stratBuf = sharedStrategy.request();
+                const size_t nStrat = stratBuf.shape[0];
+                int *stratPtr = static_cast<int *>(stratBuf.ptr);
 
                 if(nReg != nStrat)
 		{
@@ -581,6 +585,7 @@ PYBIND11_MODULE(pyspiel, m) {
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
+                const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
         	
         	if(nReg != nStrat)
 		{
@@ -588,7 +593,6 @@ PYBIND11_MODULE(pyspiel, m) {
 			assert(nReg == nStrat);
 		}
 
-                const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, stratPtr, frozenStratPtr, nReg);
               }, py::call_guard<py::gil_scoped_release>() )
        .def("test_dict", [](std::unordered_map<size_t, int> &dict)

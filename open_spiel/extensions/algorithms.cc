@@ -6,6 +6,9 @@
 #include <iostream>
 #include <regex>
 
+#include <chrono>
+using namespace std::chrono;
+
 namespace extensions {
 
 float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
@@ -323,7 +326,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    const float pruneThreshold, const open_spiel::State &state, 
-                   float *handBeliefs, const size_t numPlayer,
+                   const float *handBeliefs, const size_t numPlayer,
                    const size_t numHands, const int currentStage,
                    int *sharedRegret,
                    float *sharedStrategy,
@@ -331,10 +334,13 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    const size_t N) {
   assert(currentStage > 0);
 
+  auto start_init = high_resolution_clock::now();
+
   // Fill data
   const open_spiel::universal_poker::UniversalPokerState &pokerState =
       static_cast<const open_spiel::universal_poker::UniversalPokerState &>(
           state);
+
   std::vector<float> newHandBeliefs =
       std::vector<float>(handBeliefs, handBeliefs + numPlayer * numHands);
 
@@ -344,21 +350,39 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
   const auto &publicCards = visibleCards[numPlayer];
   const auto &evalPlayerHand = visibleCards[updatePlayerIdx];
 
+  auto stop_init = high_resolution_clock::now();
+  
+  auto start_beliefs = high_resolution_clock::now();
+  
   // update beliefs from public cards
   updateHandProbabilitiesFromSeenCards(publicCards, newHandBeliefs, numPlayer,
                                        numHands);
 
+  auto stop_beliefs = high_resolution_clock::now();
+  
   // container for sampled hands
   int handIds[numPlayer];
   std::vector<std::vector<uint8_t>> sampledPrivateHands(
       numPlayer, std::vector<uint8_t>(2));
 
   float cumValue = 0.;
+  
+
+  float time_clone = 0;
+  float time_sample = 0;
+  float time_cfr = 0;
 
   // CFR iterations with hand resampling
   for (size_t iter = 0; iter < numIter; ++iter) {
+  
+    auto start_clone = high_resolution_clock::now();
+    
     auto stateCopy = state.Clone();
+    
+    auto stop_clone = high_resolution_clock::now();
 
+    auto start_sample = high_resolution_clock::now();
+    
     // sample hand for eval player first
     const int sampledEvalPlayerHandIdx =
         randomChoice(&newHandBeliefs[updatePlayerIdx * numHands],
@@ -373,6 +397,7 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     // opponents should not sample our 'true' hand
     sampledEvalPlayerHand.insert(sampledEvalPlayerHand.end(),
                                  evalPlayerHand.begin(), evalPlayerHand.end());
+    
 
     auto handBeliefsInLoop = newHandBeliefs;
     updateHandProbabilitiesFromSeenCards(
@@ -395,13 +420,31 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
       }
 
     stateCopy->SetPartialGameState(sampledPrivateHands);
+    
+    auto stop_sample = high_resolution_clock::now();
+    auto start_cfr = high_resolution_clock::now();
+    
     for (size_t player = 0; player < numPlayer; ++player) {
       cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer,
                       *stateCopy, currentStage, sharedRegret,
                       sharedStrategy, sharedStrategyFrozen,
                       N);
     }
+    auto stop_cfr = high_resolution_clock::now();
+
+    time_sample = duration_cast<miliseconds>(stop_sample - start_sample);
+    time_clone = duration_cast<miliseconds>(stop_clone - start_clone);
+    time_cfr = duration_cast<miliseconds>(stop_cfr - start_cfr);
   }
+
+  float time_init = duration_cast<miliseconds>(stop_init - start_init);
+  float time_beliefs = duration_cast<miliseconds>(stop_beliefs - start_beliefs);
+
+  printf("[algorithms] time init %f ms\n", time_init);
+  printf("[algorithms] time beliefs %f ms\n", time_beliefs);
+  printf("[algorithms] time sample %f ms\n", time_sample);
+  printf("[algorithms] time clone %f ms\n", time_clone);
+  printf("[algorithms] time cfr %f ms\n", time_cfr);
 
   // return average value
   return cumValue / (float)numIter;

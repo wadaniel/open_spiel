@@ -544,7 +544,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info handBeliefsBuf = handBeliefs1D.request();
                 const size_t numElements = handBeliefsBuf.shape[0];
                 float* handBeliefsPtr = static_cast<float *>(handBeliefsBuf.ptr);
-				assert(numElements == numPlayer * numHands);				
+		assert(numElements == numPlayer * numHands);				
 
                 py::buffer_info regBuf = sharedRegret.request();
                 const  size_t nSharedRegret = regBuf.shape[0];
@@ -569,7 +569,7 @@ PYBIND11_MODULE(pyspiel, m) {
                             handBeliefsPtr, numPlayer, numHands, currentStage, 
                             sharedRegretPtr,
                             sharedStrategyPtr,
-                            sharedFrozenStratPtr, nSharedFrozenStrat);
+                            sharedFrozenStratPtr, nSharedRegret);
 
               }, py::call_guard<py::gil_scoped_release>() )
 

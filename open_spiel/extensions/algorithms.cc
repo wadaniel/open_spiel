@@ -34,9 +34,15 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   assert(time > 0);
 
-  if ( maxValuesProd.back()*9 != N )
+  
+  if ( (useRealTimeSearch == true) && (maxValuesProdRTS.back()*9 != N) )
   {
-	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+	fprintf(stderr, "[algorithms] rts array length mismatch (is %zu should be %zu)\n", N, maxValuesProdRTS.back()*9);
+  	assert ( maxValuesProdRTS.back()*9 == N );
+  }
+  else if ( (useRealTimeSearch == false) && (maxValuesProd.back()*9 != N) )
+  {
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", N, maxValuesProd.back()*9);
   	assert ( maxValuesProd.back()*9 == N );
   }
 
@@ -155,13 +161,13 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // and RTS only starts after the preflop round
   if (useRealTimeSearch && (bettingStage == currentStage) &&
       bettingStage != 0) {
-    assert(bettingStage >= 0);
+    assert(bettingStage > 0);
     assert(handIdsSize == 3);
     arrayIndex =
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
-                      legalActionsCode, isReraise, true);
-    assert(arrayIndex < N);
+                      legalActionsCode, isReraise, useRealTimeSearch);
+    //assert(arrayIndex < N);
   } else {
     // Prepare private cards string
     const auto privateCardsSplit = split(informationStateSplit[4], ": ");
@@ -201,9 +207,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     arrayIndex = getArrayIndex(bucket, bettingStage, activePlayersCode,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
                                legalActionsCode, isReraise, false);
-
-    assert(arrayIndex < N);
-    assert(arrayIndex < N);
   }
 
   if (currentPlayer == updatePlayerIdx) {
@@ -221,6 +224,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
       // if all entries zero, take regrets from passed trained strategy
       if (allZero) {
+	assert(arrayIndex < N);
         std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                   regrets.begin());
       } else {
@@ -239,6 +243,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         return expectedValue;
       }
     } else {
+      assert(arrayIndex < N);
       std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
                 regrets.begin());
     }
@@ -281,10 +286,10 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions)
       if (explored[action]) {
         const size_t arrayActionIndex = arrayIndex + action;
+	assert(arrayActionIndex < N);
         sharedRegret[arrayActionIndex] +=
             int(multiplier * (actionValues[action] - expectedValue));
 
-        assert(arrayActionIndex < N);
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
         if (sharedRegret[arrayActionIndex] > (int) (std::numeric_limits<int>::max() * 0.95))
@@ -368,9 +373,9 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
   float cumValue = 0.;
   
 
-  float time_clone = 0;
-  float time_sample = 0;
-  float time_cfr = 0;
+  size_t time_clone = 0;
+  size_t time_sample = 0;
+  size_t time_cfr = 0;
 
   // CFR iterations with hand resampling
   for (size_t iter = 0; iter < numIter; ++iter) {
@@ -432,19 +437,19 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     }
     auto stop_cfr = high_resolution_clock::now();
 
-    time_sample = duration_cast<miliseconds>(stop_sample - start_sample);
-    time_clone = duration_cast<miliseconds>(stop_clone - start_clone);
-    time_cfr = duration_cast<miliseconds>(stop_cfr - start_cfr);
+    time_sample += duration_cast<nanoseconds>(stop_sample - start_sample).count();
+    time_clone += duration_cast<nanoseconds>(stop_clone - start_clone).count();
+    time_cfr += duration_cast<nanoseconds>(stop_cfr - start_cfr).count();
   }
 
-  float time_init = duration_cast<miliseconds>(stop_init - start_init);
-  float time_beliefs = duration_cast<miliseconds>(stop_beliefs - start_beliefs);
+  size_t time_init = duration_cast<nanoseconds>(stop_init - start_init).count();
+  size_t time_beliefs = duration_cast<nanoseconds>(stop_beliefs - start_beliefs).count();
 
-  printf("[algorithms] time init %f ms\n", time_init);
-  printf("[algorithms] time beliefs %f ms\n", time_beliefs);
-  printf("[algorithms] time sample %f ms\n", time_sample);
-  printf("[algorithms] time clone %f ms\n", time_clone);
-  printf("[algorithms] time cfr %f ms\n", time_cfr);
+  printf("[algorithms] time init %zu ns\n", time_init);
+  printf("[algorithms] time beliefs %zu ns\n", time_beliefs);
+  printf("[algorithms] time sample %zu ns\n", time_sample);
+  printf("[algorithms] time clone %zu ns\n", time_clone);
+  printf("[algorithms] time cfr %zu ns\n", time_cfr);
 
   // return average value
   return cumValue / (float)numIter;
@@ -459,7 +464,7 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
 
   if ( maxValuesProd.back()*9 != N )
   {
-	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", N, maxValuesProd.back()*9);
   	assert ( maxValuesProd.back()*9 == N );
   }
 
@@ -482,7 +487,7 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   
   if ( maxValuesProd.back()*9 != N )
   {
-	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", N, maxValuesProd.back()*9);
   	assert ( maxValuesProd.back()*9 == N );
   }
 
@@ -746,7 +751,6 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
-    assert(arrayIndex < N);
   } else {
     // Prepare private cards string
     const auto privateCardsSplit = split(informationStateSplit[4], ": ");
@@ -792,7 +796,6 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
                                legalActionsCode, isReraise, false);
 
-    assert(arrayIndex < N);
   }
 
   return arrayIndex;

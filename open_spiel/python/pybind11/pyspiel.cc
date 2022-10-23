@@ -425,7 +425,7 @@ PYBIND11_MODULE(pyspiel, m) {
                 
 		py::buffer_info stratBuf = sharedStrategy.request();
                 const size_t nStrat = stratBuf.shape[0];
-                int *stratPtr = static_cast<int *>(stratBuf.ptr);
+                float *stratPtr = static_cast<int *>(stratBuf.ptr);
 
                 if(nReg != nStrat)
 		{

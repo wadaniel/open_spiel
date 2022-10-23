@@ -443,17 +443,19 @@ PYBIND11_MODULE(pyspiel, m) {
                 int *handIdsPtr = static_cast<int *>(handIdsBuf.ptr);
 
                 py::buffer_info regBuf = sharedRegret.request();
-                const  size_t nReg = regBuf.shape[0];
+                const size_t nReg = regBuf.shape[0];
                 int *regPtr = static_cast<int *>(regBuf.ptr);
 
                 py::buffer_info stratBuf = sharedStrategy.request();
-                const  size_t nStrat = stratBuf.shape[0];
+                const size_t nStrat = stratBuf.shape[0];
                 float *stratPtr = static_cast<float *>(stratBuf.ptr);
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
 		
+		if(nReg != nStrat)
+			fprtinf(stderr, "%zu / %zu\n", nReg, nStrat)
 		assert(nReg == nStrat);
 		assert(nReg == nFrozenStrat);
         

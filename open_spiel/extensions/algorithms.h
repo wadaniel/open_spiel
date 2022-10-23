@@ -141,10 +141,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                        const float pruneThreshold, const bool useRealTimeSearch,
                        const int *handIds, const size_t handIdsSize,
                        const open_spiel::State &state, const int currentStage,
-                       int *sharedRegret, const size_t nSharedRegret,
-                       float *sharedStrategy, const size_t nSharedStrat,
+                       int *sharedRegret,
+                       float *sharedStrategy, 
                        const float *sharedStrategyFrozen,
-                       const size_t nSharedFrozenStrat);
+                       const size_t N);
 
 } // namespace extensions
 

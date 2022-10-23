@@ -521,7 +521,7 @@ PYBIND11_MODULE(pyspiel, m) {
 		assert(nReg == nFrozenStrat);
                 
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
-                return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                return extensions::cfr_array_index(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIdsPtr, handIdsSize, *state, currentStage, regPtr, stratPtr, frozenStratPtr, nReg);
               }, py::call_guard<py::gil_scoped_release>() )
        .def("test_dict", [](std::unordered_map<size_t, int> &dict)
        //.def("test_dict", [](py::dict& d)

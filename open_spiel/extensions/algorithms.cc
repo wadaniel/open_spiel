@@ -433,7 +433,13 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
-  assert ( maxValuesProd.back()*9 == N );
+
+  if ( maxValuesProd.back()*9 != N )
+  {
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+  	assert ( maxValuesProd.back()*9 == N );
+  }
+
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
      size_t segment = idx / GLOBAL_NUM_BUCKETS;

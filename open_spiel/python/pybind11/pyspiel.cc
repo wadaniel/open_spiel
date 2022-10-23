@@ -435,6 +435,7 @@ PYBIND11_MODULE(pyspiel, m) {
                     	stratPtr, frozenStratPtr, nReg);
 
               }, py::call_guard<py::gil_scoped_release>() )
+
       .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, 
                   float pruneThreshold, bool useRealTimeSearch, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy, py::array_t<float>& frozenSharedStrategy)
               { 
@@ -459,7 +460,7 @@ PYBIND11_MODULE(pyspiel, m) {
 		assert(nReg == nStrat);
 
 		if(nReg != nFrozenStrat)
-			fprintf(stderr, "[pyspiel] array mismatch %zu / %zu\n", nReg, nStrat);
+			fprintf(stderr, "[pyspiel] array mismatch %zu / %zu\n", nReg, nFrozenStrat);
 		assert(nReg == nFrozenStrat);
         
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 

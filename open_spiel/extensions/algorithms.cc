@@ -12,16 +12,13 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const float pruneThreshold, const bool useRealTimeSearch,
                 const int *handIds, const size_t handIdsSize,
                 const open_spiel::State &state, const int currentStage,
-                int *sharedRegret, const size_t nSharedRegret,
-                float *sharedStrategy, const size_t nSharedStrat,
-                const float *sharedStrategyFrozen,
-                const size_t nSharedFrozenStrat) {
+                int *sharedRegret, float *sharedStrategy, const float *sharedStrategyFrozen,
+                const size_t N) {
   float cumValue = 0;
   for (int iter = 0; iter < numIter; iter++) {
     cumValue += cfr(updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch,
                     handIds, handIdsSize, state, currentStage, sharedRegret,
-                    nSharedRegret, sharedStrategy, nSharedStrat,
-                    sharedStrategyFrozen, nSharedFrozenStrat);
+                    sharedStrategy, sharedStrategyFrozen, N);
   }
   return cumValue / (float)numIter;
 }
@@ -30,10 +27,16 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           const bool useRealTimeSearch, 
           const int *handIds, const size_t handIdsSize, 
           const open_spiel::State &state, const int currentStage, 
-          int *sharedRegret, const size_t nSharedRegret, float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat) {
+          int *sharedRegret, float *sharedStrategy, const float *sharedStrategyFrozen, const size_t N) {
 
   assert(time > 0);
+
+  if ( maxValuesProd.back()*9 != N )
+  {
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+  	assert ( maxValuesProd.back()*9 == N );
+  }
+
   const bool isTerminal = state.IsTerminal();
   // If terminal, return players reward
   if (isTerminal) {
@@ -52,8 +55,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                handIds, handIdsSize, *new_state, currentStage, sharedRegret,
-               nSharedRegret, sharedStrategy, nSharedStrat,
-               sharedStrategyFrozen, nSharedFrozenStrat);
+               sharedStrategy, sharedStrategyFrozen, N);
   }
 
   // Define work variables
@@ -156,8 +158,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
-    assert(arrayIndex < nSharedStrat);
-    assert(arrayIndex < nSharedFrozenStrat);
+    assert(arrayIndex < N);
+    assert(arrayIndex < N);
   } else {
     // Prepare private cards string
     const auto privateCardsSplit = split(informationStateSplit[4], ": ");
@@ -198,8 +200,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
                                legalActionsCode, isReraise, false);
 
-    assert(arrayIndex < nSharedStrat);
-    assert(arrayIndex < nSharedFrozenStrat);
+    assert(arrayIndex < N);
+    assert(arrayIndex < N);
   }
 
   if (currentPlayer == updatePlayerIdx) {
@@ -229,8 +231,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           const float actionValue =
               cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                   handIds, handIdsSize, *new_state, currentStage, sharedRegret,
-                  nSharedRegret, sharedStrategy, nSharedStrat,
-                  sharedStrategyFrozen, nSharedFrozenStrat);
+                  sharedStrategy, sharedStrategyFrozen, N);
           expectedValue += actionValue * probabilities[action];
         }
         return expectedValue;
@@ -264,8 +265,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         const float actionValue =
             cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
                 handIds, handIdsSize, *new_state, currentStage, sharedRegret,
-                nSharedRegret, sharedStrategy, nSharedStrat,
-                sharedStrategyFrozen, nSharedFrozenStrat);
+                sharedStrategy, sharedStrategyFrozen, N);
         actionValues[action] = actionValue;
 
         expectedValue += probabilities[action] * actionValue;
@@ -282,7 +282,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         sharedRegret[arrayActionIndex] +=
             int(multiplier * (actionValues[action] - expectedValue));
 
-        assert(arrayActionIndex < nSharedRegret);
+        assert(arrayActionIndex < N);
         if (sharedRegret[arrayActionIndex] < pruneThreshold * 1.03)
           sharedRegret[arrayActionIndex] = pruneThreshold * 1.03;
         if (sharedRegret[arrayActionIndex] > (int) (std::numeric_limits<int>::max() * 0.95))
@@ -311,14 +311,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       const float multiplier = std::min(time, 32768);
       for (const int action : ourLegalActions) {
         const size_t arrayActionIndex = arrayIndex + action;
-        assert(arrayActionIndex < nSharedStrat);
+        assert(arrayActionIndex < N);
         sharedStrategy[arrayActionIndex] += multiplier * probabilities[action];
       }
     }
 
     return cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch, handIds,
-        handIdsSize, *new_state, currentStage, sharedRegret, nSharedRegret,
-        sharedStrategy, nSharedStrat, sharedStrategyFrozen, nSharedFrozenStrat);
+        handIdsSize, *new_state, currentStage, sharedRegret,
+        sharedStrategy, sharedStrategyFrozen, N);
   }
 }
 
@@ -326,10 +326,10 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    const float pruneThreshold, const open_spiel::State &state, 
                    float *handBeliefs, const size_t numPlayer,
                    const size_t numHands, const int currentStage,
-                   int *sharedRegret, const size_t nSharedRegret,
-                   float *sharedStrategy, const size_t nSharedStrat,
+                   int *sharedRegret,
+                   float *sharedStrategy,
                    const float *sharedStrategyFrozen,
-                   const size_t nSharedFrozenStrat) {
+                   const size_t N) {
   assert(currentStage > 0);
 
   // Fill data
@@ -398,9 +398,9 @@ float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
     stateCopy->SetPartialGameState(sampledPrivateHands);
     for (size_t player = 0; player < numPlayer; ++player) {
       cumValue += cfr(player, time, pruneThreshold, true, handIds, numPlayer,
-                      *stateCopy, currentStage, sharedRegret, nSharedRegret,
-                      sharedStrategy, nSharedStrat, sharedStrategyFrozen,
-                      nSharedFrozenStrat);
+                      *stateCopy, currentStage, sharedRegret,
+                      sharedStrategy, sharedStrategyFrozen,
+                      N);
     }
   }
 
@@ -415,8 +415,13 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
   assert(factor > 0.);
   assert(factor <= 1.);
 
-  assert ( maxValuesProd.back()*9 == N );
-  
+  if ( maxValuesProd.back()*9 != N )
+  {
+	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
+  	assert ( maxValuesProd.back()*9 == N );
+  }
+
+ 
   for (size_t idx = 0; idx < N; ++idx)
     sharedRegret[idx] *= factor;
 
@@ -433,7 +438,6 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
-
   if ( maxValuesProd.back()*9 != N )
   {
 	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", maxValuesProd.back()*9, N);
@@ -586,10 +590,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                        const float pruneThreshold, const bool useRealTimeSearch,
                        const int *handIds, const size_t handIdsSize,
                        const open_spiel::State &state, const int currentStage,
-                       int *sharedRegret, const size_t nSharedRegret,
-                       float *sharedStrategy, const size_t nSharedStrat,
+                       int *sharedRegret,
+                       float *sharedStrategy,
                        const float *sharedStrategyFrozen,
-                       const size_t nSharedFrozenStrat) {
+                       const size_t N) {
 
   const bool isTerminal = state.IsTerminal();
 
@@ -700,8 +704,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
         getArrayIndex(handIds[currentPlayer], bettingStage, activePlayersCode,
                       chipsToCallFrac, betSizeFrac, currentPlayer,
                       legalActionsCode, isReraise, true);
-    assert(arrayIndex < nSharedStrat);
-    assert(arrayIndex < nSharedFrozenStrat);
+    assert(arrayIndex < N);
   } else {
     // Prepare private cards string
     const auto privateCardsSplit = split(informationStateSplit[4], ": ");
@@ -747,8 +750,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                                chipsToCallFrac, betSizeFrac, currentPlayer,
                                legalActionsCode, isReraise, false);
 
-    assert(arrayIndex < nSharedStrat);
-    assert(arrayIndex < nSharedFrozenStrat);
+    assert(arrayIndex < N);
   }
 
   return arrayIndex;

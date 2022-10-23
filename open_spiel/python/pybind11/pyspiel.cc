@@ -424,12 +424,15 @@ PYBIND11_MODULE(pyspiel, m) {
                  
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
+
+		assert(nReg == nStrat);
+		assert(nReg == nFrozenStrat);
                 
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr); 
                 return extensions::cfr(updatePlayerIdx, time, pruneThreshold, 
                         useRealTimeSearch, handIdsPtr, 
-                        handIdsSize, *state, currentStage, regPtr, nReg, 
-                        stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                        handIdsSize, *state, currentStage, regPtr, 
+                    	stratPtr, frozenStratPtr, nReg);
 
               }, py::call_guard<py::gil_scoped_release>() )
       .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, 
@@ -450,10 +453,14 @@ PYBIND11_MODULE(pyspiel, m) {
                 py::buffer_info frozenStratBuf = frozenSharedStrategy.request();
                 const size_t nFrozenStrat = frozenStratBuf.shape[0];
                 const float *frozenStratPtr = static_cast<float *>(frozenStratBuf.ptr);
+		
+		assert(nReg == nStrat);
+		assert(nReg == nFrozenStrat);
+        
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 
                         pruneThreshold, useRealTimeSearch, 
                         handIdsPtr, handIdsSize, *state, currentStage, regPtr, 
-                        nReg, stratPtr, nStrat, frozenStratPtr, nFrozenStrat);
+                        stratPtr, frozenStratPtr, nReg);
 
               }, py::call_guard<py::gil_scoped_release>() )
       

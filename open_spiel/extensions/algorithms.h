@@ -24,9 +24,9 @@ namespace extensions {
 float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
           const bool useRealTimeSearch, const int *handIds,
           const size_t handIdsSize, const open_spiel::State &state,
-          const int currentStage, int *sharedRegret, const size_t nSharedRegret,
-          float *sharedStrategy, const size_t nSharedStrat,
-          const float *sharedStrategyFrozen, const size_t nSharedFrozenStrat);
+          const int currentStage, int *sharedRegret, 
+          float *sharedStrategy,
+          const float *sharedStrategyFrozen, const size_t N);
 
 /**
  * @brief Multiple CFR calculation and updated of shared strategy
@@ -50,10 +50,10 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const float pruneThreshold, const bool useRealTimeSearch,
                 const int *handIds, const size_t handIdsSize,
                 const open_spiel::State &state, const int currentStage,
-                int *sharedRegret, const size_t nSharedRegret,
-                float *sharedStrategy, const size_t nSharedStrat,
+                int *sharedRegret,
+                float *sharedStrategy, 
                 const float *sharedStrategyFrozen,
-                const size_t nSharedFrozenStrat);
+                const size_t N);
 
 /**
  * @brief Multiple CFR runs with card sampling according to beliefs
@@ -76,12 +76,12 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
  */
 float cfr_realtime(const int numIter, const int updatePlayerIdx, const int time,
                    const float pruneThreshold, const open_spiel::State &state,
-                   float *handBeliefs, const size_t numPlayer,
+                   const float *handBeliefs, const size_t numPlayer,
                    const size_t numHands, const int currentStage,
-                   int *sharedRegret, const size_t nSharedRegret,
-                   float *sharedStrategy, const size_t nSharedStrat,
+                   int *sharedRegret,
+                   float *sharedStrategy,
                    const float *sharedStrategyFrozen,
-                   const size_t nSharedFrozenStrat);
+                   const size_t N);
 /**
  * @brief Discounts the regret and strategy array
  * @param factor Multiplier (<1) for sharedRegret and sharedStrategy
@@ -141,10 +141,10 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
                        const float pruneThreshold, const bool useRealTimeSearch,
                        const int *handIds, const size_t handIdsSize,
                        const open_spiel::State &state, const int currentStage,
-                       int *sharedRegret, const size_t nSharedRegret,
-                       float *sharedStrategy, const size_t nSharedStrat,
+                       int *sharedRegret,
+                       float *sharedStrategy, 
                        const float *sharedStrategyFrozen,
-                       const size_t nSharedFrozenStrat);
+                       const size_t N);
 
 } // namespace extensions
 

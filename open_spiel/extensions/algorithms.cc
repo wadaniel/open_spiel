@@ -3,6 +3,7 @@
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/poker_methods.h"
 #include "open_spiel/games/universal_poker.h"
+#include <iterator>
 #include <iostream>
 #include <regex>
 
@@ -74,7 +75,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   std::array<bool, 9> explored{true, true, true, true, true,
                                true, true, true, true};
-  std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<float, 9> strategy{0., 0., 0., 0., 0., 0., 0., 0., 0.};
   std::array<float, 9> probabilities{0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
@@ -225,8 +225,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       // if all entries zero, take regrets from passed trained strategy
       if (allZero) {
 	assert(arrayIndex < N);
-        std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                  regrets.begin());
       } else {
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
@@ -244,15 +242,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       }
     } else {
       assert(arrayIndex < N);
-      std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                regrets.begin());
     }
-    calculateProbabilities(regrets, ourLegalActions, probabilities);
+
+    calculateProbabilities(sharedRegret+arrayIndex, ourLegalActions, probabilities.begin());
 
     // Find actions to prune
     if (applyPruning == true && bettingStage < 3) {
       for (const int action : ourLegalActions) {
-        if (regrets[action] < pruneThreshold)
+        if (sharedRegret[arrayIndex+action] < pruneThreshold)
           explored[action] =
               false; // Do not explore actions below prune threshold
         if ((action == 0) || (action == 8))
@@ -298,12 +295,8 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
     return expectedValue;
   } else {
-    // Only your own probabilities can be frozen, not the ones of other players
-    std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-              regrets.begin());
-
     // Calculate probabilities from regrets
-    calculateProbabilities(regrets, ourLegalActions, probabilities);
+    calculateProbabilities(sharedRegret+arrayIndex, ourLegalActions, probabilities.begin());
 
     // randomChoice returns a value of 0 to 8
     const int sampledAction =
@@ -482,7 +475,6 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
 
 // Multiply array elements by factor
 void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
-  std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
   
   if ( maxValuesProd.back()*9 != N )
@@ -498,17 +490,16 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
      {
        // Init arrays
        std::fill(probabilities.begin(), probabilities.end(), 0.);	  
-       std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
  
        // Find legal actions (non zeros)    
        std::vector<int> legalActions;
        legalActions.reserve(9);
        for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
        {
-         if(regrets[actionIdx] != 0)
+         if(sharedRegret[idx+actionIdx] != 0)
            legalActions.push_back(actionIdx);
        }
-       calculateProbabilities(regrets, legalActions, probabilities);
+       calculateProbabilities(sharedRegret+idx, legalActions, probabilities.begin());
      
        // Udpate shared strategy
        for (auto action : legalActions)

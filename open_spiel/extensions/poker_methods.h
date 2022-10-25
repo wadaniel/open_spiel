@@ -49,36 +49,38 @@ void getBets(const std::string &info, std::array<int, 3> &bets) {
 // Calculate action probabilities
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS)
-void calculateProbabilities(const std::array<int, 9> &regret,
+
+template<typename Iterator1, typename Iterator2>
+void calculateProbabilities(const Iterator1 regretBegin, 
                             const std::vector<int> &legalActions,
-                            std::array<float, 9> &probabilities,
+                            Iterator2 probabilitiesBegin, 
                             int version = 0) {
 
   assert( version == 0);
   float sumValue = 0.f;
 
   for (const int action : legalActions) {
-    const float floored = regret[action] > 0.f ? regret[action] : 0.f;
-    probabilities[action] = floored;
+    const float floored = *(regretBegin+action) > 0.f ? *(regretBegin+action) : 0.f;
+    *(probabilitiesBegin+action) = floored;
     sumValue += floored;
   }
 
   if (sumValue > 1e-12) {
     const float invSum = 1. / sumValue;
     for (const int action : legalActions) {
-      probabilities[action] *= invSum;
+      *(probabilitiesBegin+action) *= invSum;
     }
   } else if (version == 0) {
     const float unif = 1. / (float)legalActions.size();
     for (const int action : legalActions) {
-      probabilities[action] = unif; // Uniform distribution
+      *(probabilitiesBegin+action) = unif;
     }
   } else /* version == 1 */ {
     // Choose minimal action (fold or check)
     if (legalActions[0] == 0)
-      probabilities[0] = 1.; 
+      *probabilitiesBegin = 1.; 
     else
-      probabilities[1] = 1.; 
+      *(probabilitiesBegin+1) = 1.; 
   }
 }
 
@@ -183,13 +185,12 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
     absoluteAction = actionIndex; // call or fold
   } else if (actionIndex == 8) {
     absoluteAction = stack; // all-in
-  } else if (actionIndex < 6) {
-    // const std::vector<int> factors = { NA, NA, .25, 0.5, .75, 1., 2., 3.};
+  } else if (actionIndex < 6) { // 0.25x - 1x
     const float factor = 0.25 * (actionIndex - 1.);
     const int betSize = totalPot * factor;
     absoluteAction = std::min(biggestBet + betSize, stack);
   } else {
-    const int multiplier = actionIndex - 4; // 2 or 3
+    const int multiplier = actionIndex - 4; // 2x or 3x
     absoluteAction = std::min(biggestBet + totalPot * multiplier, stack);
   }
 
@@ -452,6 +453,9 @@ std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet,
                                  int currentBet, bool isReraise,
                                  const std::vector<long int> &legalActions, int stack) {
   const size_t numActions = legalActions.size();
+  return getLegalActionsPreflop(numActions, totalPot, maxBet, currentBet,
+                                  isReraise, legalActions, stack);
+  /*
   // Actions in case of reraise
   if (isReraise) {
     return getLegalActionsReraise(numActions, totalPot, maxBet, currentBet,
@@ -471,7 +475,8 @@ std::vector<int> getLegalActions(int currentStage, int totalPot, int maxBet,
   else {
     return getLegalActionsTurnRiver(numActions, totalPot, maxBet, currentBet,
                                     isReraise, legalActions, stack);
-  }
+  } 
+  */
 }
 
 } // namespace extensions

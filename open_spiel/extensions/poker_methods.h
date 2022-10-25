@@ -49,7 +49,8 @@ void getBets(const std::string &info, std::array<int, 3> &bets) {
 // Calculate action probabilities
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS)
-void calculateProbabilities(const std::array<int, 9> &regret,
+template<typename T>
+void calculateProbabilities(const std::array<T, 9> &regret,
                             const std::vector<int> &legalActions,
                             std::array<float, 9> &probabilities,
                             int version = 0) {

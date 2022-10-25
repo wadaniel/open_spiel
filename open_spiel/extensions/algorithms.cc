@@ -484,6 +484,10 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
 void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
   std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
+
+  //std::array<float, 9> sharedStrategyLocal;
+  //std::array<float, 9> sharedProbabilitiesBefore;
+  //std::array<float, 9> sharedProbabilitiesAfter;
   
   if ( maxValuesProd.back()*9 != N )
   {
@@ -491,30 +495,44 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
   	assert ( maxValuesProd.back()*9 == N );
   }
 
+  //float klDivergence = 0.;
+
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
      size_t segment = idx / GLOBAL_NUM_BUCKETS;
      if (segment % 4 == 0)
      {
-       // Init arrays
-       std::fill(probabilities.begin(), probabilities.end(), 0.);	  
-       std::copy(&sharedRegret[idx], &sharedRegret[idx+9], regrets.begin());
- 
-       // Find legal actions (non zeros)    
+       // Find legal actions (non zeros) and init regrets
        std::vector<int> legalActions;
        legalActions.reserve(9);
        for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
        {
+	 regrets[actionIdx] = sharedRegret[idx+actionIdx];
          if(regrets[actionIdx] != 0)
            legalActions.push_back(actionIdx);
        }
+
        calculateProbabilities(regrets, legalActions, probabilities);
-     
+       
+       // Calculate shared probabilities before update
+       //std::copy(&sharedStrategy[idx], &sharedStrategy[idx+9], sharedStrategyLocal.begin());
+       //calculateProbabilities(sharedStrategyLocal, legalActions, sharedProbabilitiesBefore);
+        
        // Udpate shared strategy
        for (auto action : legalActions)
          sharedStrategy[idx+action] += probabilities[action];
+       
+       // Calculate shared probabilities after update
+       //std::copy(&sharedStrategy[idx], &sharedStrategy[idx+9], sharedStrategyLocal.begin());
+       //calculateProbabilities(sharedStrategyLocal, legalActions, sharedProbabilitiesAfter);
+ 
+       // Calculate KL divergence
+       //for (auto action : legalActions)
+       //klDivergence += sharedProbabilitiesBefore[idx+action] * std::log2(sharedProbabilitiesBefore[idx+action]/sharedProbabilitiesAfter[idx+action]);
      }
   }
+  
+  //printf("[algorithms] KL-divergence statistics of strategy update: %f\t", klDivergence);
 }
 
 

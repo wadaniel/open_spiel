@@ -19,8 +19,9 @@ float multi_cfr(int numIter, const int updatePlayerIdx, const int startTime,
                 const size_t N) {
   float cumValue = 0;
   for (int iter = 0; iter < numIter; iter++) {
+    auto stateCopy = state.Clone();
     cumValue += cfr(updatePlayerIdx, startTime, pruneThreshold, useRealTimeSearch,
-                    handIds, handIdsSize, state, currentStage, sharedRegret,
+                    handIds, handIdsSize, stateCopy, currentStage, sharedRegret,
                     sharedStrategy, sharedStrategyFrozen, N);
   }
   return cumValue / (float)numIter;

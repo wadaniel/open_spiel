@@ -82,6 +82,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Retrieve information state
   std::string informationState = state.InformationStateString(currentPlayer);
+  printf("iss %s\n", informationState.c_str());
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
@@ -92,6 +93,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // Split of information state string
   // const auto informationStateSplit = split(informationState, "\\]\\[");
   const auto informationStateSplit = split(informationState, "][");
+  
+  //std::array<int, 3> stack{0, 0, 0};
+  //getStack(informationStateSplit[3], stack);
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -136,8 +140,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   std::sort(gameLegalActions.begin(), gameLegalActions.end());
 
   // Calculate our legal actions based on abstraction
-  const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
+  const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
   for (int action : ourLegalActions)
@@ -229,7 +232,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
-              actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+              actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
           probabilities[action] = strategy[action];
           auto new_state = state.Child(absoluteAction);
           const float actionValue =
@@ -264,7 +267,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions) {
       if (explored[action]) {
         const size_t absoluteAction =
-            actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+            actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
         auto new_state = state.Child(absoluteAction);
         const float actionValue =
             cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
@@ -302,7 +305,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     const int sampledAction =
         randomChoice(probabilities.begin(), probabilities.end());
     const size_t absoluteAction =
-        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
 
     // Update shared strategy
@@ -704,7 +707,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
   // printVec("ourLegalActions", ourLegalActions.begin(),

@@ -21,10 +21,16 @@ std::map<std::string, size_t> turnBucket;
 std::map<std::string, std::map<std::string, size_t>> turnBucketPerFlop;
 std::map<std::string, size_t> riverBucket;
 
-// 14 legal actions
+// 19 legal actions
 const std::vector<std::vector<int>> allLegalActions = {
     {0, 1},
     {0, 1, 8},
+    {0, 1, 7, 8},
+    {0, 1, 6, 8},
+    {0, 1, 6, 7, 8},
+    {0, 1, 5, 8},
+    {0, 1, 5, 6, 8},
+    {0, 1, 5, 6, 7, 8},
     {0, 1, 4, 8},
     {0, 1, 4, 5, 8},
     {0, 1, 4, 5, 6, 8},
@@ -35,7 +41,16 @@ const std::vector<std::vector<int>> allLegalActions = {
     {0, 1, 3, 4, 5, 6, 8},
     {0, 1, 3, 4, 5, 6, 7, 8},
     {0, 1, 2, 8},
+    {0, 1, 2, 3, 8},
+    {0, 1, 2, 3, 4, 8},
+    {0, 1, 2, 3, 4, 5, 8},
+    {0, 1, 2, 3, 4, 5, 6, 8},
     {0, 1, 2, 3, 4, 5, 6, 7, 8},
+    {1, 8},
+    {1, 3, 8},
+    {1, 3, 4, 8},
+    {1, 3, 4, 5, 8},
+    {1, 3, 4, 5, 6, 8},
     {1, 3, 4, 5, 6, 7, 8}};
 
 // 5 legal actions
@@ -88,7 +103,7 @@ const size_t globalNumLegalActions = allLegalActions.size();
 // Vector containing max values for each category
 // bucket, stage, active players code, pot pct, call pot pct, current player,
 // num legal actions, is reraise
-const std::vector<size_t> maxValues = {1, GLOBAL_NUM_BUCKETS,           4, 3, 10, 10,
+const std::vector<size_t> maxValues = {1, GLOBAL_NUM_BUCKETS, 4, 3, 10, 10,
                                        3, globalNumLegalActions, 2};
 // Vector containing max values for each category (RTS)
 // total max hand, stage, active players code, pot pct, call pot pct, current

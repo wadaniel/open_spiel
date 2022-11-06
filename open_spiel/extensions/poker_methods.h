@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <stdlib.h>
+#include <math.h>
 
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/utils.h"
@@ -187,7 +188,7 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
     absoluteAction = stack; // all-in
   } else if (actionIndex < 6) { // 0.25x - 1x
     const float factor = 0.25 * (actionIndex - 1.);
-    const int betSize = totalPot * factor;
+    const int betSize = round(totalPot * factor);
     absoluteAction = std::min((long int) (biggestBet + betSize), stack);
   } else {
     const int multiplier = actionIndex - 4; // 2x or 3x
@@ -198,8 +199,8 @@ int actionToAbsolute(int actionIndex, int biggestBet, int totalPot,
   if (std::find(legalActions.begin(), legalActions.end(),
                 (long int)absoluteAction) == legalActions.end()) {
     printf("[poker_methods] Error in actionToAbsolute\n");
-    printf("[poker_methods] A2A Action not found: %d (biggestBet %d totalPot %d) with stack %d %d %d \n",
-           absoluteAction, biggestBet, totalPot, TOTALSTACK[0], TOTALSTACK[1], TOTALSTACK[2]);
+    printf("[poker_methods] A2A Action not found: %d (biggestBet %d totalPot %d, actionIndex %d) with stack %d %d %d \n",
+           absoluteAction, biggestBet, totalPot, actionIndex, TOTALSTACK[0], TOTALSTACK[1], TOTALSTACK[2]);
     printVec("[poker_methods] legalActions", legalActions.begin(),
              legalActions.end());
     abort();
@@ -260,7 +261,7 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
     minAction = 2;
   else if (totalPot >= 2 * minRaise)
     minAction = 3;
-  else if (totalPot >= int(minRaise * 1.33))
+  else if (totalPot > int(minRaise * 1.33))
     minAction = 4;
 
   const size_t addonActions =
@@ -272,7 +273,7 @@ getLegalActionsPreflop(int numActions, int totalPot, int maxBet, int prevBet,
     actions[numPreActions + idx] =
         minAction +
         idx; // actions between range minAction and (including) maxAction
-
+ 
   actions.back() = 8; // always allow all-in
   return actions;
 }

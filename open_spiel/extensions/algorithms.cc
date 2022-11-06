@@ -82,7 +82,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Retrieve information state
   std::string informationState = state.InformationStateString(currentPlayer);
-  printf("iss %s\n", informationState.c_str());
+  //printf("iss %s\n", informationState.c_str());
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
@@ -692,6 +692,8 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
       minBet = bet;
     totalPot += bet;
   }
+
+  assert(totalPot <= 1500);
 
   const int currentBet = bets[currentPlayer];
   const int callSize = maxBet - currentBet;

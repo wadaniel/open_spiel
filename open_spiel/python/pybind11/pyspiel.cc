@@ -414,7 +414,7 @@ PYBIND11_MODULE(pyspiel, m) {
               }, py::call_guard<py::gil_scoped_release>() )
  
       .def("multi_cfr", [](int numIter, int updatePlayerIdx, int startTime, 
-                  float pruneThreshold, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, int currentStage, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
+                  float pruneThreshold, py::array_t<int> handIds, std::shared_ptr<const open_spiel::State> state, py::array_t<int>& sharedRegret, py::array_t<float>& sharedStrategy)
               { 
                 py::buffer_info handIdsBuf = handIds.request();
                 const size_t handIdsSize = handIdsBuf.shape[0];
@@ -433,11 +433,10 @@ PYBIND11_MODULE(pyspiel, m) {
 			fprintf(stderr, "[pyspiel] strat array length mismatch %zu / %zu\n", nReg, nStrat);
 			assert(nReg == nStrat);
 		}
-		// frozen strat is longer than
 
                 return extensions::multi_cfr(numIter, updatePlayerIdx, startTime, 
                         pruneThreshold, false,
-                        handIdsPtr, handIdsSize, *state, currentStage, regPtr, 
+                        handIdsPtr, handIdsSize, *state, 0, regPtr, 
                         stratPtr, nullptr, nReg);
 
               }, py::call_guard<py::gil_scoped_release>() )

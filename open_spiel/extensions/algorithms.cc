@@ -479,12 +479,18 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
 // Multiply array elements by factor
 void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
   std::array<float, 9> probabilities;
+
+  //std::array<float, 9> sharedStrategyLocal;
+  //std::array<float, 9> sharedProbabilitiesBefore;
+  //std::array<float, 9> sharedProbabilitiesAfter;
   
   if ( maxValuesProd.back()*9 != N )
   {
 	fprintf(stderr, "[algorithms] array length mismatch (is %zu should be %zu)\n", N, maxValuesProd.back()*9);
   	assert ( maxValuesProd.back()*9 == N );
   }
+
+  //float klDivergence = 0.;
 
   for  (size_t idx = 0; idx < N; idx+= 9)
   {  
@@ -507,8 +513,18 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
        // Udpate shared strategy
        for (auto action : legalActions)
          sharedStrategy[idx+action] += probabilities[action];
+       
+       // Calculate shared probabilities after update
+       //std::copy(&sharedStrategy[idx], &sharedStrategy[idx+9], sharedStrategyLocal.begin());
+       //calculateProbabilities(sharedStrategyLocal, legalActions, sharedProbabilitiesAfter);
+ 
+       // Calculate KL divergence
+       //for (auto action : legalActions)
+       //klDivergence += sharedProbabilitiesBefore[idx+action] * std::log2(sharedProbabilitiesBefore[idx+action]/sharedProbabilitiesAfter[idx+action]);
      }
   }
+  
+  //printf("[algorithms] KL-divergence statistics of strategy update: %f\t", klDivergence);
 }
 
 

@@ -49,7 +49,6 @@ void getBets(const std::string &info, std::array<int, 3> &bets) {
 // Calculate action probabilities
 // Version 0: all uniform
 // Version 1: passive, i.e. check or fold if all regrets negative (for RTS)
-
 template<typename Iterator1, typename Iterator2>
 void calculateProbabilities(const Iterator1 regretBegin, 
                             const std::vector<int> &legalActions,

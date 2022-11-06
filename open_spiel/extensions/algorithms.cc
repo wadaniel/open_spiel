@@ -3,6 +3,7 @@
 #include "open_spiel/extensions/global_variables.h"
 #include "open_spiel/extensions/poker_methods.h"
 #include "open_spiel/games/universal_poker.h"
+#include <iterator>
 #include <iostream>
 #include <regex>
 
@@ -74,7 +75,6 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   std::array<bool, 9> explored{true, true, true, true, true,
                                true, true, true, true};
-  std::array<int, 9> regrets{0, 0, 0, 0, 0, 0, 0, 0, 0};
   std::array<float, 9> strategy{0., 0., 0., 0., 0., 0., 0., 0., 0.};
   std::array<float, 9> probabilities{0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
@@ -82,6 +82,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
   // Retrieve information state
   std::string informationState = state.InformationStateString(currentPlayer);
+  printf("iss %s\n", informationState.c_str());
 
   // Read betting stage
   const size_t bettingStage = informationState[7] - 48; // 0-4
@@ -92,6 +93,9 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   // Split of information state string
   // const auto informationStateSplit = split(informationState, "\\]\\[");
   const auto informationStateSplit = split(informationState, "][");
+  
+  //std::array<int, 3> stack{0, 0, 0};
+  //getStack(informationStateSplit[3], stack);
 
   // Bets of players
   std::fill(bets.begin(), bets.end(), 0);
@@ -136,8 +140,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
   std::sort(gameLegalActions.begin(), gameLegalActions.end());
 
   // Calculate our legal actions based on abstraction
-  const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
+  const auto ourLegalActions = getLegalActions(bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
   for (int action : ourLegalActions)
@@ -225,13 +228,11 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       // if all entries zero, take regrets from passed trained strategy
       if (allZero) {
 	assert(arrayIndex < N);
-        std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                  regrets.begin());
       } else {
         float expectedValue = 0.;
         for (const int action : ourLegalActions) {
           const size_t absoluteAction =
-              actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+              actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
           probabilities[action] = strategy[action];
           auto new_state = state.Child(absoluteAction);
           const float actionValue =
@@ -244,15 +245,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
       }
     } else {
       assert(arrayIndex < N);
-      std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-                regrets.begin());
     }
-    calculateProbabilities(regrets, ourLegalActions, probabilities);
+
+    calculateProbabilities(sharedRegret+arrayIndex, ourLegalActions, probabilities.begin());
 
     // Find actions to prune
     if (applyPruning == true && bettingStage < 3) {
       for (const int action : ourLegalActions) {
-        if (regrets[action] < pruneThreshold)
+        if (sharedRegret[arrayIndex+action] < pruneThreshold)
           explored[action] =
               false; // Do not explore actions below prune threshold
         if ((action == 0) || (action == 8))
@@ -267,7 +267,7 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
     for (const int action : ourLegalActions) {
       if (explored[action]) {
         const size_t absoluteAction =
-            actionToAbsolute(action, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+            actionToAbsolute(action, maxBet, totalPot, gameLegalActions);
         auto new_state = state.Child(absoluteAction);
         const float actionValue =
             cfr(updatePlayerIdx, time, pruneThreshold, useRealTimeSearch,
@@ -298,18 +298,14 @@ float cfr(int updatePlayerIdx, const int time, const float pruneThreshold,
 
     return expectedValue;
   } else {
-    // Only your own probabilities can be frozen, not the ones of other players
-    std::copy(&sharedRegret[arrayIndex], &sharedRegret[arrayIndex + 9],
-              regrets.begin());
-
     // Calculate probabilities from regrets
-    calculateProbabilities(regrets, ourLegalActions, probabilities);
+    calculateProbabilities(sharedRegret+arrayIndex, ourLegalActions, probabilities.begin());
 
     // randomChoice returns a value of 0 to 8
     const int sampledAction =
         randomChoice(probabilities.begin(), probabilities.end());
     const size_t absoluteAction =
-        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions, TOTALSTACK[currentPlayer]);
+        actionToAbsolute(sampledAction, maxBet, totalPot, gameLegalActions);
     auto new_state = state.Child(absoluteAction);
 
     // Update shared strategy
@@ -482,7 +478,6 @@ void discount(const float factor, int *sharedRegret, float *sharedStrategy, floa
 
 // Multiply array elements by factor
 void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_t N) {
-  std::array<int, 9> regrets;
   std::array<float, 9> probabilities;
 
   //std::array<float, 9> sharedStrategyLocal;
@@ -502,22 +497,19 @@ void update_strategy(const int *sharedRegret, float *sharedStrategy, const size_
      size_t segment = idx / GLOBAL_NUM_BUCKETS;
      if (segment % 4 == 0)
      {
-       // Find legal actions (non zeros) and init regrets
+       // Init arrays
+       std::fill(probabilities.begin(), probabilities.end(), 0.);	  
+ 
+       // Find legal actions (non zeros)    
        std::vector<int> legalActions;
        legalActions.reserve(9);
        for (int actionIdx = 0; actionIdx < 9; ++actionIdx)
        {
-	 regrets[actionIdx] = sharedRegret[idx+actionIdx];
-         if(regrets[actionIdx] != 0)
+         if(sharedRegret[idx+actionIdx] != 0)
            legalActions.push_back(actionIdx);
        }
-
-       calculateProbabilities(regrets, legalActions, probabilities);
-       
-       // Calculate shared probabilities before update
-       //std::copy(&sharedStrategy[idx], &sharedStrategy[idx+9], sharedStrategyLocal.begin());
-       //calculateProbabilities(sharedStrategyLocal, legalActions, sharedProbabilitiesBefore);
-        
+       calculateProbabilities(sharedRegret+idx, legalActions, probabilities.begin());
+     
        // Udpate shared strategy
        for (auto action : legalActions)
          sharedStrategy[idx+action] += probabilities[action];
@@ -731,7 +723,7 @@ size_t cfr_array_index(int updatePlayerIdx, const int time,
   // totalPot, maxBet, currentBet);
   // Calculate our legal actions based on abstraction
   const auto ourLegalActions = getLegalActions(
-      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions, TOTALSTACK[currentPlayer]);
+      bettingStage, totalPot, maxBet, currentBet, isReraise, gameLegalActions);
 
   assert(ourLegalActions.size() > 0);
   // printVec("ourLegalActions", ourLegalActions.begin(),

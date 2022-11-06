@@ -123,7 +123,6 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
                           const std::vector<int> &actions) {
 
   const size_t hashValue = vecHash(actions);
-
   try {
     if (isReraise)
       return globalLegalReraiseActionsToIndexMap.at(hashValue);
@@ -131,7 +130,7 @@ size_t getLegalActionCode(bool isReraise, size_t bettingStage,
       return globalLegalActionsToIndexMap.at(hashValue);
     else if (bettingStage == 1)
       return globalLegalFlopActionsToIndexMap.at(hashValue);
-    else /* (bettingStage == 2 v 3) */
+    else
       return globalLegalTurnRiverActionsToIndexMap.at(hashValue);
   } catch (const std::out_of_range &e) {
     printf("[global_variables] Legal Action Code (%zu) not found!\n",
